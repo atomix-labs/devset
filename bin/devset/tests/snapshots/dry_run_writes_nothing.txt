@@ -1,4 +1,4 @@
 $ devset init --path ../profile --dry-run
-Would create a.toml
+       Would create a.toml
     Finished dry run: 1 change, nothing written
 [exit 0]

@@ -437,6 +437,9 @@ mod tests {
             &[("a.toml", "merge", "x = 3\n"), ("b.toml", "owned", "b = 2\n")],
             "v2",
         );
+        let github = [("GITHUB_ACTIONS", "true")];
+        log += &sb.devset_with(&github, "repo", &["update", "--dry-run"]);
+        assert!(!sb.path("repo/.devset/conflicts").exists(), "a dry run writes no sidecar");
         log += &sb.devset("repo", &["update"]);
         assert_eq!(sb.read("repo/a.toml"), "x = 2\n", "the working file is untouched");
         assert_eq!(sb.read("repo/b.toml"), "b = 2\n", "clean files are applied");
@@ -478,6 +481,8 @@ mod tests {
             &[("a.toml", "merge", "x = 3\n"), ("b.toml", "owned", "b = 2\n")],
             "v2",
         );
+        log += &sb.devset("repo", &["update", "--dry-run"]);
+        assert!(!sb.path("repo/.devset/pending.toml").exists(), "a dry run withholds nothing");
         log += &sb.devset("repo", &["update"]);
         assert_eq!(sb.read("repo/b.toml"), "b = 1\n", "nothing else is written");
         assert!(sb.path("repo/.devset/pending.toml").exists(), "the update waits in pending.toml");

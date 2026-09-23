@@ -4,6 +4,13 @@ $ devset init --git ../profiles.git --branch main --path p
     Finished 2 changes
     Fetching ../profiles.git
 [exit 0]
+$ devset update --dry-run
+       Would conflict a.toml  conflicting changes
+       Would withhold b.toml  update
+    Finished dry run: 1 conflict; 1 change withheld by `on-conflict = "apply-none"`, nothing written
+    Fetching ../profiles.git
+help: run the command without `--dry-run`, then resolve the conflicts in .devset/conflicts/
+[exit 1]
 $ devset update
   Conflicted a.toml  conflicting changes
     Withheld b.toml  would update

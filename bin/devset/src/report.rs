@@ -144,10 +144,38 @@ fn literal(text: &str) -> String {
     format!("{LITERAL}`{text}`{LITERAL:#}")
 }
 
-/// Prints the log of `steps`; returns whether any conflicted.
-pub(crate) fn applied(
-    shell: &Shell, steps: &[Step], dry_run: bool, held: bool,
-) -> io::Result<bool> {
+/// What an apply wrote, which decides how its log reads.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) enum Wrote {
+    /// Everything it planned.
+    All,
+    /// Only its conflicts: `on-conflict = "apply-none"` withheld the rest.
+    Conflicts,
+    /// Nothing, being a dry run of a plan that would write all, or only its conflicts if `held`.
+    Nothing {
+        /// Whether `on-conflict = "apply-none"` would withhold the rest.
+        held: bool,
+    },
+}
+
+impl Wrote {
+    /// What an apply of a plan that is `held` or not writes, unless `dry_run`.
+    pub(crate) const fn of(dry_run: bool, held: bool) -> Self {
+        match (dry_run, held) {
+            (true, held) => Self::Nothing { held },
+            (false, true) => Self::Conflicts,
+            (false, false) => Self::All,
+        }
+    }
+
+    /// Whether `on-conflict = "apply-none"` holds back everything but the conflicts.
+    const fn held(self) -> bool {
+        matches!(self, Self::Conflicts | Self::Nothing { held: true })
+    }
+}
+
+/// Prints the log of `steps`, which wrote as `wrote` says; returns whether any conflicted.
+pub(crate) fn applied(shell: &Shell, steps: &[Step], wrote: Wrote) -> io::Result<bool> {
     let (mut changes, mut conflicts) = (0_usize, 0_usize);
     for step in steps {
         let Some(change) = Change::of(&step.entry, step.action) else { continue };
@@ -155,36 +183,47 @@ pub(crate) fn applied(
         if change == Change::Conflict {
             conflicts = conflicts.saturating_add(1);
             let why = step.note.as_deref().unwrap_or("conflicting changes");
-            shell.always("Conflicted", ERROR, format_args!("{path}  {why}"))?;
-        } else if dry_run {
-            changes = changes.saturating_add(1);
-            shell.status(&format!("Would {}", change.verb()), GOOD, path)?;
-        } else if held {
-            changes = changes.saturating_add(1);
-            shell.status("Withheld", WARN, format_args!("{path}  would {}", change.verb()))?;
-        } else {
-            changes = changes.saturating_add(1);
-            shell.status(change.past(), GOOD, path)?;
+            let (status, message) = match wrote {
+                Wrote::Nothing { .. } => ("Would", format!("conflict {path}  {why}")),
+                Wrote::All | Wrote::Conflicts => ("Conflicted", format!("{path}  {why}")),
+            };
+            shell.always(status, ERROR, message)?;
+            continue;
         }
+        changes = changes.saturating_add(1);
+        let verb = change.verb();
+        let (status, style, message) = match wrote {
+            Wrote::All => (change.past(), GOOD, path.to_string()),
+            Wrote::Conflicts => ("Withheld", WARN, format!("{path}  would {verb}")),
+            Wrote::Nothing { held: false } => ("Would", GOOD, format!("{verb} {path}")),
+            Wrote::Nothing { held: true } => ("Would", WARN, format!("withhold {path}  {verb}")),
+        };
+        shell.status(status, style, message)?;
     }
-    let summary = match (changes, conflicts, dry_run, held) {
-        (0, 0, ..) => "up to date".to_owned(),
-        (n, _, true, _) => format!("dry run: {}, nothing written", count(n, "change")),
-        (n, c, false, true) => {
-            format!(
-                "{}; {} withheld by `on-conflict = \"apply-none\"`",
-                count(c, "conflict"),
-                count(n, "change")
-            )
-        },
-        (0, c, false, false) => count(c, "conflict"),
-        (n, 0, false, false) => count(n, "change"),
-        (n, c, false, false) => format!("{}, {}", count(n, "change"), count(c, "conflict")),
+    let outcome = match (changes, conflicts) {
+        (0, 0) => "up to date".to_owned(),
+        (n, c) if wrote.held() => format!(
+            "{}; {} withheld by `on-conflict = \"apply-none\"`",
+            count(c, "conflict"),
+            count(n, "change")
+        ),
+        (n, 0) => count(n, "change"),
+        (0, c) => count(c, "conflict"),
+        (n, c) => format!("{}, {}", count(n, "change"), count(c, "conflict")),
+    };
+    let dry_run = matches!(wrote, Wrote::Nothing { .. });
+    let summary = if dry_run && changes.saturating_add(conflicts) > 0 {
+        format!("dry run: {outcome}, nothing written")
+    } else {
+        outcome
     };
     shell.status("Finished", GOOD, summary)?;
     if conflicts > 0 {
-        shell
-            .help("resolve the files in .devset/conflicts/, then run `devset update --continue`")?;
+        shell.help(if dry_run {
+            "run the command without `--dry-run`, then resolve the conflicts in .devset/conflicts/"
+        } else {
+            "resolve the files in .devset/conflicts/, then run `devset update --continue`"
+        })?;
     }
     Ok(conflicts > 0)
 }

@@ -31,6 +31,7 @@ use devset_core::target::Config;
 use devset_core::{Cache, Error, Mode, Refresh, Target, commit, plan, resolve, survey};
 use dialoguer::console;
 
+use crate::report::Wrote;
 use crate::shell::Shell;
 
 /// Apply versioned file bundles to a directory, and update them without losing local edits.
@@ -249,10 +250,11 @@ fn apply(
 ) -> Result<ExitCode, Error> {
     let resolved = ask::resolved(shell, target, cache, refresh, answers.vars)?;
     let plan = plan(survey(resolved, target)?, mode, target)?;
-    let (held, suggestions) = (plan.held(), plan.resolved().suggestions().to_vec());
+    let (wrote, suggestions) =
+        (Wrote::of(dry_run, plan.held()), plan.resolved().suggestions().to_vec());
     let steps = if dry_run { plan.steps().to_vec() } else { commit(plan, target)? };
-    let conflicts = report::applied(shell, &steps, dry_run, held)?;
-    github::conflicts(&steps, target)?;
+    let conflicts = report::applied(shell, &steps, wrote)?;
+    github::conflicts(&steps, target, wrote)?;
     report::suggestions(shell, &suggestions)?;
     Ok(if conflicts { ExitCode::FAILURE } else { ExitCode::SUCCESS })
 }

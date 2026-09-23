@@ -4,7 +4,7 @@ $ devset init --git ../profiles.git --branch main --path p
     Fetching ../profiles.git
 [exit 0]
 $ devset update --dry-run
- Would merge deny.toml
+       Would merge deny.toml
     Finished dry run: 1 change, nothing written
     Fetching ../profiles.git
 [exit 0]

@@ -7,7 +7,7 @@ use devset_core::plan::Step;
 use devset_core::{RelPath, Survey, Target};
 use github_actions::{CommandWithProperties, SummaryError, append_job_summary};
 
-use crate::report::{Change, Standing, state};
+use crate::report::{Change, Standing, Wrote, state};
 
 /// Whether devset runs in a GitHub Actions job.
 fn active() -> bool {
@@ -68,8 +68,8 @@ pub(crate) fn status(survey: &Survey, target: &Target) -> io::Result<()> {
     summarize(&summary)
 }
 
-/// Annotates the conflicts of an update.
-pub(crate) fn conflicts(steps: &[Step], target: &Target) -> io::Result<()> {
+/// Annotates the conflicts of an update, which wrote as `wrote` says.
+pub(crate) fn conflicts(steps: &[Step], target: &Target, wrote: Wrote) -> io::Result<()> {
     if !active() {
         return Ok(());
     }
@@ -77,11 +77,13 @@ pub(crate) fn conflicts(steps: &[Step], target: &Target) -> io::Result<()> {
         if Change::of(&step.entry, step.action) == Some(Change::Conflict) {
             let path = &step.entry.path;
             let why = step.note.as_deref().unwrap_or("conflicting changes");
-            annotate(
-                "error",
-                &file(target, path),
-                &format!("{path} conflicted: {why}; resolve .devset/conflicts/{path}"),
-            )?;
+            let message = match wrote {
+                Wrote::Nothing { .. } => format!("{path} would conflict: {why}"),
+                Wrote::All | Wrote::Conflicts => {
+                    format!("{path} conflicted: {why}; resolve .devset/conflicts/{path}")
+                },
+            };
+            annotate("error", &file(target, path), &message)?;
         }
     }
     Ok(())
