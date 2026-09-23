@@ -1,0 +1,31 @@
+$ devset init --path ../base
+     Created a.toml
+    Finished 1 change
+[exit 0]
+$ devset init --path ../extra
+     Created b.toml
+    Finished 1 change
+[exit 0]
+--- .devset/config.toml
+# layers, in order
+[[layers]]
+path = "../base"
+
+[[layers]]
+path = "../extra"
+--- .devset/state.toml
+version = 1
+
+[files."a.toml"]
+exact = "700d22f9add80fee0e537c94bfd8320a18ea8eae00d899547f0e6bc2f52acb39"
+canonical = "700d22f9add80fee0e537c94bfd8320a18ea8eae00d899547f0e6bc2f52acb39"
+
+[files."b.toml"]
+exact = "5d4ab1e2034719a034f5916dc093235acf0db6ebaff41839867866acd9131eb9"
+canonical = "5d4ab1e2034719a034f5916dc093235acf0db6ebaff41839867866acd9131eb9"
+--- .devset/.gitignore
+/conflicts/
+/pending.toml
+/.lock
+--- .devset/.gitattributes
+base/** -diff -text

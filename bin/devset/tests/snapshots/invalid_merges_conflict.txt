@@ -1,0 +1,16 @@
+$ devset init --git ../profiles.git --branch main --path p
+     Created c.toml
+    Finished 1 change
+    Fetching ../profiles.git
+[exit 0]
+$ devset update
+  Conflicted c.toml  merged, but invalid: duplicate key at line 5
+    Finished 1 conflict
+    Fetching ../profiles.git
+help: resolve the files in .devset/conflicts/, then run `devset update --continue`
+[exit 1]
+$ devset update --continue
+error: .devset/conflicts/c.toml: duplicate key at line 5
+  |
+  = help: fix it, then run `devset update --continue` again
+[exit 2]

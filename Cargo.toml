@@ -1,0 +1,205 @@
+# Workspace Cargo configuration.
+
+[workspace]
+resolver = "3"
+members  = ["lib/*", "bin/*"]
+exclude  = ["target", "docs", ".claude"]
+
+[workspace.metadata.cargo-shear]
+ignored-paths = ["**/tests/compile_fail/*.rs", "**/tests/compile_pass/*.rs"]
+
+[workspace.package]
+version      = "0.1.0"
+edition      = "2024"
+rust-version = "1.100"
+license      = "MIT"
+authors      = ["Rishi Dey Chowdhury <rishi8001100192@gmail.com>"]
+repository   = "https://github.com/atomix-labs/devset"
+readme       = "README.md"
+keywords     = ["configuration", "template", "drift", "repository", "sync"]
+categories   = ["development-tools", "command-line-utilities"]
+
+[workspace.lints.rust]
+unsafe_code                     = "deny"
+unsafe_op_in_unsafe_fn          = "deny"
+missing_docs                    = "deny"
+missing_debug_implementations   = "deny"
+unreachable_pub                 = "deny"
+unused_must_use                 = "deny"
+implicit_provenance_casts       = "deny"
+non_exhaustive_omitted_patterns = "deny"
+unknown_lints                   = "deny"
+unfulfilled_lint_expectations   = "deny"
+unused                          = { level = "deny", priority = -1 }
+rust_2018_idioms                = { level = "deny", priority = -1 }
+unexpected_cfgs                 = { level = "deny", check-cfg = ['cfg(loom)'] }
+single_use_lifetimes            = "deny"
+unused_lifetimes                = "deny"
+unused_qualifications           = "allow"
+variant_size_differences        = "deny"
+meta_variable_misuse            = "deny"
+macro_use_extern_crate          = "deny"
+
+[workspace.lints.cargo]
+non_kebab_case_bins = "deny"
+
+[workspace.lints.rustdoc]
+broken_intra_doc_links       = "deny"
+private_intra_doc_links      = "deny"
+unescaped_backticks          = "deny"
+invalid_html_tags            = "deny"
+bare_urls                    = "deny"
+redundant_explicit_links     = "deny"
+invalid_rust_codeblocks      = "deny"
+invalid_codeblock_attributes = "deny"
+
+[workspace.lints.clippy]
+all                               = { level = "deny", priority = -1 }
+pedantic                          = { level = "deny", priority = -1 }
+nursery                           = { level = "deny", priority = -1 }
+redundant_pub_crate               = "allow"
+module_inception                  = "allow"
+empty_enums                       = "allow"
+self_named_module_files           = "deny"
+allow_attributes                  = "deny"
+allow_attributes_without_reason   = "deny"
+unwrap_used                       = "deny"
+expect_used                       = "deny"
+undocumented_unsafe_blocks        = "deny"
+multiple_unsafe_ops_per_block     = "deny"
+unnecessary_safety_comment        = "deny"
+unnecessary_safety_doc            = "deny"
+missing_docs_in_private_items     = "deny"
+panic                             = "deny"
+panic_in_result_fn                = "deny"
+todo                              = "deny"
+unimplemented                     = "deny"
+unreachable                       = "deny"
+error_impl_error                  = "deny"
+map_err_ignore                    = "deny"
+indexing_slicing                  = "deny"
+arithmetic_side_effects           = "deny"
+mem_forget                        = "deny"
+dbg_macro                         = "deny"
+float_cmp                         = "deny"
+lossy_float_literal               = "deny"
+as_conversions                    = "deny"
+absolute_paths                    = "deny"
+wildcard_imports                  = "deny"
+print_stdout                      = "deny"
+print_stderr                      = "deny"
+exit                              = "deny"
+await_holding_lock                = "deny"
+std_instead_of_core               = "deny"
+std_instead_of_alloc              = "deny"
+clone_on_ref_ptr                  = "deny"
+unwrap_in_result                  = "deny"
+get_unwrap                        = "deny"
+string_slice                      = "deny"
+wildcard_enum_match_arm           = "deny"
+unused_result_ok                  = "deny"
+let_underscore_must_use           = "deny"
+mixed_read_write_in_expression    = "deny"
+suspicious_xor_used_as_pow        = "deny"
+same_name_method                  = "deny"
+redundant_type_annotations        = "deny"
+unnecessary_self_imports          = "deny"
+str_to_string                     = "deny"
+empty_structs_with_brackets       = "deny"
+empty_enum_variants_with_brackets = "deny"
+create_dir                        = "deny"
+verbose_file_reads                = "deny"
+filetype_is_file                  = "deny"
+mutex_atomic                      = "deny"
+mutex_integer                     = "deny"
+rc_buffer                         = "deny"
+rc_mutex                          = "deny"
+semicolon_inside_block            = "deny"
+tests_outside_test_module         = "deny"
+unseparated_literal_suffix        = "deny"
+pub_without_shorthand             = "deny"
+missing_assert_message            = "deny"
+impl_trait_in_params              = "deny"
+
+[profile.release]
+opt-level        = 3
+lto              = "fat"
+codegen-units    = 1
+debug            = false
+debug-assertions = false
+overflow-checks  = false
+panic            = "abort"
+strip            = false
+incremental      = false
+rpath            = false
+
+[profile.bench]
+inherits      = "release"
+lto           = "fat"
+codegen-units = 1
+
+[profile.dev]
+opt-level        = 0
+lto              = false
+codegen-units    = 256
+debug            = true
+debug-assertions = true
+overflow-checks  = true
+panic            = "abort"
+strip            = false
+incremental      = true
+rpath            = false
+
+[profile.test]
+inherits      = "dev"
+codegen-units = 16
+
+[profile.dev.package."*"]
+opt-level = 3
+
+[profile.profiling]
+inherits        = "release"
+debug           = "full"
+strip           = "none"
+split-debuginfo = "packed"
+
+[profile.release-fast]
+inherits      = "release"
+lto           = "thin"
+codegen-units = 16
+incremental   = true
+
+[workspace.dependencies]
+# external
+annotate-snippets     = "0.12.16"
+anstream              = "1.0.0"
+anstyle               = "1.0.14"
+atomic-write-file     = "0.3.1"
+blake3                = "1.8.7"
+camino                = { version = "1.2.6", features = ["serde1"] }
+clap                  = { version = "4.6.7", features = ["derive", "wrap_help"] }
+clap-cargo            = { version = "0.19.0", default-features = false, features = ["clap"] }
+dialoguer             = { version = "0.12.0", default-features = false }
+diffy                 = "0.5.2"
+etcetera              = "0.11.0"
+fs-err                = "3.3.1"
+github-actions        = "0.0.6"
+indicatif             = "0.18.6"
+jsonc-parser          = "0.33.2"
+minijinja             = { version = "2.24.0", default-features = false, features = ["builtins", "serde"] }
+proptest              = "1.11.0"
+schemars              = "1.2.2"
+semver                = { version = "1.0.28", features = ["serde"] }
+serde                 = { version = "1.0.229", features = ["derive"] }
+serde-saphyr          = "1.3.0"
+serde_json            = "1.0.151"
+shlex                 = "2.0.1"
+snapbox               = { version = "1.2.2", features = ["cmd", "dir", "path"] }
+strsim                = "0.11.1"
+tempfile              = "3.27.0"
+thiserror             = "2.0.20"
+toml                  = "1.1.6"
+unicode-normalization = "0.1.25"
+
+# internal
+devset-core = { path = "lib/devset-core", version = "0.1.0" }

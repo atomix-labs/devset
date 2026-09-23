@@ -1,0 +1,21 @@
+$ devset -q init --path ../p
+[exit 0]
+$ devset status --exit-code
+p 1.0.0  ../p  (changed since it was applied)
+
+Drifted — `devset apply --force` restores:
+    edited     a.toml  owned  restore
+
+Pending — `devset apply` will:
+    new        c.toml  owned  create
+::error title=devset,file=repo/a.toml::a.toml is edited; `devset apply --force` would restore it
+::warning title=devset,file=repo/c.toml::c.toml is new; `devset apply` would create it
+[exit 1]
+--- $GITHUB_STEP_SUMMARY
+### devset
+
+| File | State | Next |
+| --- | --- | --- |
+| `a.toml` | edited | `devset apply --force` would restore it |
+| `c.toml` | new | `devset apply` would create it |
+

@@ -1,0 +1,30 @@
+$ devset init --path ../p
+error: 1 variable unanswered: author
+  |
+  = help: answer with `--var author=…`
+[exit 2]
+$ devset init --path ../p --var auther=Ada
+error: no profile declares a variable named auther
+  |
+  = help: did you mean `author`?
+[exit 2]
+$ devset init --path ../p --var author=Ada
+     Created Cargo.toml
+     Created cfg.toml
+    Finished 2 changes
+note: answered cpu = "native", the default
+  |
+  = help: pass `--var cpu=…` to choose another
+[exit 0]
+--- .devset/answers.toml
+author = "Ada"
+cpu = "native"
+$ devset apply --var cpu=x86-64-v3
+     Updated cfg.toml
+    Finished 1 change
+[exit 0]
+$ devset status
+p 1.0.0  ../p
+
+All 2 files match the profile.
+[exit 0]

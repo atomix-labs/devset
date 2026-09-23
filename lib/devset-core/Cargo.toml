@@ -1,0 +1,42 @@
+[package]
+name                   = "devset-core"
+description            = "Versioned file bundles, applied to a directory and updated without losing local edits."
+version.workspace      = true
+edition.workspace      = true
+rust-version.workspace = true
+license.workspace      = true
+authors.workspace      = true
+repository.workspace   = true
+readme.workspace       = true
+keywords.workspace     = true
+categories.workspace   = true
+
+[features]
+default = []
+
+[lints]
+workspace = true
+
+[dependencies]
+# external
+atomic-write-file     = { workspace = true }
+blake3                = { workspace = true }
+camino                = { workspace = true }
+diffy                 = { workspace = true }
+etcetera              = { workspace = true }
+fs-err                = { workspace = true }
+jsonc-parser          = { workspace = true }
+minijinja             = { workspace = true }
+schemars              = { workspace = true }
+semver                = { workspace = true }
+serde                 = { workspace = true }
+serde-saphyr          = { workspace = true }
+shlex                 = { workspace = true }
+tempfile              = { workspace = true }
+thiserror             = { workspace = true }
+toml                  = { workspace = true }
+unicode-normalization = { workspace = true }
+
+[dev-dependencies]
+# external
+proptest = { workspace = true }

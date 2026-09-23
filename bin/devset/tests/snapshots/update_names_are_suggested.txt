@@ -1,0 +1,9 @@
+$ devset init --path ../p
+     Created a.toml
+    Finished 1 change
+[exit 0]
+$ devset update rsut
+error: no layer is named rsut
+  |
+  = help: did you mean `rust`?
+[exit 2]

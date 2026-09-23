@@ -1,0 +1,41 @@
+$ devset status --json
+{
+  "layers": [
+    {
+      "name": "demo",
+      "version": "1.0.0",
+      "source": {
+        "path": "../profile"
+      },
+      "rev": null,
+      "digest": "9293fbebba2360d9143d2859bafa1fffb1c0a1c47e8e0de98f01141bbd1b2eac",
+      "applied": "current"
+    }
+  ],
+  "files": [
+    {
+      "path": "a.toml",
+      "layer": "demo",
+      "policy": "owned",
+      "state": "edited",
+      "apply": null,
+      "force": "restore"
+    },
+    {
+      "path": "b.toml",
+      "layer": "demo",
+      "policy": "merge",
+      "state": "unchanged",
+      "apply": null,
+      "force": null
+    }
+  ],
+  "settings": {
+    "on-conflict": "apply-others",
+    "driver": "builtin"
+  },
+  "answers": {},
+  "suggestions": [],
+  "drifted": true
+}
+[exit 0]

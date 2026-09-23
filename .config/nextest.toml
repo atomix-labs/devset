@@ -1,0 +1,14 @@
+# Workspace Nextest configuration.
+
+[profile.default]
+retries = 2
+
+[profile.default.junit]
+path = "nextest-junit.xml"
+
+[test-groups.trybuild]
+max-threads = 1
+
+[[profile.default.overrides]]
+filter = 'binary(=trybuild)'
+test-group = 'trybuild'

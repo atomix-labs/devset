@@ -1,0 +1,64 @@
+$ devset status
+error: no devset target in [ROOT] or any parent
+  |
+  = help: start one: `devset init --path <profile>` or `devset init --git <url>`
+[exit 2]
+$ devset init --tag v1
+error: the following required arguments were not provided:
+  --git <GIT>
+  --path <PATH>
+
+Usage: devset init --git <GIT> --tag <TAG> --path <PATH>
+
+For more information, try '--help'.
+[exit 2]
+$ devset init --path ../nope
+error: ../nope is not a profile: it has no profile.toml
+[exit 2]
+$ devset init --path ../reserved
+error: invalid path ".git/hooks/pre-commit": reserved component
+ --> ../reserved/profile.toml:4:8
+  |
+4 | [files.".git/hooks/pre-commit"]
+  |        ^^^^^^^^^^^^^^^^^^^^^^^
+[exit 2]
+$ devset init --path ../missing
+error: profile missing lists gone.toml, but files/gone.toml does not exist
+[exit 2]
+$ devset init --path ../typo
+error: unknown field `polcy`, expected one of `policy`, `validate`, `template`
+ --> ../typo/profile.toml:5:1
+  |
+5 | polcy = "once"
+  | ^^^^^
+[exit 2]
+$ devset init --path ../newer
+error: profile newer requires devset >=99; this is 0.1.0
+  |
+  = help: upgrade devset, or pin the profile to an older version
+[exit 2]
+$ devset init --path ../fold
+error: README.md and readme.md are the same file on case-insensitive filesystems
+[exit 2]
+$ devset init --path ../ok
+     Created a.toml
+    Finished 1 change
+[exit 0]
+$ devset init --path ../ok
+error: the layer ../ok is already applied
+[exit 2]
+$ devset init --path ../clash
+error: a.toml is provided by ok and clash
+  |
+  = help: choose one in .devset/config.toml:
+              [files."a.toml"]
+              from = "ok"   # or "clash"
+[exit 2]
+$ devset init --path ../../ok
+error: [ROOT]/repo/sub is inside the devset target at [ROOT]/repo
+  |
+  = help: run devset from [ROOT]/repo
+[exit 2]
+$ devset status
+error: [ROOT]/repo/a.toml is not a regular file
+[exit 2]

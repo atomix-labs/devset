@@ -1,0 +1,20 @@
+$ devset init --git ../profiles.git --path a
+     Created a.txt
+    Finished 1 change
+    Fetching ../profiles.git
+[exit 0]
+$ devset init --git ../profiles.git --path b
+     Created b.txt
+    Finished 1 change
+    Fetching ../profiles.git
+[exit 0]
+$ devset update nope
+error: no layer is named nope
+  |
+  = help: the layers are a and b
+[exit 2]
+$ devset update b
+     Updated b.txt
+    Finished 1 change
+    Fetching ../profiles.git
+[exit 0]

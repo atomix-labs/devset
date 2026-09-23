@@ -1,0 +1,10 @@
+# Workspace Cargo build configuration.
+
+[build]
+rustflags = ["-C", "target-cpu=native"]
+
+[future-incompat-report]
+frequency = "always"
+
+[resolver]
+incompatible-rust-versions = "fallback"

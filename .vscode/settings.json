@@ -1,0 +1,26 @@
+{
+  "editor.formatOnSave": true,
+  "editor.formatOnPaste": true,
+  "files.associations": { ".yamllint": "yaml", ".ansible-lint": "yaml" },
+  "[markdown][yaml][json][jsonc][python][css][javascript]": { "editor.defaultFormatter": "dprint.dprint" },
+  "[toml]": { "editor.defaultFormatter": "tamasfe.even-better-toml" },
+  "[rust]": { "editor.defaultFormatter": "rust-lang.rust-analyzer" },
+  "rumdl.fixOnSave": true,
+  "ruff.importStrategy": "fromEnvironment",
+  "markdown.validate.enabled": true,
+  "markdown.validate.fileLinks.markdownFragmentLinks": "ignore",
+  "json.schemaDownload.trustedDomains": { "https://plugins.dprint.dev/": true, "https://dprint.dev/": true },
+  "rust-analyzer.cargo.features": "all",
+  "rust-analyzer.check.invocationStrategy": "per_workspace",
+  "rust-analyzer.check.overrideCommand": [
+    "cargo",
+    "clippy",
+    "--workspace",
+    "--all-targets",
+    "--all-features",
+    "--message-format=json-diagnostic-rendered-ansi"
+  ],
+  "rust-analyzer.cargo.extraEnv": { "CARGO_TARGET_DIR": "target/ra" },
+  "rust-analyzer.diagnostics.disabled": ["unlinked-file"],
+  "rust-analyzer.linkedProjects": ["Cargo.toml"]
+}

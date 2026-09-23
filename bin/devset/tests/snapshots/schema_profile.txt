@@ -1,0 +1,221 @@
+$ devset schema profile
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Manifest",
+  "description": "`profile.toml`.",
+  "type": "object",
+  "properties": {
+    "files": {
+      "description": "Managed files, by path in the target and under `files/`.",
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/FileSpec"
+      }
+    },
+    "merge": {
+      "description": "Merge defaults.",
+      "$ref": "#/$defs/MergeSpec",
+      "default": {}
+    },
+    "profile": {
+      "description": "Identity and requirements.",
+      "$ref": "#/$defs/Meta"
+    },
+    "vars": {
+      "description": "Variables templates use; the target answers them.",
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/VarSpec"
+      }
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "profile"
+  ],
+  "$defs": {
+    "FileSpec": {
+      "description": "A profile's `[files./"path/"]` entry.",
+      "type": "object",
+      "properties": {
+        "policy": {
+          "description": "How devset manages the file; `owned` unless set.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Policy"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "template": {
+          "description": "Whether the file is a template, rendered with the target's answers.",
+          "type": "boolean",
+          "default": false
+        },
+        "validate": {
+          "description": "How a merged result is checked; inferred from the extension unless set.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Format"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "additionalProperties": false
+    },
+    "Format": {
+      "description": "How a file is checked after a merge: it must parse, with no duplicate keys.",
+      "oneOf": [
+        {
+          "description": "TOML.",
+          "type": "string",
+          "const": "toml"
+        },
+        {
+          "description": "JSON with comments and trailing commas (JSONC), a superset of JSON.",
+          "type": "string",
+          "const": "json"
+        },
+        {
+          "description": "YAML.",
+          "type": "string",
+          "const": "yaml"
+        },
+        {
+          "description": "Not checked.",
+          "type": "string",
+          "const": "none"
+        }
+      ]
+    },
+    "MergeSpec": {
+      "description": "A `[merge]` table: defaults in `profile.toml`, decisions in `.devset/config.toml`.",
+      "type": "object",
+      "properties": {
+        "driver": {
+          "description": "A merge program, with `%O %A %B %P` substituted./n/nFrom a profile it is only a suggestion: devset never runs a program a profile names.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "on-conflict": {
+          "description": "What an update does when a file conflicts.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/OnConflict"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "Meta": {
+      "description": "The `[profile]` table.",
+      "type": "object",
+      "properties": {
+        "description": {
+          "description": "One line for humans.",
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null
+        },
+        "devset": {
+          "description": "The devset versions the profile works with.",
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null
+        },
+        "name": {
+          "description": "Names the profile in output, in collisions, and to `update`.",
+          "type": "string"
+        },
+        "version": {
+          "description": "For humans; a git layer is pinned by commit.",
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "name"
+      ]
+    },
+    "OnConflict": {
+      "description": "What an update does when a file conflicts.",
+      "oneOf": [
+        {
+          "description": "Write every other file and advance the lock; conflicts wait in `.devset/conflicts/`.",
+          "type": "string",
+          "const": "apply-others"
+        },
+        {
+          "description": "Write nothing but the conflicts until every one is resolved.",
+          "type": "string",
+          "const": "apply-none"
+        }
+      ]
+    },
+    "Policy": {
+      "description": "How devset manages a file.",
+      "oneOf": [
+        {
+          "description": "The profile is authoritative; local edits are drift.",
+          "type": "string",
+          "const": "owned"
+        },
+        {
+          "description": "Local edits are kept, and merged with the profile's.",
+          "type": "string",
+          "const": "merge"
+        },
+        {
+          "description": "Written once if absent; the target's from then on.",
+          "type": "string",
+          "const": "once"
+        }
+      ]
+    },
+    "VarSpec": {
+      "description": "A `[vars.name]` entry.",
+      "type": "object",
+      "properties": {
+        "default": {
+          "description": "The answer offered.",
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null
+        },
+        "prompt": {
+          "description": "What to ask; the name if unset.",
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}
+[exit 0]

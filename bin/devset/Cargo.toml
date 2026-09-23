@@ -1,0 +1,42 @@
+[package]
+name                   = "devset"
+description            = "Apply versioned file bundles to a directory, and update them without losing local edits."
+version.workspace      = true
+edition.workspace      = true
+rust-version.workspace = true
+license.workspace      = true
+authors.workspace      = true
+repository.workspace   = true
+readme.workspace       = true
+keywords.workspace     = true
+categories.workspace   = true
+
+[features]
+default = []
+
+[lints]
+workspace = true
+
+[dependencies]
+# external
+annotate-snippets = { workspace = true }
+anstream          = { workspace = true }
+anstyle           = { workspace = true }
+camino            = { workspace = true }
+clap              = { workspace = true }
+clap-cargo        = { workspace = true }
+dialoguer         = { workspace = true }
+github-actions    = { workspace = true }
+indicatif         = { workspace = true }
+schemars          = { workspace = true }
+serde             = { workspace = true }
+serde_json        = { workspace = true }
+strsim            = { workspace = true }
+toml              = { workspace = true }
+# internal
+devset-core = { workspace = true }
+
+[dev-dependencies]
+# external
+snapbox  = { workspace = true }
+tempfile = { workspace = true }

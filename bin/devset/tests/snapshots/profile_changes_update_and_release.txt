@@ -1,0 +1,20 @@
+$ devset init --path ../profile
+     Created a.toml
+     Created b.toml
+    Finished 2 changes
+[exit 0]
+$ devset status
+demo 1.0.0  ../profile  (changed since it was applied)
+
+Pending — `devset apply` will:
+    unchanged  a.toml  owned  update
+    vanished   b.toml         release
+[exit 0]
+$ devset apply
+     Updated a.toml
+    Released b.toml
+    Finished 2 changes
+[exit 0]
+$ devset apply
+    Finished up to date
+[exit 0]

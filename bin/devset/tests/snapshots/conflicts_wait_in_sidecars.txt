@@ -1,0 +1,37 @@
+$ devset init --git ../profiles.git --branch main --path p
+     Created a.toml
+     Created b.toml
+    Finished 2 changes
+    Fetching ../profiles.git
+[exit 0]
+$ devset update
+  Conflicted a.toml  conflicting changes
+     Updated b.toml
+    Finished 1 change, 1 conflict
+    Fetching ../profiles.git
+help: resolve the files in .devset/conflicts/, then run `devset update --continue`
+[exit 1]
+$ devset status --exit-code
+p 1.0.0  ../profiles.git branch main path p  @54ba0dc
+
+Conflicts — resolve in .devset/conflicts/, then run `devset update --continue`:
+    conflict   a.toml  merge  → .devset/conflicts/a.toml
+[exit 1]
+$ devset apply
+error: 1 conflict unresolved: a.toml
+  |
+  = help: resolve them in .devset/conflicts/, then run `devset update --continue`;
+          or delete .devset/conflicts/ to abandon the update
+[exit 2]
+$ devset update --continue
+error: .devset/conflicts/a.toml still has conflict markers
+  |
+  = help: fix it, then run `devset update --continue` again
+[exit 2]
+$ devset update --continue
+      Merged a.toml
+    Finished 1 change
+[exit 0]
+$ devset update --continue
+error: there are no conflicts to continue from
+[exit 2]

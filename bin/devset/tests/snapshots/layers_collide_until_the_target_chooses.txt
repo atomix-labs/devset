@@ -1,0 +1,32 @@
+$ devset init --path ../base
+     Created fmt.toml
+    Finished 1 change
+[exit 0]
+$ devset init --path ../rust
+error: fmt.toml is provided by base and rust
+  |
+  = help: choose one in .devset/config.toml:
+              [files."fmt.toml"]
+              from = "base"   # or "rust"
+[exit 2]
+$ devset status
+error: ruts does not provide fmt.toml
+  |
+  = help: did you mean `rust`? it is provided by base and rust
+[exit 2]
+$ devset apply --force
+     Updated fmt.toml
+     Created rust.toml
+    Finished 2 changes
+[exit 0]
+$ devset status -v
+base 1.0.0  ../base
+rust 1.0.0  ../rust
+  merge driver: builtin
+
+In sync:
+    unchanged  fmt.toml   owned  (rust)
+    unchanged  rust.toml  owned  (rust)
+
+All 2 files match the profile.
+[exit 0]

@@ -1,0 +1,75 @@
+$ devset init --path ../p
+     Created a.txt
+    Finished 1 change
+note: profile p suggests a merge driver; devset never runs a program a profile names
+  |
+  = help: to use it, add to .devset/config.toml:
+              [merge]
+              driver = "cp %B %A"
+[exit 0]
+$ devset init --path ../q
+error: p and q set merge.on-conflict differently
+  |
+  = help: decide it in .devset/config.toml by setting merge.on-conflict
+[exit 2]
+$ devset status --json
+{
+  "layers": [
+    {
+      "name": "p",
+      "version": "1.0.0",
+      "source": {
+        "path": "../p"
+      },
+      "rev": null,
+      "digest": "46cbf6a7bb17b31f7ebb8e11e3e41fb867f916f378f1908bcfc9a7d94c58619f",
+      "applied": "changed"
+    },
+    {
+      "name": "q",
+      "version": "1.0.0",
+      "source": {
+        "path": "../q"
+      },
+      "rev": null,
+      "digest": "95e9b097d9411f525099581de244a5c83da6c8e893a10992ab13836d553a5386",
+      "applied": "never"
+    }
+  ],
+  "files": [
+    {
+      "path": "a.txt",
+      "layer": "p",
+      "policy": "merge",
+      "state": "edited",
+      "apply": "merge",
+      "force": "merge"
+    },
+    {
+      "path": "b.txt",
+      "layer": "q",
+      "policy": "once",
+      "state": "new",
+      "apply": "create",
+      "force": "create"
+    }
+  ],
+  "settings": {
+    "on-conflict": "apply-none",
+    "driver": "cp %B %A"
+  },
+  "answers": {},
+  "suggestions": [],
+  "drifted": true
+}
+[exit 0]
+$ devset apply
+      Merged a.txt
+     Created b.txt
+    Finished 2 changes
+[exit 0]
+$ devset status
+error: .devset/config.toml overrides gone.txt, which no layer provides
+  |
+  = help: remove its [files."gone.txt"] table
+[exit 2]

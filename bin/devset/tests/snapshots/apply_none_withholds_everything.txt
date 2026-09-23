@@ -1,0 +1,18 @@
+$ devset init --git ../profiles.git --branch main --path p
+     Created a.toml
+     Created b.toml
+    Finished 2 changes
+    Fetching ../profiles.git
+[exit 0]
+$ devset update
+  Conflicted a.toml  conflicting changes
+    Withheld b.toml  would update
+    Finished 1 conflict; 1 change withheld by `on-conflict = "apply-none"`
+    Fetching ../profiles.git
+help: resolve the files in .devset/conflicts/, then run `devset update --continue`
+[exit 1]
+$ devset update --continue
+      Merged a.toml
+     Updated b.toml
+    Finished 2 changes
+[exit 0]

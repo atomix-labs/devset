@@ -1,0 +1,38 @@
+$ devset init --path ../profile
+     Adopted deny.toml
+     Created justfile
+     Created rustfmt.toml
+    Finished 3 changes
+[exit 0]
+$ devset status --exit-code
+demo 1.0.0  ../profile
+
+Local changes, kept:
+    edited     deny.toml  merge
+[exit 0]
+$ devset status --exit-code
+demo 1.0.0  ../profile
+
+Drifted — `devset apply --force` restores:
+    edited     rustfmt.toml  owned  restore
+
+Local changes, kept:
+    edited     deny.toml     merge
+[exit 1]
+$ devset apply
+    Finished up to date
+[exit 0]
+$ devset apply --force --dry-run
+Would restore rustfmt.toml
+    Finished dry run: 1 change, nothing written
+[exit 0]
+$ devset apply --force
+    Restored rustfmt.toml
+    Finished 1 change
+[exit 0]
+$ devset status --exit-code
+demo 1.0.0  ../profile
+
+Local changes, kept:
+    edited     deny.toml  merge
+[exit 0]

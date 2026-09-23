@@ -1,0 +1,29 @@
+# Workspace TOML formatter configuration.
+
+include = ["**/*.toml"]
+exclude = ["**/target/**"]
+
+[formatting]
+align_entries         = true
+align_comments        = true
+array_trailing_comma  = true
+array_auto_expand     = true
+array_auto_collapse   = true
+compact_arrays        = true
+compact_inline_tables = false
+compact_entries       = false
+column_width          = 100
+indent_tables         = false
+indent_entries        = false
+indent_string         = "    "
+inline_table_expand   = false
+trailing_newline      = true
+reorder_keys          = false
+reorder_arrays        = false
+allowed_blank_lines   = 1
+
+[[rule]]
+include = ["**/Cargo.toml"]
+keys    = ["dependencies", "dev-dependencies", "build-dependencies", "workspace.dependencies"]
+[rule.formatting]
+reorder_keys = true

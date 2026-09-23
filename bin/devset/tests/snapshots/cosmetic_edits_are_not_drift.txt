@@ -1,0 +1,12 @@
+$ devset init --path ../profile
+     Created a.toml
+    Finished 1 change
+[exit 0]
+$ devset status --exit-code
+demo 1.0.0  ../profile
+
+1 file matches the profile.
+[exit 0]
+$ devset apply --force
+    Finished up to date
+[exit 0]
