@@ -31,16 +31,15 @@ impl Format {
     /// The format `path`'s extension implies.
     #[must_use]
     pub fn of(path: &RelPath) -> Self {
-        let name = path.as_str().rsplit('/').next().unwrap_or(path.as_str());
+        let name = path.file_name();
         // Lockfiles that are TOML whatever their extension says.
         if matches!(name, "Cargo.lock" | "mise.lock") || name.ends_with(".mise.lock") {
             return Self::Toml;
         }
-        let extension = name.rsplit_once('.').map_or("", |(_, ext)| ext);
-        match extension.to_ascii_lowercase().as_str() {
-            "toml" => Self::Toml,
-            "json" | "jsonc" => Self::Json,
-            "yaml" | "yml" => Self::Yaml,
+        match path.extension().as_deref() {
+            Some("toml") => Self::Toml,
+            Some("json" | "jsonc") => Self::Json,
+            Some("yaml" | "yml") => Self::Yaml,
             _ => Self::None,
         }
     }

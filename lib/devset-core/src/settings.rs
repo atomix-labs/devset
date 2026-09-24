@@ -1,5 +1,6 @@
 //! Settings a profile defaults and a target overrides.
 
+use derive_more::Display;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -23,25 +24,17 @@ pub struct MergeSpec {
 }
 
 /// What an update does when a file conflicts.
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[derive(
+    Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize, JsonSchema, Display,
+)]
 #[serde(rename_all = "kebab-case")]
+#[display(rename_all = "kebab-case")]
 pub enum OnConflict {
     /// Write every other file and advance the lock; conflicts wait in `.devset/conflicts/`.
     #[default]
     ApplyOthers,
     /// Write nothing but the conflicts until every one is resolved.
     ApplyNone,
-}
-
-impl OnConflict {
-    /// The name `[merge]` uses.
-    #[must_use]
-    pub const fn as_str(self) -> &'static str {
-        match self {
-            Self::ApplyOthers => "apply-others",
-            Self::ApplyNone => "apply-none",
-        }
-    }
 }
 
 /// The settings in force: devset's defaults, then each layer's, then the target's.

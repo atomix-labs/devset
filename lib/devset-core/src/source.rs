@@ -8,9 +8,11 @@ use std::io::{self, Read};
 use std::sync::Mutex;
 
 use camino::{Utf8Component, Utf8Path, Utf8PathBuf};
+use derive_more::{Display, Into};
 use etcetera::BaseStrategy;
 use schemars::{JsonSchema, Schema, SchemaGenerator};
 use serde::{Deserialize, Serialize};
+use walkdir::WalkDir;
 
 use crate::errors::{Result, SourceError};
 use crate::git;
@@ -49,7 +51,9 @@ pub enum GitRef {
 }
 
 /// A full commit id: 40 or 64 hex digits, lowercase.
-#[derive(Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Eq, Display, derive_more::Debug, Into, Serialize, Deserialize)]
+#[debug("{_0}")]
+#[into(String)]
 #[serde(try_from = "String", into = "String")]
 pub struct Oid(Box<str>);
 
@@ -204,6 +208,12 @@ impl Oid {
     pub fn as_str(&self) -> &str {
         &self.0
     }
+
+    /// Its first seven digits, as git abbreviates it.
+    #[must_use]
+    pub fn short(&self) -> &str {
+        self.0.get(..7).unwrap_or(&self.0)
+    }
 }
 
 impl TryFrom<String> for Oid {
@@ -215,24 +225,6 @@ impl TryFrom<String> for Oid {
         }
         id.make_ascii_lowercase();
         Ok(Self(id.into_boxed_str()))
-    }
-}
-
-impl From<Oid> for String {
-    fn from(id: Oid) -> Self {
-        id.0.into_string()
-    }
-}
-
-impl fmt::Display for Oid {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str(&self.0)
-    }
-}
-
-impl fmt::Debug for Oid {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str(&self.0)
     }
 }
 
@@ -251,13 +243,15 @@ type Hook = Arc<dyn Fn(Fetch<'_>) + Send + Sync>;
 /// Fetched git profiles, shared by every target on the machine.
 ///
 /// One process sees one commit per ref: each ref is asked of its remote once.
-#[derive(Clone)]
+#[derive(Clone, derive_more::Debug)]
 pub struct Cache {
     /// Where it lives.
     dir: Utf8PathBuf,
     /// Told about remote access.
+    #[debug(skip)]
     hook: Option<Hook>,
     /// Refs resolved so far, by URL and ref name, so one process sees one commit per ref.
+    #[debug(skip)]
     refs: Arc<Mutex<HashMap<(String, String), Oid>>>,
     /// Whether git may ask for credentials on the terminal.
     prompts: bool,
@@ -333,14 +327,6 @@ impl Cache {
     }
 }
 
-impl fmt::Debug for Cache {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("Cache")
-            .field("dir", &self.dir)
-            .finish_non_exhaustive()
-    }
-}
-
 /// A source opened at one revision.
 #[derive(Debug)]
 pub(crate) enum Reader {
@@ -407,39 +393,31 @@ impl Reader {
 
 /// The profiles around `root`, as `path` would name them.
 ///
-/// The two directories above it, for a path pointing inside a profile, and two levels below.
+/// The two directories above it, for a path pointing inside a profile, and two levels below,
+/// hidden ones left out.
 fn local_profiles(root: &Utf8Path, written: &Utf8Path) -> Vec<String> {
-    let mut found: Vec<String> = root
+    let above = root
         .ancestors()
         .zip(written.ancestors())
         .skip(1)
         .take(2)
         .filter(|(dir, name)| !name.as_str().is_empty() && dir.join(MANIFEST).is_file())
-        .map(|(_, name)| name.to_string())
-        .collect();
-    let mut level = vec![(root.to_path_buf(), written.to_path_buf())];
-    for _ in 0..2 {
-        let mut next = Vec::new();
-        for (dir, name) in level {
-            let Ok(entries) = fs_err::read_dir(&dir) else {
-                continue;
-            };
-            for entry in entries.flatten() {
-                let Ok(child) = Utf8PathBuf::try_from(entry.path()) else {
-                    continue;
-                };
-                if !child.is_dir() || child.file_name().is_some_and(|n| n.starts_with('.')) {
-                    continue;
-                }
-                let child_name = name.join(child.file_name().unwrap_or_default());
-                if child.join(MANIFEST).is_file() {
-                    found.push(child_name.to_string());
-                }
-                next.push((child, child_name));
-            }
-        }
-        level = next;
-    }
+        .map(|(_, name)| name.to_string());
+    let below = WalkDir::new(root)
+        .min_depth(1)
+        .max_depth(2)
+        .follow_links(true)
+        .into_iter()
+        .filter_entry(|entry| {
+            entry.file_type().is_dir() && !entry.file_name().as_encoded_bytes().starts_with(b".")
+        })
+        .filter_map(Result::ok)
+        .filter(|entry| entry.path().join(MANIFEST).is_file())
+        .filter_map(|entry| {
+            let inside = Utf8Path::from_path(entry.path().strip_prefix(root).ok()?)?;
+            Some(written.join(inside).into_string())
+        });
+    let mut found: Vec<String> = above.chain(below).collect();
     found.sort();
     found
 }

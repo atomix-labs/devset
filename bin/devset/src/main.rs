@@ -11,7 +11,11 @@
 //! devset update --continue
 //! ```
 
-#![feature(non_exhaustive_omitted_patterns_lint, strict_provenance_lints)]
+#![feature(
+    non_exhaustive_omitted_patterns_lint,
+    normalize_lexically,
+    strict_provenance_lints
+)]
 
 extern crate alloc;
 
@@ -26,7 +30,7 @@ use std::env;
 use std::io::{self, Write};
 use std::process::ExitCode;
 
-use camino::{Utf8Component, Utf8Path, Utf8PathBuf};
+use camino::{Utf8Path, Utf8PathBuf};
 use clap::{Args, CommandFactory, Parser, Subcommand, ValueEnum};
 use clap_cargo::style::GOOD;
 use devset_core::profile::{Manifest, VarName};
@@ -284,7 +288,7 @@ fn run(shell: &Shell, command: Command) -> Result<ExitCode, Error> {
             answers,
             dry_run,
         } => {
-            let mut target = Target::at(&cwd)?;
+            let mut target = Target::open_or_new(&cwd)?;
             target.add_layer(Source::try_from(source.spec())?)?;
             apply(
                 shell,
@@ -506,8 +510,12 @@ fn managed(
     paths
         .iter()
         .map(|given| {
-            let full = lexical(&cwd.join(given));
-            let inside = full.strip_prefix(target.root()).ok();
+            // `..` resolved by name alone, as a shell resolves `cd ../x`.
+            let full = cwd.join(given).as_std_path().normalize_lexically().ok();
+            let full = full.and_then(|full| Utf8PathBuf::from_path_buf(full).ok());
+            let inside = full
+                .as_deref()
+                .and_then(|full| full.strip_prefix(target.root()).ok());
             let path = inside.and_then(|relative| RelPath::new(relative.as_str()).ok());
             path.filter(|path| managed.contains(path)).ok_or_else(|| {
                 // Named from the target root, as `status` names managed files.
@@ -520,23 +528,6 @@ fn managed(
             })
         })
         .collect()
-}
-
-/// `path` with `.` and `..` resolved by name alone, as a shell resolves `cd ../x`.
-fn lexical(path: &Utf8Path) -> Utf8PathBuf {
-    let mut out = Utf8PathBuf::new();
-    for component in path.components() {
-        match component {
-            Utf8Component::CurDir => {}
-            Utf8Component::ParentDir => {
-                out.pop();
-            }
-            Utf8Component::Prefix(_) | Utf8Component::RootDir | Utf8Component::Normal(_) => {
-                out.push(component);
-            }
-        }
-    }
-    out
 }
 
 /// Plans `target` and commits, unless `dry_run`; exit 1 when a file conflicts.

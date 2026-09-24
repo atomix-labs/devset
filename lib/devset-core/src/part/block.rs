@@ -50,17 +50,13 @@ impl Comment {
 
 /// The comment syntax a file type writes markers in, when devset knows it.
 pub(crate) fn comment(path: &RelPath) -> Option<Comment> {
-    let name = path.as_str().rsplit('/').next().unwrap_or(path.as_str());
-    let extension = name
-        .rsplit_once('.')
-        .map(|(_, ext)| ext.to_ascii_lowercase());
-    let by_name = match name {
+    let by_name = match path.file_name() {
         ".gitignore" | ".gitattributes" | ".dockerignore" | ".editorconfig" | "CODEOWNERS"
         | "Makefile" | "justfile" | "Justfile" | "Dockerfile" | ".env" => Some(Comment::Hash),
         _ => None,
     };
     by_name.or_else(|| {
-        Some(match extension.as_deref()? {
+        Some(match path.extension()?.as_str() {
             "toml" | "yml" | "yaml" | "sh" | "bash" | "zsh" | "fish" | "py" | "rb" | "conf"
             | "cfg" | "ini" | "properties" | "tf" | "just" | "env" | "txt" | "gitignore" => {
                 Comment::Hash

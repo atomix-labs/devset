@@ -15,6 +15,7 @@ use alloc::collections::{BTreeMap, BTreeSet};
 use core::ops::Range;
 use core::str;
 
+use derive_more::Display;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -22,6 +23,7 @@ use serde_json::Value;
 pub use self::block::Comment;
 use self::block::Markers;
 pub(crate) use self::keys::{Key, Leaves, Written, decode, display, encode, merge, overlap};
+use self::keys::{lookup, walk};
 use crate::digest::BOM;
 use crate::errors::{ParseError, ProfileError, Result};
 use crate::format::Format;
@@ -57,8 +59,10 @@ impl Slot {
     Serialize,
     Deserialize,
     JsonSchema,
+    Display,
 )]
 #[serde(rename_all = "lowercase")]
+#[display(rename_all = "lowercase")]
 pub enum Scope {
     /// The whole file.
     #[default]
@@ -67,18 +71,6 @@ pub enum Scope {
     Keys,
     /// One comment-marked block, named after the profile; the file's other lines are the target's.
     Block,
-}
-
-impl Scope {
-    /// The name `profile.toml` uses.
-    #[must_use]
-    pub const fn as_str(self) -> &'static str {
-        match self {
-            Self::File => "file",
-            Self::Keys => "keys",
-            Self::Block => "block",
-        }
-    }
 }
 
 /// A structured format whose keys a profile can own.
@@ -112,22 +104,38 @@ impl Syntax {
         }
     }
 
-    /// The leaves a partial document defines, in its order.
-    fn leaves(self, text: &str) -> Parsed<Written> {
+    /// The document's values, which must be a table; an empty document is an empty one.
+    fn semantic(self, text: &str) -> Parsed<Value> {
         match self {
-            Self::Toml => toml::leaves(text),
-            Self::Json => json::leaves(text),
-            Self::Yaml => yaml::leaves(text),
+            Self::Toml => toml::semantic(text),
+            Self::Json => json::semantic(text),
+            Self::Yaml => yaml::semantic(text),
         }
     }
 
-    /// A document's values at `keys`.
-    fn values(self, text: &str, keys: &BTreeSet<Key>) -> Parsed<Leaves> {
+    /// The leaves a partial document defines, in its order.
+    fn leaves(self, text: &str) -> Parsed<Written> {
         match self {
-            Self::Toml => toml::values(text, keys),
-            Self::Json => json::values(text, keys),
-            Self::Yaml => yaml::values(text, keys),
+            // TOML's syntax says more than its values: which arrays are arrays of tables.
+            Self::Toml => toml::leaves(text),
+            Self::Json | Self::Yaml => {
+                let mut leaves = Vec::new();
+                walk(&self.semantic(text)?, &mut Vec::new(), &mut leaves);
+                Ok(Written {
+                    leaves,
+                    tables: BTreeSet::new(),
+                })
+            }
         }
+    }
+
+    /// A document's values at `keys`; a key it lacks is left out.
+    fn values(self, text: &str, keys: &BTreeSet<Key>) -> Parsed<Leaves> {
+        let values = self.semantic(text)?;
+        Ok(keys
+            .iter()
+            .filter_map(|key| Some((key.clone(), lookup(&values, key)?.clone())))
+            .collect())
     }
 
     /// A document with each edit made, in order; a key in `tables` as an array of tables.

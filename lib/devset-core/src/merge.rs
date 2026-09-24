@@ -1,11 +1,12 @@
 //! Three-way merges, built in or through a configured [`Driver`].
 
-use core::fmt;
+use core::str::FromStr;
 use std::io;
 use std::process::{Command, Stdio};
 
-use camino::{Utf8Path, Utf8PathBuf};
-use serde::{Deserialize, Deserializer, Serialize, Serializer, de};
+use camino::Utf8Path;
+use derive_more::Display;
+use serde_with::{DeserializeFromStr, SerializeDisplay};
 
 use crate::digest::is_binary;
 use crate::errors::{MergeError, Result};
@@ -16,16 +17,19 @@ use crate::path::RelPath;
 /// `=======` is left out: it is also a Markdown heading underline.
 const MARKERS: [&[u8]; 3] = [b"<<<<<<<", b"|||||||", b">>>>>>>"];
 
-/// How three-way merges are performed.
-#[derive(Clone, Debug, Default, PartialEq, Eq)]
+/// How three-way merges are performed; written as its `driver` line, checked as it is read, so a
+/// mistake points into the file that holds it.
+#[derive(Clone, Debug, Default, PartialEq, Eq, Display, SerializeDisplay, DeserializeFromStr)]
 pub enum Driver {
     /// A line merge, `diffy`'s.
     #[default]
+    #[display("builtin")]
     Builtin,
     /// A program, on git's merge-driver convention.
     ///
     /// `%O` is the ancestor, `%A` the local version and where the result is left, `%B` the
     /// incoming version, `%P` the path; `%%` is `%`. Exit zero means merged cleanly.
+    #[display("{line}")]
     Command {
         /// As configured.
         line: String,
@@ -43,12 +47,14 @@ pub(crate) struct Merged {
     pub conflict: Option<String>,
 }
 
-impl Driver {
-    /// The driver a `driver` line names, split as a POSIX shell would; no shell ever runs it.
-    ///
-    /// # Errors
-    /// [`MergeError::Driver`], quotes are unbalanced, a placeholder is unknown, or `%A` is missing.
-    pub fn parse(line: &str) -> Result<Self, MergeError> {
+/// The driver a `driver` line names, split as a POSIX shell would; no shell ever runs it.
+///
+/// Fails with [`MergeError::Driver`] when quotes are unbalanced, a placeholder is unknown, or
+/// `%A` is missing.
+impl FromStr for Driver {
+    type Err = MergeError;
+
+    fn from_str(line: &str) -> Result<Self, MergeError> {
         let invalid = |reason| MergeError::Driver {
             line: line.to_owned(),
             reason,
@@ -73,7 +79,9 @@ impl Driver {
             args,
         })
     }
+}
 
+impl Driver {
     /// Merges `ours` and `theirs` from `base` for `path`, running a command in `root`.
     pub(crate) fn merge(
         &self,
@@ -103,11 +111,9 @@ impl Driver {
             });
         };
         // Each version under its real file name, so drivers can detect the language.
-        let scratch = tempfile::tempdir()?;
-        let scratch =
-            Utf8PathBuf::try_from(scratch.path().to_path_buf()).map_err(io::Error::other)?;
-        let name = path.as_str().rsplit('/').next().unwrap_or(path.as_str());
-        let [o, a, b] = ["O", "A", "B"].map(|side| scratch.join(side).join(name));
+        let scratch = camino_tempfile::tempdir()?;
+        let [o, a, b] =
+            ["O", "A", "B"].map(|side| scratch.path().join(side).join(path.file_name()));
         for (file, bytes) in [(&o, base), (&a, ours), (&b, theirs)] {
             if let Some(dir) = file.parent() {
                 fs_err::create_dir_all(dir)?;
@@ -164,28 +170,6 @@ impl Driver {
     }
 }
 
-/// A driver line, checked as it is read, so a mistake points into the file that holds it.
-impl<'de> Deserialize<'de> for Driver {
-    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        Self::parse(&String::deserialize(deserializer)?).map_err(de::Error::custom)
-    }
-}
-
-impl Serialize for Driver {
-    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        serializer.collect_str(self)
-    }
-}
-
-impl fmt::Display for Driver {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::Builtin => f.write_str("builtin"),
-            Self::Command { line, .. } => f.write_str(line),
-        }
-    }
-}
-
 /// `arg` with `%O %A %B %P` replaced by `values`, in that order, and `%%` by `%`.
 fn expand(arg: &str, [o, a, b, p]: [&str; 4]) -> String {
     let mut out = String::with_capacity(arg.len());
@@ -223,8 +207,7 @@ mod tests {
 
     #[test]
     fn parses_driver_lines() {
-        let Ok(Driver::Command { args, .. }) =
-            Driver::parse("mergiraf merge --git %O %A %B -p '%P'")
+        let Ok(Driver::Command { args, .. }) = "mergiraf merge --git %O %A %B -p '%P'".parse()
         else {
             panic!("valid driver");
         };
@@ -234,7 +217,7 @@ mod tests {
             "split without a shell"
         );
         for bad in ["", "tool 'open", "tool %O %B", "tool %A %Q"] {
-            assert!(Driver::parse(bad).is_err(), "{bad:?} should be rejected");
+            assert!(bad.parse::<Driver>().is_err(), "{bad:?} should be rejected");
         }
     }
 
@@ -283,7 +266,7 @@ mod tests {
     fn commands_follow_git_convention() {
         let path = RelPath::new("f.txt").unwrap();
         let run = |line: &str| {
-            Driver::parse(line)
+            line.parse::<Driver>()
                 .unwrap()
                 .merge(Utf8Path::new("."), &path, b"o\n", b"a\n", b"b\n")
                 .unwrap()

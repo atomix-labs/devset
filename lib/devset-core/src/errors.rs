@@ -477,7 +477,7 @@ pub enum MergeError {
 }
 
 /// `items`, comma-separated, with `and` before the last.
-fn list<T: Display>(items: impl IntoIterator<Item = T>) -> String {
+pub(crate) fn list<T: Display>(items: impl IntoIterator<Item = T>) -> String {
     let items: Vec<String> = items.into_iter().map(|item| item.to_string()).collect();
     match items.split_last() {
         Some((last, rest)) if !rest.is_empty() => format!("{} and {last}", rest.join(", ")),
@@ -490,7 +490,7 @@ fn scopes(layers: &[(String, Scope)]) -> String {
     list(
         layers
             .iter()
-            .map(|(layer, scope)| format!("`{}` by {layer}", scope.as_str())),
+            .map(|(layer, scope)| format!("`{scope}` by {layer}")),
     )
 }
 

@@ -6,12 +6,12 @@ use alloc::collections::BTreeSet;
 use jsonc_parser::cst::{CstInputValue, CstObject, CstRootNode};
 use serde_json::Value;
 
-use super::keys::{Key, Leaves, Written, lookup, walk};
+use super::keys::Key;
 use super::{Edit, Failure};
 use crate::format::jsonc;
 
 /// The document's value, which must be an object; an empty document is an empty one.
-fn semantic(text: &str) -> Result<Value, Failure> {
+pub(super) fn semantic(text: &str) -> Result<Value, Failure> {
     let value: Option<Value> = jsonc_parser::parse_to_serde_value(text, &jsonc())
         .map_err(|e| (Some(e.range().start..e.range().end), e.kind().to_string()))?;
     match value {
@@ -22,26 +22,6 @@ fn semantic(text: &str) -> Result<Value, Failure> {
             "the document is not an object, so it has no keys".to_owned(),
         )),
     }
-}
-
-/// The leaves a partial document defines, in its order: objects are containers, everything else is
-/// a leaf.
-pub(super) fn leaves(text: &str) -> Result<Written, Failure> {
-    let mut leaves = Vec::new();
-    walk(&semantic(text)?, &mut Vec::new(), &mut leaves);
-    Ok(Written {
-        leaves,
-        tables: BTreeSet::new(),
-    })
-}
-
-/// `text`'s values at `keys`; a key it lacks is left out.
-pub(super) fn values(text: &str, keys: &BTreeSet<Key>) -> Result<Leaves, Failure> {
-    let values = semantic(text)?;
-    Ok(keys
-        .iter()
-        .filter_map(|key| Some((key.clone(), lookup(&values, key)?.clone())))
-        .collect())
 }
 
 /// `text` with each edit made, in order.

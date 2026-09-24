@@ -19,7 +19,7 @@ use camino::{Utf8Path, Utf8PathBuf};
 use schemars::JsonSchema;
 use serde::de::{self, DeserializeOwned};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
-use toml_edit::{ArrayOfTables, DocumentMut, Item, Table, TomlError, Value};
+use toml_edit::{ArrayOfTables, DocumentMut, Item, TomlError, Value, ser};
 
 use crate::digest::{Digest, Fingerprint};
 use crate::errors::{ParseError, Result, TargetError};
@@ -130,7 +130,7 @@ impl Target {
     /// # Errors
     /// - [`TargetError::Nested`], `root` lies inside another target.
     /// - [`Error::Parse`](crate::Error::Parse), one of its files does not parse.
-    pub fn at(root: &Utf8Path) -> Result<Self> {
+    pub fn open_or_new(root: &Utf8Path) -> Result<Self> {
         match enclosing(root) {
             Some(found) if found == root => Self::load(root),
             Some(outer) => Err(TargetError::Nested {
@@ -169,6 +169,7 @@ impl Target {
     /// # Errors
     /// - [`TargetError::DuplicateLayer`], the layer is already present.
     /// - [`Error::Parse`](crate::Error::Parse), `layers` in `config.toml` is not a list of tables.
+    /// - [`Error::Io`](crate::Error::Io), the layer cannot be written as TOML.
     pub fn add_layer(&mut self, source: Source) -> Result<()> {
         if self.config.layers.contains(&source) {
             return Err(TargetError::DuplicateLayer {
@@ -176,7 +177,9 @@ impl Target {
             }
             .into());
         }
-        let table = layer_table(source);
+        let table = ser::to_document(&SourceSpec::from(source))
+            .map_err(io::Error::other)?
+            .into_table();
         self.edit(|doc| {
             match doc
                 .entry("layers")
@@ -349,57 +352,23 @@ impl Target {
         let config_raw = fs_err::read(dir.join(CONFIG))?;
         let config = from_toml(&config_raw, &label(CONFIG))?;
         let config_text = String::from_utf8(config_raw).map_err(io::Error::other)?;
-        let lock = read_optional(&dir.join(LOCK))?
-            .map_or_else(|| Ok(Lock::default()), |raw| from_toml(&raw, &label(LOCK)))?;
-        let pending = format!("{CONFLICTS}/{DIR}/{PENDING}");
-        let pending = read_optional(&dir.join(&pending))?
-            .map(|raw| from_toml(&raw, &label(&pending)))
-            .transpose()?;
         let state_raw = read_optional(&dir.join(STATE))?;
         let state_digest = state_raw.as_deref().map(Digest::of);
-        let state = state_raw.map_or_else(
-            || Ok(State::default()),
-            |raw| from_toml(&raw, &label(STATE)),
-        )?;
-        let answers = read_optional(&dir.join(ANSWERS))?
-            .map(|raw| from_toml(&raw, &label(ANSWERS)))
+        let state = state_raw
+            .map(|raw| from_toml(&raw, &label(STATE)))
             .transpose()?;
         Ok(Self {
             root: root.to_owned(),
             config,
             config_text,
-            lock,
-            pending,
-            state,
+            lock: read_toml(&dir, LOCK)?.unwrap_or_default(),
+            pending: read_toml(&dir, &format!("{CONFLICTS}/{DIR}/{PENDING}"))?,
+            state: state.unwrap_or_default(),
             state_digest,
-            answers: answers.unwrap_or_default(),
+            answers: read_toml(&dir, ANSWERS)?.unwrap_or_default(),
             given: BTreeSet::new(),
         })
     }
-}
-
-/// A `[[layers]]` table for `source`, in `config.toml`'s field order.
-fn layer_table(source: Source) -> Table {
-    let SourceSpec {
-        git,
-        tag,
-        branch,
-        rev,
-        path,
-    } = source.into();
-    let mut table = Table::new();
-    for (key, value) in [
-        ("git", git),
-        ("tag", tag),
-        ("branch", branch),
-        ("rev", rev),
-        ("path", path),
-    ] {
-        if let Some(value) = value {
-            table.insert(key, toml_edit::value(value));
-        }
-    }
-    table
 }
 
 /// `name` in `.devset/`, as users know it.
@@ -621,6 +590,13 @@ pub(crate) fn from_toml<T: DeserializeOwned>(bytes: &[u8], file: &str) -> Result
     };
     let text = str::from_utf8(bytes).map_err(|e| failed("", None, e.to_string()))?;
     Ok(toml::from_str(text).map_err(|e| failed(text, e.span(), e.message().to_owned()))?)
+}
+
+/// `name` in the `.devset/` at `dir`, parsed; `None` if it does not exist.
+pub(crate) fn read_toml<T: DeserializeOwned>(dir: &Utf8Path, name: &str) -> Result<Option<T>> {
+    read_optional(&dir.join(name))?
+        .map(|raw| from_toml(&raw, &label(name)))
+        .transpose()
 }
 
 /// The contents of `path`, or `None` if it does not exist.

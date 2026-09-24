@@ -7,11 +7,11 @@ use core::str::FromStr;
 use serde_json::Value;
 use yaml_edit::{Document, Mapping, ScalarValue, YamlFile, YamlValue};
 
-use super::keys::{Key, Leaves, Written, lookup, walk};
+use super::keys::Key;
 use super::{Edit, Failure};
 
 /// The first document's value, which must be a mapping; an empty stream is an empty one.
-fn semantic(text: &str) -> Result<Value, Failure> {
+pub(super) fn semantic(text: &str) -> Result<Value, Failure> {
     if text.trim().is_empty() {
         return Ok(Value::Object(serde_json::Map::new()));
     }
@@ -25,26 +25,6 @@ fn semantic(text: &str) -> Result<Value, Failure> {
             "the document is not a mapping, so it has no keys".to_owned(),
         )),
     }
-}
-
-/// The leaves a partial document defines, in its order: mappings are containers, everything else is
-/// a leaf.
-pub(super) fn leaves(text: &str) -> Result<Written, Failure> {
-    let mut leaves = Vec::new();
-    walk(&semantic(text)?, &mut Vec::new(), &mut leaves);
-    Ok(Written {
-        leaves,
-        tables: BTreeSet::new(),
-    })
-}
-
-/// `text`'s values at `keys`; a key it lacks is left out.
-pub(super) fn values(text: &str, keys: &BTreeSet<Key>) -> Result<Leaves, Failure> {
-    let values = semantic(text)?;
-    Ok(keys
-        .iter()
-        .filter_map(|key| Some((key.clone(), lookup(&values, key)?.clone())))
-        .collect())
 }
 
 /// `text` with each edit made, in order.

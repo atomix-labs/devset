@@ -1,12 +1,12 @@
 //! Template variables: declared by profiles, answered by the target, rendered into payload.
 
-use alloc::borrow::Cow;
 use alloc::collections::BTreeMap;
-use core::{fmt, str};
+use core::str;
 use std::collections::HashSet;
 
+use derive_more::{AsRef, Display, Into};
 use minijinja::{AutoEscape, Environment, UndefinedBehavior};
-use schemars::{JsonSchema, Schema, SchemaGenerator};
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::errors::{ParseError, Result, VarError};
@@ -16,8 +16,26 @@ use crate::target::Target;
 use crate::tree::Tree;
 
 /// A variable's name: an identifier, `[A-Za-z_][A-Za-z0-9_]*`.
-#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+#[derive(
+    Clone,
+    PartialEq,
+    Eq,
+    PartialOrd,
+    Ord,
+    Hash,
+    AsRef,
+    Display,
+    derive_more::Debug,
+    Into,
+    Serialize,
+    Deserialize,
+    JsonSchema,
+)]
+#[as_ref(str)]
+#[debug("{_0:?}")]
+#[into(String)]
 #[serde(try_from = "String", into = "String")]
+#[schemars(inline)]
 pub struct VarName(Box<str>);
 
 /// A `[vars.name]` entry.
@@ -65,44 +83,6 @@ impl TryFrom<String> for VarName {
         } else {
             Err(VarError::Name { name })
         }
-    }
-}
-
-impl AsRef<str> for VarName {
-    fn as_ref(&self) -> &str {
-        &self.0
-    }
-}
-
-impl From<VarName> for String {
-    fn from(name: VarName) -> Self {
-        name.0.into_string()
-    }
-}
-
-impl fmt::Display for VarName {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str(&self.0)
-    }
-}
-
-impl fmt::Debug for VarName {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        fmt::Debug::fmt(&*self.0, f)
-    }
-}
-
-impl JsonSchema for VarName {
-    fn schema_name() -> Cow<'static, str> {
-        "VarName".into()
-    }
-
-    fn json_schema(generator: &mut SchemaGenerator) -> Schema {
-        String::json_schema(generator)
-    }
-
-    fn inline_schema() -> bool {
-        true
     }
 }
 
@@ -221,15 +201,14 @@ pub(crate) fn render(
             let template = env
                 .template_from_named_str(path.as_str(), source)
                 .map_err(|e| failed(&e))?;
-            let mut undeclared: Vec<String> = template
+            let undeclared = template
                 .undeclared_variables(false)
                 .into_iter()
                 .filter(|name| {
                     !globals.contains(name) && !answers.keys().any(|v| v.as_str() == name)
                 })
-                .collect();
-            undeclared.sort();
-            if let Some(name) = undeclared.into_iter().next() {
+                .min();
+            if let Some(name) = undeclared {
                 let declared = answers.keys().cloned().collect();
                 return Err(VarError::Undeclared {
                     path: path.clone(),

@@ -6,6 +6,7 @@ use std::io::{self, Write};
 
 use anstyle::{AnsiColor, Style};
 use clap_cargo::style::{ERROR, GOOD, LITERAL, WARN};
+use derive_more::Display;
 use devset_core::plan::{Action, Step};
 use devset_core::profile::{MergeSpec, OnConflict, Policy, VarName};
 use devset_core::resolve::{Applied, Layer, Suggestion};
@@ -18,9 +19,10 @@ use serde::Serialize;
 use crate::shell::Shell;
 use crate::words::{count, list};
 
-/// What a step does to a file, as users read it.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
+/// What a step does to a file, as users read it; displayed as its verb, for what would happen.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Display)]
 #[serde(rename_all = "lowercase")]
+#[display(rename_all = "lowercase")]
 pub(crate) enum Change {
     /// Writes a file that was not there.
     Create,
@@ -63,22 +65,6 @@ impl Change {
                 (Some(Drift::Unchanged | Drift::Cosmetic), _) => Self::Update,
             },
         })
-    }
-
-    /// The verb, for what would happen.
-    pub(crate) const fn verb(self) -> &'static str {
-        match self {
-            Self::Create => "create",
-            Self::Adopt => "adopt",
-            Self::Update => "update",
-            Self::Restore => "restore",
-            Self::Overwrite => "overwrite",
-            Self::Merge => "merge",
-            Self::Record => "record",
-            Self::Untrack => "untrack",
-            Self::Remove => "remove",
-            Self::Conflict => "conflict",
-        }
     }
 
     /// The verb, for what happened.
@@ -143,20 +129,56 @@ impl Standing {
 }
 
 /// How a path compares with its record, in a word.
-pub(crate) fn state(entry: &Entry) -> &'static str {
-    if entry.conflict {
-        return "conflict";
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Display)]
+#[serde(rename_all = "lowercase")]
+#[display(rename_all = "lowercase")]
+pub(crate) enum State {
+    /// A merge awaits resolution.
+    Conflict,
+    /// No layer provides it any more.
+    Dropped,
+    /// Byte-identical to its record.
+    Unchanged,
+    /// Differs from its record only in whitespace, line endings or a BOM.
+    Cosmetic,
+    /// Edited since recorded.
+    Edited,
+    /// Deleted since recorded.
+    Missing,
+    /// Neither recorded nor on disk.
+    New,
+    /// On disk, never recorded.
+    Untracked,
+}
+
+impl State {
+    /// Where `entry` stands against its record.
+    pub(crate) fn of(entry: &Entry) -> Self {
+        if entry.conflict {
+            return Self::Conflict;
+        }
+        if entry.want.is_none() {
+            return Self::Dropped;
+        }
+        match (entry.drift(), entry.found) {
+            (Some(Drift::Unchanged), _) => Self::Unchanged,
+            (Some(Drift::Cosmetic), _) => Self::Cosmetic,
+            (Some(Drift::Edited), _) => Self::Edited,
+            (Some(Drift::Missing), _) => Self::Missing,
+            (None, None) => Self::New,
+            (None, Some(_)) => Self::Untracked,
+        }
     }
-    if entry.want.is_none() {
-        return "dropped";
-    }
-    match (entry.drift(), entry.found) {
-        (Some(Drift::Unchanged), _) => "unchanged",
-        (Some(Drift::Cosmetic), _) => "cosmetic",
-        (Some(Drift::Edited), _) => "edited",
-        (Some(Drift::Missing), _) => "missing",
-        (None, None) => "new",
-        (None, Some(_)) => "untracked",
+
+    /// Its colour.
+    fn style(self) -> Style {
+        let color = match self {
+            Self::Unchanged => AnsiColor::Green,
+            Self::Edited | Self::Missing | Self::Conflict => AnsiColor::Red,
+            Self::Cosmetic => AnsiColor::BrightBlack,
+            Self::Dropped | Self::New | Self::Untracked => AnsiColor::Yellow,
+        };
+        Style::new().fg_color(Some(color.into()))
     }
 }
 
@@ -214,12 +236,11 @@ pub(crate) fn applied(shell: &Shell, steps: &[Step], wrote: Wrote) -> io::Result
             continue;
         }
         changes = changes.saturating_add(1);
-        let verb = change.verb();
         let (status, style, message) = match wrote {
             Wrote::All => (change.past(), GOOD, path.to_string()),
-            Wrote::Conflicts => ("Withheld", WARN, format!("{path}  would {verb}")),
-            Wrote::Nothing { held: false } => ("Would", GOOD, format!("{verb} {path}")),
-            Wrote::Nothing { held: true } => ("Would", WARN, format!("withhold {path}  {verb}")),
+            Wrote::Conflicts => ("Withheld", WARN, format!("{path}  would {change}")),
+            Wrote::Nothing { held: false } => ("Would", GOOD, format!("{change} {path}")),
+            Wrote::Nothing { held: true } => ("Would", WARN, format!("withhold {path}  {change}")),
         };
         shell.status(status, style, message)?;
     }
@@ -255,7 +276,7 @@ pub(crate) fn applied(shell: &Shell, steps: &[Step], wrote: Wrote) -> io::Result
 /// Prints what taking an update back would do, and the changes since it that it would discard.
 pub(crate) fn rollback(shell: &Shell, rollback: &Rollback) -> io::Result<()> {
     for revert in rollback.reverts() {
-        let (verb, path) = revert_parts(revert);
+        let (verb, _, path) = revert_parts(revert);
         shell.status("Would", GOOD, format_args!("{verb} {path}"))?;
     }
     let summary = reverted(rollback.reverts(), ("to restore", "to remove"));
@@ -280,26 +301,18 @@ pub(crate) fn rollback(shell: &Shell, rollback: &Rollback) -> io::Result<()> {
 /// Prints what taking an update back did.
 pub(crate) fn rolled_back(shell: &Shell, reverts: &[Revert]) -> io::Result<()> {
     for revert in reverts {
-        let (verb, path) = revert_parts(revert);
-        shell.status(
-            if verb == "restore" {
-                "Restored"
-            } else {
-                "Removed"
-            },
-            GOOD,
-            path,
-        )?;
+        let (_, past, path) = revert_parts(revert);
+        shell.status(past, GOOD, path)?;
     }
     let summary = reverted(reverts, ("restored", "removed"));
     shell.status("Finished", GOOD, format!("update aborted: {summary}"))
 }
 
-/// A revert's verb and path.
-const fn revert_parts(revert: &Revert) -> (&'static str, &RelPath) {
+/// A revert's verb, for what would happen and what happened, and its path.
+const fn revert_parts(revert: &Revert) -> (&'static str, &'static str, &RelPath) {
     match revert {
-        Revert::Restore(path) => ("restore", path),
-        Revert::Remove(path) => ("remove", path),
+        Revert::Restore(path) => ("restore", "Restored", path),
+        Revert::Remove(path) => ("remove", "Removed", path),
     }
 }
 
@@ -490,13 +503,15 @@ pub(crate) fn status(shell: &Shell, survey: &Survey, json: bool, verbose: bool) 
         }
         writeln!(out, "\n{}", Emphasis(heading))?;
         for &&(entry, standing) in &members {
-            let style = state_style(state(entry));
-            let (state, path, name) = (state(entry), entry.path.as_str(), entry.to_string());
-            let policy = entry.want.map_or("", |want| want.policy.as_str());
+            let state = State::of(entry);
+            let (style, path, name) = (state.style(), entry.path.as_str(), entry.to_string());
+            // As strings, since a derived `Display` ignores the width the columns need.
+            let state = state.to_string();
+            let policy = entry
+                .want
+                .map_or_else(String::new, |want| want.policy.to_string());
             let action = match standing {
-                Standing::Pending(change) | Standing::Drifted(change) => {
-                    format!("  {}", change.verb())
-                }
+                Standing::Pending(change) | Standing::Drifted(change) => format!("  {change}"),
                 Standing::Conflict => format!("  → .devset/conflicts/{path}"),
                 Standing::Local | Standing::InSync => String::new(),
             };
@@ -564,37 +579,12 @@ fn headings(out: &mut impl Write, layers: &[Layer], verbose: bool) -> io::Result
 
 /// `lead` and then `names`, comma-separated and wrapped under the first.
 fn wrapped(lead: &str, names: &[&str]) -> String {
-    const WIDTH: usize = 100;
-    let last = names.len().saturating_sub(1);
-    let (mut lines, mut line, mut empty) = (Vec::new(), lead.to_owned(), true);
-    for (i, name) in names.iter().enumerate() {
-        let word = if i < last {
-            format!("{name},")
-        } else {
-            (*name).to_owned()
-        };
-        if !empty && line.len().saturating_add(word.len()) >= WIDTH {
-            lines.push(line);
-            line = " ".repeat(lead.len());
-        } else if !empty {
-            line.push(' ');
-        }
-        line.push_str(&word);
-        empty = false;
-    }
-    lines.push(line);
-    lines.join("\n")
-}
-
-/// A state's colour.
-fn state_style(state: &str) -> Style {
-    let color = match state {
-        "unchanged" => AnsiColor::Green,
-        "edited" | "missing" | "conflict" => AnsiColor::Red,
-        "cosmetic" => AnsiColor::BrightBlack,
-        _ => AnsiColor::Yellow,
-    };
-    Style::new().fg_color(Some(color.into()))
+    let indent = " ".repeat(lead.len());
+    let options = textwrap::Options::new(100)
+        .initial_indent(lead)
+        .subsequent_indent(&indent)
+        .break_words(false);
+    textwrap::fill(&names.join(", "), options)
 }
 
 /// A section heading, commands in backticks styled as literals.
@@ -625,8 +615,8 @@ impl fmt::Display for Heading<'_> {
             write!(f, " {version}")?;
         }
         write!(f, "  {}", layer.source())?;
-        if let Some(rev) = layer.rev().and_then(|rev| rev.as_str().get(..7)) {
-            write!(f, "  @{rev}")?;
+        if let Some(rev) = layer.rev() {
+            write!(f, "  @{}", rev.short())?;
         }
         if let Some(by) = layer.required_by() {
             write!(f, "  {WARN}(required by {by}){WARN:#}")?;
@@ -690,7 +680,7 @@ struct FileJson<'a> {
     /// Its policy, while a layer provides it.
     policy: Option<Policy>,
     /// How it compares with its record.
-    state: &'static str,
+    state: State,
     /// What `apply` would do.
     apply: Option<Change>,
     /// What `apply --force` would do.
@@ -743,7 +733,7 @@ impl<'a> StatusJson<'a> {
                     part: entry.part.as_ref().map(|part| part.owner.as_str()),
                     layer: resolved.provider(entry),
                     policy: entry.want.map(|want| want.policy),
-                    state: state(entry),
+                    state: State::of(entry),
                     apply: change(entry, devset_core::Mode::Apply),
                     force: change(entry, devset_core::Mode::Force),
                 })

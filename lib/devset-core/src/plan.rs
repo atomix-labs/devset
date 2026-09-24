@@ -5,7 +5,7 @@ use alloc::collections::BTreeSet;
 use serde_json::Value;
 
 use crate::digest::{Fingerprint, is_binary};
-use crate::errors::{MergeError, Result};
+use crate::errors::{MergeError, Result, list};
 use crate::format::Format;
 use crate::merge::{Driver, Merged, has_markers};
 use crate::part::{Key, Leaves, Shape, decode, display, encode, merge, overlap};
@@ -665,19 +665,12 @@ fn clone((key, value): (&Key, &Value)) -> (Key, Value) {
 /// `keys` as people write them, the first few by name.
 fn keys(keys: &BTreeSet<Key>) -> String {
     const NAMED: usize = 3;
-    let mut named: Vec<String> = keys
+    let named = keys
         .iter()
         .take(NAMED)
-        .map(|key| format!("`{}`", display(key)))
-        .collect();
+        .map(|key| format!("`{}`", display(key)));
     let rest = keys.len().saturating_sub(NAMED);
-    if rest > 0 {
-        named.push(format!("{rest} more"));
-    }
-    match named.split_last() {
-        Some((last, before)) if !before.is_empty() => format!("{} and {last}", before.join(", ")),
-        _ => named.concat(),
-    }
+    list(named.chain((rest > 0).then(|| format!("{rest} more"))))
 }
 
 #[cfg(test)]

@@ -1,20 +1,19 @@
 //! Taking back an unfinished update, from what [`commit`](crate::commit()) saved beforehand.
 
 use alloc::collections::BTreeMap;
-use core::fmt;
 use std::collections::HashSet;
-use std::io;
 
 use camino::Utf8PathBuf;
+use derive_more::Display;
 use serde::{Deserialize, Serialize};
 
-use crate::commit::{lock, prune, remove_if_present, write};
+use crate::commit::{lock, prune, remove_if_present, to_toml, write};
 use crate::digest::Digest;
 use crate::errors::{MergeError, Result};
 use crate::path::RelPath;
 use crate::target::{
-    ANSWERS, CONFIG, CONFLICTS, DIR, LOCK, STATE, State, Target, UNDO, UNDO_BLOBS, V1, from_toml,
-    label, read_optional,
+    ANSWERS, CONFIG, CONFLICTS, DIR, LOCK, STATE, State, Target, UNDO, UNDO_BLOBS, V1,
+    read_optional, read_toml,
 };
 
 /// devset's own files an update may change, in the order they are restored.
@@ -22,14 +21,16 @@ use crate::target::{
 /// `state.toml` goes last, so an interrupted rollback still describes the update and runs again.
 const RECORDS: [&str; 4] = [CONFIG, ANSWERS, LOCK, STATE];
 
-/// A file an unfinished update changed.
-#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
+/// A file an unfinished update changed; displayed as its key in `undo.toml`, from the target root.
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Display)]
 pub(crate) enum Location {
     /// A managed file in the target.
     File(RelPath),
     /// A conflicted merge in `.devset/conflicts/`.
+    #[display("{DIR}/{CONFLICTS}/{_0}")]
     Sidecar(RelPath),
     /// One of devset's own files in `.devset/`.
+    #[display("{DIR}/{_0}")]
     Record(&'static str),
 }
 
@@ -55,16 +56,6 @@ impl Location {
             .into_iter()
             .find(|&name| name == inner)
             .map(Self::Record)
-    }
-}
-
-impl fmt::Display for Location {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::File(path) => write!(f, "{path}"),
-            Self::Sidecar(path) => write!(f, "{DIR}/{CONFLICTS}/{path}"),
-            Self::Record(name) => write!(f, "{DIR}/{name}"),
-        }
     }
 }
 
@@ -94,9 +85,7 @@ pub(crate) struct Undo {
 impl Undo {
     /// The undo `target` holds, or an empty one.
     pub(crate) fn load(target: &Target) -> Result<Self> {
-        let file = target.unfinished().join(UNDO);
-        let label = label(&format!("{CONFLICTS}/{DIR}/{UNDO}"));
-        read_optional(&file)?.map_or_else(|| Ok(Self::default()), |raw| from_toml(&raw, &label))
+        Ok(read_toml(&target.dir(), &format!("{CONFLICTS}/{DIR}/{UNDO}"))?.unwrap_or_default())
     }
 
     /// Notes that `location` is about to hold `bytes`, or be removed.
@@ -137,8 +126,7 @@ impl Undo {
 
     /// Writes `undo.toml`.
     pub(crate) fn save(&self, target: &Target) -> Result<()> {
-        let text = toml::to_string(self).map_err(io::Error::other)?;
-        write(&target.unfinished().join(UNDO), text.as_bytes())
+        write(&target.unfinished().join(UNDO), to_toml(self)?.as_bytes())
     }
 
     /// Each change, by where it is.
@@ -265,11 +253,7 @@ impl Rollback {
                 }
             }
         }
-        let state = read_optional(&target.dir().join(STATE))?;
-        let state: State = state.map_or_else(
-            || Ok(State::default()),
-            |raw| from_toml(&raw, &label(STATE)),
-        )?;
+        let state: State = read_toml(&target.dir(), STATE)?.unwrap_or_default();
         let live: HashSet<Digest> = state.bases().collect();
         prune(target, &live)?;
         remove_if_present(&target.dir().join(CONFLICTS))?;

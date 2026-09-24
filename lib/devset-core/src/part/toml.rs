@@ -5,14 +5,14 @@ use alloc::collections::BTreeSet;
 use serde_json::Value;
 use toml_edit::{Array, ArrayOfTables, DocumentMut, InlineTable, Item, Table, TableLike};
 
-use super::keys::{Key, Leaves, Written, display, lookup};
+use super::keys::{Key, Written, display, lookup};
 use super::{Edit, Failure};
 
 /// The key `toml` gives a datetime when it becomes JSON.
 const DATETIME: &str = "$__toml_private_datetime";
 
 /// The document's values as JSON, datetimes kept in `toml`'s own form.
-fn semantic(text: &str) -> Result<Value, Failure> {
+pub(super) fn semantic(text: &str) -> Result<Value, Failure> {
     let table: toml::Table =
         toml::from_str(text).map_err(|e| (e.span(), e.message().to_owned()))?;
     serde_json::to_value(table).map_err(|e| (None, e.to_string()))
@@ -59,18 +59,6 @@ fn collect(
         }
         prefix.pop();
     }
-}
-
-/// `text`'s values at `keys`; a key it lacks is left out.
-pub(super) fn values(text: &str, keys: &BTreeSet<Key>) -> Result<Leaves, Failure> {
-    let values = semantic(text)?;
-    let mut found = Leaves::new();
-    for key in keys {
-        if let Some(value) = lookup(&values, key) {
-            found.insert(key.clone(), value.clone());
-        }
-    }
-    Ok(found)
 }
 
 /// `text` with each edit made, in order; a key in `tables` is written as an array of tables.

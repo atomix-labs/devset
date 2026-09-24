@@ -16,6 +16,7 @@
 use alloc::collections::BTreeMap;
 use core::fmt;
 
+use derive_more::Display;
 use schemars::JsonSchema;
 use semver::VersionReq;
 use serde::de::value::MapAccessDeserializer;
@@ -144,8 +145,11 @@ pub struct FileSpec {
 }
 
 /// How devset manages a file.
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[derive(
+    Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize, JsonSchema, Display,
+)]
 #[serde(rename_all = "lowercase")]
+#[display(rename_all = "lowercase")]
 pub enum Policy {
     /// The profile is authoritative; local edits are drift.
     #[default]
@@ -164,15 +168,5 @@ impl Policy {
     )]
     pub(crate) const fn is_owned(&self) -> bool {
         matches!(self, Self::Owned)
-    }
-
-    /// The name `profile.toml` uses.
-    #[must_use]
-    pub const fn as_str(self) -> &'static str {
-        match self {
-            Self::Owned => "owned",
-            Self::Merge => "merge",
-            Self::Once => "once",
-        }
     }
 }

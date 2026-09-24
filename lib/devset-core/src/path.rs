@@ -1,10 +1,8 @@
 //! Managed paths, checked to stay inside their root on every supported filesystem.
 
-use alloc::borrow::Cow;
-use core::fmt;
-
 use camino::{Utf8Path, Utf8PathBuf};
-use schemars::{JsonSchema, Schema, SchemaGenerator};
+use derive_more::{AsRef, Display, Into};
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use unicode_normalization::UnicodeNormalization;
 
@@ -29,8 +27,26 @@ const IGNORABLE: [char; 15] = [
 /// `/`-separated; no empty, `.` or `..` components; no component ending in `.` or a space; only
 /// characters every supported filesystem can store; and no component that folds to `.git` or
 /// `.devset`. Anything built from a `RelPath` stays inside its root.
-#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+#[derive(
+    Clone,
+    PartialEq,
+    Eq,
+    PartialOrd,
+    Ord,
+    Hash,
+    AsRef,
+    Display,
+    derive_more::Debug,
+    Into,
+    Serialize,
+    Deserialize,
+    JsonSchema,
+)]
+#[as_ref(str)]
+#[debug("{_0:?}")]
+#[into(String)]
 #[serde(try_from = "String", into = "String")]
+#[schemars(inline)]
 pub struct RelPath(Box<str>);
 
 impl RelPath {
@@ -54,6 +70,17 @@ impl RelPath {
         let mut path = root.to_path_buf();
         path.extend(self.0.split('/'));
         path
+    }
+
+    /// The last component: the file's name.
+    pub(crate) fn file_name(&self) -> &str {
+        self.0.rsplit_once('/').map_or(&self.0, |(_, name)| name)
+    }
+
+    /// What follows the file name's last `.`, lowercased; `None` without one.
+    pub(crate) fn extension(&self) -> Option<String> {
+        let (_, extension) = self.file_name().rsplit_once('.')?;
+        Some(extension.to_ascii_lowercase())
     }
 
     /// The key two paths share when a case- or normalization-insensitive filesystem merges them.
@@ -107,44 +134,6 @@ impl TryFrom<String> for RelPath {
             Ok(()) => Ok(Self(path.into_boxed_str())),
             Err(rule) => Err(PathError { path, rule }),
         }
-    }
-}
-
-impl AsRef<str> for RelPath {
-    fn as_ref(&self) -> &str {
-        &self.0
-    }
-}
-
-impl From<RelPath> for String {
-    fn from(path: RelPath) -> Self {
-        path.0.into_string()
-    }
-}
-
-impl fmt::Display for RelPath {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str(&self.0)
-    }
-}
-
-impl fmt::Debug for RelPath {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        fmt::Debug::fmt(&*self.0, f)
-    }
-}
-
-impl JsonSchema for RelPath {
-    fn schema_name() -> Cow<'static, str> {
-        "RelPath".into()
-    }
-
-    fn json_schema(generator: &mut SchemaGenerator) -> Schema {
-        String::json_schema(generator)
-    }
-
-    fn inline_schema() -> bool {
-        true
     }
 }
 

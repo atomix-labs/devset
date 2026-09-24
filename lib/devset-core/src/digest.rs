@@ -1,10 +1,8 @@
 //! Content digests and file fingerprints.
 
-use core::fmt;
-use core::str::FromStr;
-
-use serde::de::{self, Visitor};
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use derive_more::{Display, FromStr};
+use serde::{Deserialize, Serialize};
+use serde_with::{DeserializeFromStr, SerializeDisplay};
 
 /// Leading bytes git inspects to decide a file is binary.
 const BINARY_SNIFF: usize = 8000;
@@ -12,8 +10,20 @@ const BINARY_SNIFF: usize = 8000;
 /// UTF-8 byte order mark.
 pub(crate) const BOM: &[u8] = b"\xEF\xBB\xBF";
 
-/// A BLAKE3 digest, serialized as lowercase hex.
-#[derive(Clone, Copy, PartialEq, Eq, Hash)]
+/// A BLAKE3 digest, written and serialized as lowercase hex.
+#[derive(
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    Hash,
+    Display,
+    derive_more::Debug,
+    FromStr,
+    SerializeDisplay,
+    DeserializeFromStr,
+)]
+#[debug("{_0}")]
 pub struct Digest(blake3::Hash);
 
 impl Digest {
@@ -32,53 +42,6 @@ impl Digest {
     #[must_use]
     pub const fn as_bytes(&self) -> &[u8; 32] {
         self.0.as_bytes()
-    }
-}
-
-impl fmt::Display for Digest {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str(self.0.to_hex().as_str())
-    }
-}
-
-impl fmt::Debug for Digest {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        fmt::Display::fmt(self, f)
-    }
-}
-
-impl FromStr for Digest {
-    type Err = blake3::HexError;
-
-    fn from_str(hex: &str) -> Result<Self, Self::Err> {
-        blake3::Hash::from_hex(hex).map(Self)
-    }
-}
-
-impl Serialize for Digest {
-    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        serializer.serialize_str(self.0.to_hex().as_str())
-    }
-}
-
-impl<'de> Deserialize<'de> for Digest {
-    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        /// Parses hex without allocating.
-        struct Hex;
-
-        impl Visitor<'_> for Hex {
-            type Value = Digest;
-
-            fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-                f.write_str("64 hex digits")
-            }
-
-            fn visit_str<E: de::Error>(self, v: &str) -> Result<Digest, E> {
-                v.parse().map_err(E::custom)
-            }
-        }
-
-        deserializer.deserialize_str(Hex)
     }
 }
 

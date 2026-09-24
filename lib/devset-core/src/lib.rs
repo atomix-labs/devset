@@ -8,22 +8,22 @@
 //! marked block.
 //!
 //! # Applying a profile
+//!
 //! Every operation is a prefix of one chain, and only [`commit`](commit()) writes:
 //!
 //! ```
 //! use std::fs;
 //!
-//! use camino::Utf8Path;
 //! use devset_core::source::Source;
 //! use devset_core::{Cache, Mode, Refresh, Target, commit, plan, resolve, survey};
 //!
-//! let dir = tempfile::tempdir()?;
-//! let root = Utf8Path::from_path(dir.path()).expect("a UTF-8 temporary directory");
+//! let dir = camino_tempfile::tempdir()?;
+//! let root = dir.path();
 //! # fs::create_dir_all(root.join("base/files"))?;
 //! # fs::write(root.join("base/profile.toml"), "[profile]\nname = \"base\"\n\n[files.\".editorconfig\"]\n")?;
 //! # fs::write(root.join("base/files/.editorconfig"), "root = true\n")?;
 //! # fs::create_dir(root.join("repo"))?;
-//! let mut target = Target::at(&root.join("repo"))?;
+//! let mut target = Target::open_or_new(&root.join("repo"))?;
 //! target.add_layer(Source::Dir("../base".into()))?;
 //!
 //! let resolved = resolve(&target, &Cache::at(root.join("cache")), Refresh::None)?; // read, compose
@@ -37,12 +37,14 @@
 //! ```
 //!
 //! # Updating
+//!
 //! [`Refresh::All`] moves every layer to what its ref names now; the rest of the chain is the
 //! same. A `merge` file then merges its local edits with the profile's new version. A conflict
 //! leaves the update unfinished, waiting in `.devset/conflicts/`: a chain under
 //! [`Mode::Continue`] installs the fix, or a [`Rollback`] takes the whole update back.
 //!
 //! # Types
+//!
 //! - [`Target`]: the directory devset manages, and what its `.devset/` records.
 //! - [`Resolved`]: the target's layers composed, one provider per path.
 //! - [`Survey`]: every managed path as the profile wants it, as recorded, and as on disk.

@@ -296,7 +296,7 @@ pub(crate) fn lock(target: &Target) -> Result<fs_err::File> {
 }
 
 /// `value` as TOML.
-fn to_toml<T: Serialize + ?Sized>(value: &T) -> Result<String> {
+pub(crate) fn to_toml<T: Serialize + ?Sized>(value: &T) -> Result<String> {
     Ok(toml::to_string(value).map_err(io::Error::other)?)
 }
 

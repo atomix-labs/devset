@@ -150,9 +150,8 @@ impl Commit {
                 None => {}
                 Some(blob) if blob.regular => wanted.push((path, blob.id.as_str())),
                 Some(_) => {
-                    let short = self.rev.as_str().get(..7).unwrap_or(self.rev.as_str());
                     return Err(SourceError::NotAFile {
-                        file: format!("{key} @{short}"),
+                        file: format!("{key} @{}", self.rev.short()),
                     }
                     .into());
                 }

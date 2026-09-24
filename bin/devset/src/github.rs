@@ -7,7 +7,7 @@ use devset_core::plan::Step;
 use devset_core::{RelPath, Survey, Target};
 use github_actions::{CommandWithProperties, SummaryError, append_job_summary};
 
-use crate::report::{Change, Standing, Wrote, files, in_sync, state};
+use crate::report::{Change, Standing, State, Wrote, files, in_sync};
 
 /// Whether devset runs in a GitHub Actions job.
 fn active() -> bool {
@@ -53,14 +53,13 @@ pub(crate) fn status(survey: &Survey, target: &Target) -> io::Result<()> {
                 "error",
                 "resolve `.devset/conflicts/`, then run `devset update --continue`".to_owned(),
             ),
-            Standing::Drifted(change) => (
-                "error",
-                format!("`devset apply --force` would {} it", change.verb()),
-            ),
-            Standing::Pending(change) => ("warning", format!("{apply} would {} it", change.verb())),
+            Standing::Drifted(change) => {
+                ("error", format!("`devset apply --force` would {change} it"))
+            }
+            Standing::Pending(change) => ("warning", format!("{apply} would {change} it")),
             Standing::Local | Standing::InSync => continue,
         };
-        let state = state(entry);
+        let state = State::of(entry);
         annotate(
             level,
             &file(target, path),

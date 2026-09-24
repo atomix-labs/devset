@@ -107,7 +107,7 @@ impl Entry {
 impl fmt::Display for Entry {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match &self.part {
-            Some(Part { owner, scope }) => write!(f, "{} [{}: {owner}]", self.path, scope.as_str()),
+            Some(Part { owner, scope }) => write!(f, "{} [{scope}: {owner}]", self.path),
             None => write!(f, "{}", self.path),
         }
     }

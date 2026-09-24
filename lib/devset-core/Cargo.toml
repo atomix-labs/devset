@@ -1,15 +1,15 @@
 [package]
-name = "devset-core"
-description = "Versioned file bundles, applied to a directory and updated without losing local edits."
-version.workspace = true
-edition.workspace = true
+name                   = "devset-core"
+description            = "versioned file bundles, applied to a directory and updated without losing local edits."
+version.workspace      = true
+edition.workspace      = true
 rust-version.workspace = true
-license.workspace = true
-authors.workspace = true
-repository.workspace = true
-readme.workspace = true
-keywords.workspace = true
-categories.workspace = true
+license.workspace      = true
+authors.workspace      = true
+repository.workspace   = true
+readme.workspace       = true
+keywords.workspace     = true
+categories.workspace   = true
 
 [features]
 default = []
@@ -19,26 +19,29 @@ workspace = true
 
 [dependencies]
 # external
-atomic-write-file = { workspace = true }
-blake3 = { workspace = true }
-camino = { workspace = true }
-diffy = { workspace = true }
-etcetera = { workspace = true }
-fs-err = { workspace = true }
-jsonc-parser = { workspace = true, features = ["cst", "serde"] }
-minijinja = { workspace = true }
-schemars = { workspace = true }
-semver = { workspace = true }
-serde = { workspace = true }
-serde-saphyr = { workspace = true }
-serde_json = { workspace = true }
-shlex = { workspace = true }
-tempfile = { workspace = true }
-thiserror = { workspace = true }
-toml = { workspace = true }
-toml_edit = { workspace = true }
+atomic-write-file     = { workspace = true }
+blake3                = { workspace = true }
+camino                = { workspace = true }
+camino-tempfile       = { workspace = true }
+derive_more           = { workspace = true }
+diffy                 = { workspace = true }
+etcetera              = { workspace = true }
+fs-err                = { workspace = true }
+jsonc-parser          = { workspace = true, features = ["cst", "serde"] }
+minijinja             = { workspace = true }
+schemars              = { workspace = true }
+semver                = { workspace = true }
+serde                 = { workspace = true }
+serde-saphyr          = { workspace = true }
+serde_json            = { workspace = true }
+serde_with            = { workspace = true }
+shlex                 = { workspace = true }
+thiserror             = { workspace = true }
+toml                  = { workspace = true }
+toml_edit             = { workspace = true }
 unicode-normalization = { workspace = true }
-yaml-edit = { workspace = true }
+walkdir               = { workspace = true }
+yaml-edit             = { workspace = true }
 
 [dev-dependencies]
 # external

@@ -50,24 +50,9 @@ pub(crate) fn decode(content: &[u8]) -> Option<Leaves> {
 
 /// `value` as JSON with every object's keys in order, so equal values encode equally.
 fn canonical(value: &Value) -> String {
-    match value {
-        Value::Object(object) => {
-            let mut entries: Vec<_> = object.iter().collect();
-            entries.sort_by(|a, b| a.0.cmp(b.0));
-            let inner: Vec<String> = entries
-                .into_iter()
-                .map(|(k, v)| format!("{}:{}", Value::String(k.clone()), canonical(v)))
-                .collect();
-            format!("{{{}}}", inner.join(","))
-        }
-        Value::Array(items) => {
-            format!(
-                "[{}]",
-                items.iter().map(canonical).collect::<Vec<_>>().join(",")
-            )
-        }
-        Value::Null | Value::Bool(_) | Value::Number(_) | Value::String(_) => value.to_string(),
-    }
+    let mut sorted = value.clone();
+    sorted.sort_all_objects();
+    sorted.to_string()
 }
 
 /// The leaves of `value`, in order: objects are containers, everything else is a leaf.

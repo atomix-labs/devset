@@ -283,11 +283,7 @@ mod tests {
             "rust",
             &[("rustfmt.toml", "owned", "edition = \"2024\"\n")],
         );
-        sb.git("work", &["init", "-q", "-b", "main"]);
-        sb.git("work", &["add", "-A"]);
-        sb.git("work", &["commit", "-qm", "v1"]);
-        sb.git("work", &["tag", "-a", "v1", "-m", "v1"]);
-        sb.git(".", &["clone", "-q", "--bare", "work", "profiles.git"]);
+        sb.release("v1");
 
         let mut log = sb.devset(
             "repo",
