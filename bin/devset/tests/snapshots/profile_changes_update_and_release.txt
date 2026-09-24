@@ -8,11 +8,11 @@ demo 1.0.0  ../profile  (changed since it was applied)
 
 Pending — `devset apply` will:
     unchanged  a.toml  owned  update
-    vanished   b.toml         release
+    dropped    b.toml         remove
 [exit 0]
 $ devset apply
      Updated a.toml
-    Released b.toml
+     Removed b.toml
     Finished 2 changes
 [exit 0]
 $ devset apply

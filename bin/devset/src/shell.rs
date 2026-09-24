@@ -1,17 +1,13 @@
 //! Terminal output: cargo-style status lines on stdout; diagnostics and progress on stderr.
 
-use alloc::sync::Arc;
 use core::fmt::Display;
-use core::time::Duration;
 use std::io::{self, IsTerminal, Write};
-use std::sync::Mutex;
 
 use annotate_snippets::{AnnotationKind, Group, Level, Renderer, Snippet};
 use anstyle::Style;
 use clap_cargo::style::GOOD;
 use devset_core::Error;
 use devset_core::source::Fetch;
-use indicatif::{ProgressBar, ProgressStyle};
 
 use crate::help;
 
@@ -41,13 +37,20 @@ impl Shell {
 
     /// A status line, `verb` in `style` and then `message`, unless quiet.
     pub(crate) fn status(&self, verb: &str, style: Style, message: impl Display) -> io::Result<()> {
-        if self.quiet { Ok(()) } else { self.always(verb, style, message) }
+        if self.quiet {
+            Ok(())
+        } else {
+            self.always(verb, style, message)
+        }
     }
 
     /// A status line even when quiet: for what needs attention.
     #[expect(clippy::unused_self, reason = "all output goes through the shell")]
     pub(crate) fn always(&self, verb: &str, style: Style, message: impl Display) -> io::Result<()> {
-        writeln!(anstream::stdout(), "{style}{verb:>VERB$}{style:#} {message}")
+        writeln!(
+            anstream::stdout(),
+            "{style}{verb:>VERB$}{style:#} {message}"
+        )
     }
 
     /// A `note:` on stderr, with a `help:` if given, unless quiet.
@@ -75,7 +78,9 @@ impl Shell {
             let snippet = Snippet::source(parse.text.as_str())
                 .path(parse.file.as_str())
                 .annotation(AnnotationKind::Primary.span(span));
-            let report = Level::ERROR.primary_title(parse.message.as_str()).element(snippet);
+            let report = Level::ERROR
+                .primary_title(parse.message.as_str())
+                .element(snippet);
             return writeln!(anstream::stderr(), "{}", renderer.render(&[report]));
         }
         let message = error.to_string();
@@ -88,40 +93,21 @@ impl Shell {
         writeln!(anstream::stderr(), "{}", renderer.render(&[report]))
     }
 
-    /// A [`Cache::on_fetch`](devset_core::Cache::on_fetch) hook that shows each fetch.
+    /// A [`Cache::on_fetch`](devset_core::Cache::on_fetch) hook: each fetch on stderr.
     ///
-    /// A spinner on a terminal, a plain line otherwise, and nothing when quiet.
+    /// A plain line, never an animation, since git may ask for credentials on the same terminal
+    /// and a redrawn line would hide its question; nothing when quiet.
     pub(crate) fn fetches(&self) -> impl Fn(Fetch<'_>) + Send + Sync + 'static {
         let quiet = self.quiet;
-        let spinner: Arc<Mutex<Option<ProgressBar>>> = Arc::default();
         move |event| {
-            if quiet {
-                return;
+            if let (false, Fetch::Start(url)) = (quiet, event) {
+                // Progress only: a failed write here leaves the fetch, and its result, unchanged.
+                drop(writeln!(
+                    anstream::stderr(),
+                    "{GOOD}{:>VERB$}{GOOD:#} {url}",
+                    "Fetching"
+                ));
             }
-            let Ok(mut current) = spinner.lock() else { return };
-            let result = match event {
-                Fetch::Start(url) if io::stderr().is_terminal() => {
-                    let bar = ProgressBar::new_spinner().with_message(url.to_owned());
-                    bar.set_style(
-                        ProgressStyle::with_template(&format!(
-                            "{GOOD}{:>VERB$}{GOOD:#} {{msg}} {{spinner}}",
-                            "Fetching"
-                        ))
-                        .unwrap_or_else(|_| ProgressStyle::default_spinner()),
-                    );
-                    bar.enable_steady_tick(Duration::from_millis(100));
-                    *current = Some(bar);
-                    Ok(())
-                },
-                Fetch::Start(url) => {
-                    writeln!(anstream::stderr(), "{GOOD}{:>VERB$}{GOOD:#} {url}", "Fetching")
-                },
-                Fetch::Done(url) => current.take().map_or(Ok(()), |bar| {
-                    bar.finish_and_clear();
-                    writeln!(anstream::stderr(), "{GOOD}{:>VERB$}{GOOD:#} {url}", "Fetched")
-                }),
-            };
-            drop(result);
         }
     }
 

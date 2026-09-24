@@ -5,65 +5,75 @@ $ devset schema config
   "description": "`.devset/config.toml`: the layers, and the target's word on every setting they carry.",
   "type": "object",
   "properties": {
+    "layers": {
+      "description": "Profiles to apply, in order.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/SourceSpec"
+      },
+      "default": []
+    },
+    "merge": {
+      "description": "Merge settings; these override every layer's.",
+      "$ref": "#/$defs/MergeSpec",
+      "default": {}
+    },
     "files": {
       "description": "Overrides of the layers' `[files]` entries.",
       "type": "object",
       "additionalProperties": {
         "$ref": "#/$defs/Override"
       }
-    },
-    "layers": {
-      "description": "Profiles to apply, in order.",
-      "type": "array",
-      "default": [],
-      "items": {
-        "$ref": "#/$defs/SourceSpec"
-      }
-    },
-    "merge": {
-      "description": "Merge settings; these override every layer's.",
-      "$ref": "#/$defs/MergeSpec",
-      "default": {}
     }
   },
   "additionalProperties": false,
   "$defs": {
-    "Format": {
-      "description": "How a file is checked after a merge: it must parse, with no duplicate keys.",
-      "oneOf": [
-        {
-          "description": "TOML.",
-          "type": "string",
-          "const": "toml"
-        },
-        {
-          "description": "JSON with comments and trailing commas (JSONC), a superset of JSON.",
-          "type": "string",
-          "const": "json"
-        },
-        {
-          "description": "YAML.",
-          "type": "string",
-          "const": "yaml"
-        },
-        {
-          "description": "Not checked.",
-          "type": "string",
-          "const": "none"
-        }
-      ]
-    },
-    "MergeSpec": {
-      "description": "A `[merge]` table: defaults in `profile.toml`, decisions in `.devset/config.toml`.",
+    "SourceSpec": {
+      "description": "A source as written in `config.toml`: Cargo's git-dependency fields.",
       "type": "object",
       "properties": {
-        "driver": {
-          "description": "A merge program, with `%O %A %B %P` substituted./n/nFrom a profile it is only a suggestion: devset never runs a program a profile names.",
+        "git": {
+          "description": "Repository URL.",
           "type": [
             "string",
             "null"
           ]
         },
+        "tag": {
+          "description": "Tag to use; only with `git`.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "branch": {
+          "description": "Branch to use; only with `git`.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "rev": {
+          "description": "Full commit id to use; only with `git`.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "path": {
+          "description": "The profile's directory: relative to the target, or within the repository with `git`.",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "MergeSpec": {
+      "description": "A `[merge]` table: defaults in `profile.toml`, decisions in `.devset/config.toml`.",
+      "type": "object",
+      "properties": {
         "on-conflict": {
           "description": "What an update does when a file conflicts.",
           "anyOf": [
@@ -73,6 +83,13 @@ $ devset schema config
             {
               "type": "null"
             }
+          ]
+        },
+        "driver": {
+          "description": "A merge program, with `%O %A %B %P` substituted./n/nFrom a profile it is only a suggestion: devset never runs a program a profile names.",
+          "type": [
+            "string",
+            "null"
           ]
         }
       },
@@ -152,47 +169,30 @@ $ devset schema config
         }
       ]
     },
-    "SourceSpec": {
-      "description": "A source as written in `config.toml`: Cargo's git-dependency fields.",
-      "type": "object",
-      "properties": {
-        "branch": {
-          "description": "Branch to use; only with `git`.",
-          "type": [
-            "string",
-            "null"
-          ]
+    "Format": {
+      "description": "How a file is checked after a merge: it must parse, with no duplicate keys.",
+      "oneOf": [
+        {
+          "description": "TOML.",
+          "type": "string",
+          "const": "toml"
         },
-        "git": {
-          "description": "Repository URL.",
-          "type": [
-            "string",
-            "null"
-          ]
+        {
+          "description": "JSON with comments and trailing commas (JSONC), a superset of JSON.",
+          "type": "string",
+          "const": "json"
         },
-        "path": {
-          "description": "The profile's directory: relative to the target, or within the repository with `git`.",
-          "type": [
-            "string",
-            "null"
-          ]
+        {
+          "description": "YAML.",
+          "type": "string",
+          "const": "yaml"
         },
-        "rev": {
-          "description": "Full commit id to use; only with `git`.",
-          "type": [
-            "string",
-            "null"
-          ]
-        },
-        "tag": {
-          "description": "Tag to use; only with `git`.",
-          "type": [
-            "string",
-            "null"
-          ]
+        {
+          "description": "Not checked.",
+          "type": "string",
+          "const": "none"
         }
-      },
-      "additionalProperties": false
+      ]
     }
   }
 }

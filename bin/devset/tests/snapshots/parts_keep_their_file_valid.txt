@@ -1,0 +1,34 @@
+$ devset init --path ../p
+  Conflicted Cargo.toml [block: p]  with it, the file is invalid: duplicate key at line 5
+    Finished 1 conflict
+help: resolve the files in .devset/conflicts/, then run `devset update --continue`;
+      or take the update back with `devset update --abort`
+[exit 1]
+--- .devset/conflicts/Cargo.toml
+[workspace]
+members = []
+
+# >>> devset: p >>>
+[workspace]
+resolver = "3"
+# <<< devset: p <<<
+$ devset init --path ../keys
+error: notes.txt is not read as TOML, JSON or YAML, so a profile cannot own its keys
+  |
+  = help: name the format it is written in, or own it another way:
+              [files."notes.txt"]
+              validate = "toml"   # or scope = "file", or scope = "block"
+[exit 2]
+$ devset init --path ../json
+error: devset knows no comment syntax for package.json, which a block's markers need
+  |
+  = help: name the syntax on its entry in profile.toml:
+              [files."package.json"]
+              comment = "#"
+[exit 2]
+$ devset init --path ../p
+  Conflicted Cargo.toml [block: p]  with it, the file is invalid: unclosed table, expected `]` at line 1
+    Finished 1 conflict
+help: resolve the files in .devset/conflicts/, then run `devset update --continue`;
+      or take the update back with `devset update --abort`
+[exit 1]

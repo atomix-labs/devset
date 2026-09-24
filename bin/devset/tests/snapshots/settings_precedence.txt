@@ -39,6 +39,8 @@ $ devset status --json
   "files": [
     {
       "path": "a.txt",
+      "scope": "file",
+      "part": null,
       "layer": "p",
       "policy": "merge",
       "state": "edited",
@@ -47,6 +49,8 @@ $ devset status --json
     },
     {
       "path": "b.txt",
+      "scope": "file",
+      "part": null,
       "layer": "q",
       "policy": "once",
       "state": "new",
@@ -60,7 +64,8 @@ $ devset status --json
   },
   "answers": {},
   "suggestions": [],
-  "drifted": true
+  "drifted": true,
+  "unfinished": false
 }
 [exit 0]
 $ devset apply

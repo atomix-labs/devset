@@ -1,0 +1,117 @@
+# Runs every `check-*` recipe on every change, each a job of its own, with the tools mise locks. The
+# jobs are read from the justfile, so every check a checkout runs with `just check` runs here too;
+# `check` is the one job to require. The site one recipe builds, named by `pages` in
+# .github/automation.json, is kept from each run and deployed to Pages from the default branch.
+name: check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  merge_group:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  MISE_LOCKED: "1"
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      recipes: ${{ steps.plan.outputs.recipes }}
+      pages-recipe: ${{ steps.plan.outputs.pages-recipe }}
+      pages-path: ${{ steps.plan.outputs.pages-path }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c # v4.3.0
+        with:
+          version: 2026.9.12
+          install_args: just
+      - id: plan
+        run: |
+          recipes=$(just --summary | tr ' ' '\n' | jq -Rnc '[inputs | select(startswith("check-"))]')
+          echo "recipes=$recipes" >> "$GITHUB_OUTPUT"
+          settings=.github/automation.json
+          [[ -f $settings ]] || exit 0
+          recipe=$(jq -r '.pages.recipe // empty' "$settings")
+          [[ -n $recipe ]] || exit 0
+          if ! jq -e --arg recipe "$recipe" 'index($recipe)' <<< "$recipes" > /dev/null; then
+            echo "::error file=$settings::pages.recipe names $recipe, which is no check recipe"
+            exit 1
+          fi
+          echo "pages-recipe=$recipe" >> "$GITHUB_OUTPUT"
+          echo "pages-path=$(jq -r '.pages.path // "docs/book"' "$settings")" >> "$GITHUB_OUTPUT"
+
+  run:
+    needs: plan
+    if: needs.plan.outputs.recipes != '[]' && needs.plan.outputs.recipes != ''
+    strategy:
+      fail-fast: false
+      matrix:
+        recipe: ${{ fromJSON(needs.plan.outputs.recipes) }}
+    name: ${{ matrix.recipe }}
+    runs-on: ${{ vars.CI_RUNNER || 'ubuntu-latest' }}
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # Every locked tool, then the task `bootstrap`: `just setup`, as on a laptop.
+      - uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c # v4.3.0
+        with:
+          version: 2026.9.12
+          bootstrap: true
+      - if: hashFiles('Cargo.lock') != ''
+        uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+        with:
+          key: ${{ matrix.recipe }}
+      - env:
+          RECIPE: ${{ matrix.recipe }}
+        run: just "$RECIPE"
+      # The site as checked: a pull request's is its preview, the default branch's is deployed.
+      - if: matrix.recipe == needs.plan.outputs.pages-recipe
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: ${{ needs.plan.outputs.pages-path }}
+          retention-days: ${{ github.event_name == 'pull_request' && 7 || 1 }}
+
+  check:
+    needs: [plan, run]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - env:
+          PLAN: ${{ needs.plan.result }}
+          RUN: ${{ needs.run.result }}
+        run: "[[ $PLAN == success && ($RUN == success || $RUN == skipped) ]]"
+
+  deploy:
+    needs: [plan, check]
+    if: >-
+      needs.plan.outputs.pages-recipe != '' && github.event_name == 'push'
+      && github.ref_name == github.event.repository.default_branch
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      pages: write # create the deployment
+      id-token: write # the token whose claims Pages checks
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    # One deploy at a time, and none cancelled halfway.
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    steps:
+      - id: deploy
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1

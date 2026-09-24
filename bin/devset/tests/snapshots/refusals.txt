@@ -24,9 +24,11 @@ error: invalid path ".git/hooks/pre-commit": reserved component
 [exit 2]
 $ devset init --path ../missing
 error: profile missing lists gone.toml, but files/gone.toml does not exist
+  |
+  = help: add files/gone.toml to the profile, or remove its [files] entry
 [exit 2]
 $ devset init --path ../typo
-error: unknown field `polcy`, expected one of `policy`, `validate`, `template`
+error: unknown field `polcy`, expected one of `policy`, `validate`, `template`, `scope`, `comment`, `executable`
  --> ../typo/profile.toml:5:1
   |
 5 | polcy = "once"
@@ -39,6 +41,8 @@ error: profile newer requires devset >=99; this is 0.1.0
 [exit 2]
 $ devset init --path ../fold
 error: README.md and readme.md are the same file on case-insensitive filesystems
+  |
+  = help: rename one of them in the profile
 [exit 2]
 $ devset init --path ../ok
      Created a.toml
@@ -60,5 +64,7 @@ error: [ROOT]/repo/sub is inside the devset target at [ROOT]/repo
   = help: run devset from [ROOT]/repo
 [exit 2]
 $ devset status
-error: [ROOT]/repo/a.toml is not a regular file
+error: a.toml is a symlink, not a regular file
+  |
+  = help: devset manages regular files: move a.toml aside, and `devset apply` writes it again
 [exit 2]

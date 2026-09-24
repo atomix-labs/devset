@@ -1,0 +1,15 @@
+$ devset init --path ../org
+     Created org.toml
+     Created rustfmt.toml
+    Finished 2 changes
+    Fetching [ROOT]/profiles.git
+[exit 0]
+$ devset update
+    Finished up to date
+    Fetching [ROOT]/profiles.git
+[exit 0]
+$ devset apply
+     Updated rustfmt.toml
+    Finished 1 change
+    Fetching [ROOT]/profiles.git
+[exit 0]

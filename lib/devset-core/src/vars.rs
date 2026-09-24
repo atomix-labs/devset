@@ -3,12 +3,14 @@
 use alloc::borrow::Cow;
 use alloc::collections::BTreeMap;
 use core::{fmt, str};
+use std::collections::HashSet;
 
 use minijinja::{AutoEscape, Environment, UndefinedBehavior};
 use schemars::{JsonSchema, Schema, SchemaGenerator};
 use serde::{Deserialize, Serialize};
 
-use crate::errors::{Result, VarError};
+use crate::errors::{ParseError, Result, VarError};
+use crate::profile::PAYLOAD;
 use crate::resolve::Layer;
 use crate::target::Target;
 use crate::tree::Tree;
@@ -54,9 +56,15 @@ impl TryFrom<String> for VarName {
 
     fn try_from(name: String) -> Result<Self, VarError> {
         let mut chars = name.chars();
-        let valid = chars.next().is_some_and(|c| c.is_ascii_alphabetic() || c == '_')
+        let valid = chars
+            .next()
+            .is_some_and(|c| c.is_ascii_alphabetic() || c == '_')
             && chars.all(|c| c.is_ascii_alphanumeric() || c == '_');
-        if valid { Ok(Self(name.into_boxed_str())) } else { Err(VarError::Name { name }) }
+        if valid {
+            Ok(Self(name.into_boxed_str()))
+        } else {
+            Err(VarError::Name { name })
+        }
     }
 }
 
@@ -138,7 +146,11 @@ pub(crate) fn answers(layers: &[Layer], target: &Target) -> Result<BTreeMap<VarN
     }
     if let Some(name) = target.given().find(|name| !declared.contains_key(name)) {
         let declared = declared.keys().map(|&name| name.clone()).collect();
-        return Err(VarError::Unknown { name: name.clone(), declared }.into());
+        return Err(VarError::Unknown {
+            name: name.clone(),
+            declared,
+        }
+        .into());
     }
     let mut answers = BTreeMap::new();
     let mut questions = Vec::new();
@@ -146,7 +158,7 @@ pub(crate) fn answers(layers: &[Layer], target: &Target) -> Result<BTreeMap<VarN
         match target.answers().get(name) {
             Some(answer) => {
                 answers.insert(name.clone(), answer.clone());
-            },
+            }
             None => questions.push(Question {
                 name: name.clone(),
                 prompt: prompt.map_or_else(|| name.to_string(), str::to_owned),
@@ -157,20 +169,28 @@ pub(crate) fn answers(layers: &[Layer], target: &Target) -> Result<BTreeMap<VarN
             }),
         }
     }
-    if questions.is_empty() { Ok(answers) } else { Err(VarError::Unanswered { questions }.into()) }
+    if questions.is_empty() {
+        Ok(answers)
+    } else {
+        Err(VarError::Unanswered { questions }.into())
+    }
 }
 
 /// `layers` with every template rendered with `answers`.
 ///
 /// # Errors
-/// [`VarError::Template`], a template is not UTF-8, does not parse, or uses an undefined variable.
+/// - [`VarError::Undeclared`], a template uses a variable no profile declares.
+/// - [`VarError::Template`], a template is not UTF-8.
+/// - [`Error::Parse`](crate::Error::Parse), a template does not parse or render, pointing at where.
 pub(crate) fn render(
-    mut layers: Vec<Layer>, answers: &BTreeMap<VarName, String>,
+    mut layers: Vec<Layer>,
+    answers: &BTreeMap<VarName, String>,
 ) -> Result<Vec<Layer>> {
     let mut env = Environment::new();
     env.set_undefined_behavior(UndefinedBehavior::Strict);
     env.set_keep_trailing_newline(true);
     env.set_auto_escape_callback(|_| AutoEscape::None);
+    let globals: HashSet<String> = env.globals().map(|(name, _)| name.to_owned()).collect();
     for layer in &mut layers {
         if !layer.has_templates() {
             continue;
@@ -181,11 +201,44 @@ pub(crate) fn render(
                 rendered.put(path.clone(), bytes);
                 continue;
             }
-            let failed = |reason: String| VarError::Template { path: path.clone(), reason };
-            let source = str::from_utf8(bytes).map_err(|e| failed(e.to_string()))?;
-            let text = env
-                .render_named_str(path.as_str(), source, answers)
-                .map_err(|e| failed(e.to_string()))?;
+            let source = str::from_utf8(bytes).map_err(|e| VarError::Template {
+                path: path.clone(),
+                reason: format!("it is not UTF-8: {e}"),
+            })?;
+            let file = layer.label(&format!("{PAYLOAD}/{path}"));
+            let failed = |e: &minijinja::Error| {
+                let message = e.detail().map_or_else(
+                    || e.kind().to_string(),
+                    |detail| format!("{}: {detail}", e.kind()),
+                );
+                ParseError {
+                    file: file.clone(),
+                    text: source.to_owned(),
+                    span: e.range(),
+                    message,
+                }
+            };
+            let template = env
+                .template_from_named_str(path.as_str(), source)
+                .map_err(|e| failed(&e))?;
+            let mut undeclared: Vec<String> = template
+                .undeclared_variables(false)
+                .into_iter()
+                .filter(|name| {
+                    !globals.contains(name) && !answers.keys().any(|v| v.as_str() == name)
+                })
+                .collect();
+            undeclared.sort();
+            if let Some(name) = undeclared.into_iter().next() {
+                let declared = answers.keys().cloned().collect();
+                return Err(VarError::Undeclared {
+                    path: path.clone(),
+                    name,
+                    declared,
+                }
+                .into());
+            }
+            let text = template.render(answers).map_err(|e| failed(&e))?;
             rendered.put(path.clone(), text.as_bytes());
         }
         layer.set_payload(rendered);
@@ -200,10 +253,16 @@ mod tests {
     #[test]
     fn names_are_identifiers() {
         for name in ["author", "_x", "target_cpu2"] {
-            assert!(VarName::try_from(name.to_owned()).is_ok(), "{name} is valid");
+            assert!(
+                VarName::try_from(name.to_owned()).is_ok(),
+                "{name} is valid"
+            );
         }
         for name in ["", "2x", "a-b", "a.b", "é"] {
-            assert!(VarName::try_from(name.to_owned()).is_err(), "{name:?} is invalid");
+            assert!(
+                VarName::try_from(name.to_owned()).is_err(),
+                "{name:?} is invalid"
+            );
         }
     }
 }

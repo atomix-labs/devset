@@ -7,7 +7,8 @@ $ devset update
   Conflicted c.toml  merged, but invalid: duplicate key at line 5
     Finished 1 conflict
     Fetching ../profiles.git
-help: resolve the files in .devset/conflicts/, then run `devset update --continue`
+help: resolve the files in .devset/conflicts/, then run `devset update --continue`;
+      or take the update back with `devset update --abort`
 [exit 1]
 $ devset update --continue
 error: .devset/conflicts/c.toml: duplicate key at line 5

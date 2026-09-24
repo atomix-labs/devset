@@ -2,29 +2,43 @@
 
 [graph]
 targets = [
-    "x86_64-unknown-linux-gnu",
-    "aarch64-unknown-linux-gnu",
-    "x86_64-apple-darwin",
-    "aarch64-apple-darwin",
+  "x86_64-unknown-linux-gnu",
+  "aarch64-unknown-linux-gnu",
+  "x86_64-apple-darwin",
+  "aarch64-apple-darwin",
 ]
 
 [advisories]
-version      = 2
-yanked       = "deny"
+version = 2
+yanked = "deny"
 unmaintained = "all"
 
 [bans]
-multiple-versions    = "deny"
-wildcards            = "deny"
+multiple-versions = "deny"
+wildcards = "deny"
 allow-wildcard-paths = true
-skip                 = []
+skip = [
+  { crate = "hashbrown@0.14", reason = "rowan, the syntax tree under yaml-edit, pins 0.14; the tree is on 0.17" },
+]
 
 [licenses]
 version = 2
-allow   = ["MIT", "Apache-2.0", "Unicode-3.0", "BSD-3-Clause", "Zlib", "CC0-1.0"]
+allow = [
+  "Apache-2.0",
+  "BSD-2-Clause",
+  "BSD-3-Clause",
+  "CC0-1.0",
+  "CDLA-Permissive-2.0",
+  "ISC",
+  "MIT",
+  "Unicode-3.0",
+  "Zlib",
+]
+private = { ignore = true }
+unused-allowed-license = "allow"
 
 [sources]
-unknown-registry  = "deny"
-unknown-git       = "deny"
+unknown-registry = "deny"
+unknown-git = "deny"
 required-git-spec = "rev"
-allow-git         = []
+allow-git = []

@@ -1,0 +1,20 @@
+$ devset init --git ../profiles.git --branch main --path profiles/rust
+     Created a.toml
+     Created r.toml
+    Finished 2 changes
+    Fetching ../profiles.git
+[exit 0]
+$ devset apply
+    Finished up to date
+[exit 0]
+$ devset update rust
+     Updated a.toml
+    Finished 1 change
+    Fetching ../profiles.git
+[exit 0]
+$ devset status
+rust 1.0.0  ../profiles.git branch main path profiles/rust  @484ba6e
+  requires a
+
+All 2 files match the profile.
+[exit 0]

@@ -1,0 +1,19 @@
+$ devset init --path ../cycle/a
+error: requirements form a cycle: ../cycle/a → ../cycle/b → ../cycle/a
+  |
+  = help: drop one requirement to break the cycle
+[exit 2]
+$ devset init --path ../clash/both
+error: same.toml is provided by x and y
+  |
+  = help: choose one in .devset/config.toml:
+              [files."same.toml"]
+              from = "x"   # or "y"
+[exit 2]
+$ devset init --path ../bad
+error: a requirement table names a git source; a sibling is a relative path
+ --> ../bad/profile.toml:4:13
+  |
+4 | requires = [{ path = "../x" }]
+  |             ^^^^^^^^^^^^^^^^^
+[exit 2]

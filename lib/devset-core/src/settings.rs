@@ -18,7 +18,8 @@ pub struct MergeSpec {
     ///
     /// From a profile it is only a suggestion: devset never runs a program a profile names.
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub driver: Option<String>,
+    #[schemars(with = "Option<String>")]
+    pub driver: Option<Driver>,
 }
 
 /// What an update does when a file conflicts.
@@ -57,8 +58,8 @@ pub struct Settings {
 pub struct Suggestion {
     /// The layer's profile name.
     pub layer: String,
-    /// Its `driver` line.
-    pub driver: String,
+    /// The driver it names.
+    pub driver: Driver,
 }
 
 impl Settings {
@@ -68,10 +69,13 @@ impl Settings {
             Some(value) => value,
             None => {
                 agreed(layers, "merge.on-conflict", |merge| merge.on_conflict)?.unwrap_or_default()
-            },
+            }
         };
-        let driver = target.driver.as_deref().map(Driver::parse).transpose()?.unwrap_or_default();
-        Ok(Self { on_conflict, driver })
+        let driver = target.driver.clone().unwrap_or_default();
+        Ok(Self {
+            on_conflict,
+            driver,
+        })
     }
 
     /// The drivers `layers` suggest, while `target` configures none.
@@ -83,7 +87,10 @@ impl Settings {
             .iter()
             .filter_map(|layer| {
                 let driver = layer.merge().driver.clone()?;
-                Some(Suggestion { layer: layer.meta().name.clone(), driver })
+                Some(Suggestion {
+                    layer: layer.meta().name.clone(),
+                    driver,
+                })
             })
             .collect()
     }
@@ -91,17 +98,26 @@ impl Settings {
 
 /// The value every layer that sets `key` agrees on.
 fn agreed<T: Copy + PartialEq>(
-    layers: &[Layer], key: &'static str, get: fn(&MergeSpec) -> Option<T>,
+    layers: &[Layer],
+    key: &'static str,
+    get: fn(&MergeSpec) -> Option<T>,
 ) -> Result<Option<T>> {
     let mut agreed: Option<(T, &Layer)> = None;
     for layer in layers {
-        let Some(value) = get(layer.merge()) else { continue };
+        let Some(value) = get(layer.merge()) else {
+            continue;
+        };
         match agreed {
             Some((first, by)) if first != value => {
                 let (first, second) = (by.meta().name.clone(), layer.meta().name.clone());
-                return Err(ProfileError::Setting { key: key.to_owned(), first, second }.into());
-            },
-            Some(_) => {},
+                return Err(ProfileError::Setting {
+                    key: key.to_owned(),
+                    first,
+                    second,
+                }
+                .into());
+            }
+            Some(_) => {}
             None => agreed = Some((value, layer)),
         }
     }

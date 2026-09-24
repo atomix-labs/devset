@@ -26,7 +26,9 @@ impl Tree {
 
     /// Every file, in path order.
     pub(crate) fn iter(&self) -> impl Iterator<Item = (&RelPath, &[u8])> {
-        self.index.iter().filter_map(|(path, span)| Some((path, self.buf.get(span.clone())?)))
+        self.index
+            .iter()
+            .filter_map(|(path, span)| Some((path, self.buf.get(span.clone())?)))
     }
 
     /// Digest over every path and its content, independent of insertion order.
@@ -67,7 +69,7 @@ impl Tree {
                 if let Some(entry) = self.index.get_mut(at) {
                     entry.1 = span;
                 }
-            },
+            }
             Err(at) => self.index.insert(at, (path, span)),
         }
     }

@@ -17,7 +17,8 @@ $ devset update
      Updated b.toml
     Finished 1 change, 1 conflict
     Fetching ../profiles.git
-help: resolve the files in .devset/conflicts/, then run `devset update --continue`
+help: resolve the files in .devset/conflicts/, then run `devset update --continue`;
+      or take the update back with `devset update --abort`
 [exit 1]
 $ devset status --exit-code
 p 1.0.0  ../profiles.git branch main path p  @54ba0dc
@@ -29,7 +30,7 @@ $ devset apply
 error: 1 conflict unresolved: a.toml
   |
   = help: resolve them in .devset/conflicts/, then run `devset update --continue`;
-          or delete .devset/conflicts/ to abandon the update
+          or take the update back with `devset update --abort`
 [exit 2]
 $ devset update --continue
 error: .devset/conflicts/a.toml still has conflict markers

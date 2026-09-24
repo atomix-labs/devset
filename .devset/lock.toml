@@ -1,0 +1,197 @@
+version = 1
+
+[[layers]]
+name = "editorconfig"
+digest = "3053772865162fecf372b01c23669cd4f211743fd3feb2ef09f5871eff4cab84"
+
+[layers.source]
+path = "../devset-profiles/profiles/editorconfig"
+
+[[layers]]
+name = "gitattributes"
+digest = "769b4c0321a9448e0a11daf7f00593c8ea97d77a6e0a8a260d131fd325748533"
+
+[layers.source]
+path = "../devset-profiles/profiles/gitattributes"
+
+[[layers]]
+name = "gitignore-rust"
+digest = "cc6c4a62dd6822e0ebe40704b084074fffae5eed871871be60c7b73601f23032"
+
+[layers.source]
+path = "../devset-profiles/profiles/gitignore-rust"
+
+[[layers]]
+name = "mise"
+digest = "70eb4bc05d91fa440b28c498932ef7cd86da30210da0b899b1d40f8fe5e55ba4"
+
+[layers.source]
+path = "../devset-profiles/profiles/mise"
+
+[[layers]]
+name = "just"
+digest = "5d5c71999093caba4db3b1997ee40d938806ee515f85cac75f275535718ccefd"
+
+[layers.source]
+path = "../devset-profiles/profiles/just"
+
+[[layers]]
+name = "setup"
+digest = "4e4703ce5d8f5c1824baa21ce9ca801691f9fa96aab4ac01991ab2fb307294c6"
+
+[layers.source]
+path = "../devset-profiles/profiles/setup"
+
+[[layers]]
+name = "rustup"
+digest = "da4d2cb8f95e93c63354ee3709c3fccbe2daf6bba8c0058d64e21ba248ada5f5"
+
+[layers.source]
+path = "../devset-profiles/profiles/rustup"
+
+[[layers]]
+name = "github-ci"
+digest = "9b260edb7628e8712fce2b23188021e4d47fedf9575fdcdf50da1ad1a5fd1566"
+
+[layers.source]
+path = "../devset-profiles/profiles/github-ci"
+
+[[layers]]
+name = "github-watch"
+digest = "d45ab8f560d8da3cf8a60fab4140b6b3d9b784a8cd33469f9995916f431a6df5"
+
+[layers.source]
+path = "../devset-profiles/profiles/github-watch"
+
+[[layers]]
+name = "github-nightly"
+digest = "ad552ccf6febe5c16bf6fd428929bf8e06d3c098739f03dcc6c2623ca38f14f4"
+
+[layers.source]
+path = "../devset-profiles/profiles/github-nightly"
+
+[[layers]]
+name = "dependabot-cargo"
+digest = "bbd5817218a8c0aeb7ae18767ec067cdb754fb0caefe7c4922f532223bc6cdf5"
+
+[layers.source]
+path = "../devset-profiles/profiles/dependabot-cargo"
+
+[[layers]]
+name = "rust-toolchain"
+digest = "b6537968fcc7dcc2d10aac7aac9a6ccc6a67181da3fc17b66fca8f09b2461ce2"
+
+[layers.source]
+path = "../devset-profiles/profiles/rust-toolchain"
+
+[[layers]]
+name = "rustfmt"
+digest = "1b7259fd1dddf8bdd2e8d3b67764d87d2768a6966f009a74b06625f4e2a135a0"
+
+[layers.source]
+path = "../devset-profiles/profiles/rustfmt"
+
+[[layers]]
+name = "clippy"
+digest = "c5272c49b9a8d664b9d2dc22ae2ad177d10ee4311100c8164c9c69678c6e3044"
+
+[layers.source]
+path = "../devset-profiles/profiles/clippy"
+
+[[layers]]
+name = "rustdoc"
+digest = "3aef3f90fdf02204df98f1855a5cd8cde3abd910c5f916d2397be980cedf6e10"
+
+[layers.source]
+path = "../devset-profiles/profiles/rustdoc"
+
+[[layers]]
+name = "cargo-deny"
+digest = "917d3b4a4387c09b7f0cc51a3b0f8927d7cdd3f4c60cb7b074bc536f5fce7858"
+
+[layers.source]
+path = "../devset-profiles/profiles/cargo-deny"
+
+[[layers]]
+name = "cargo-machete"
+digest = "6c8d954f0e6925c2e5b165efe5c519649fdae69f0806803a187f7ef424befdf5"
+
+[layers.source]
+path = "../devset-profiles/profiles/cargo-machete"
+
+[[layers]]
+name = "cargo-hack"
+digest = "a3f677bf114a043cfd9850c29f619f97f28a99d2662db5a87f5434f2db1e78be"
+
+[layers.source]
+path = "../devset-profiles/profiles/cargo-hack"
+
+[[layers]]
+name = "nextest"
+digest = "96e915fb6edf2855481e50c81dbeed61e13e08065d340d3787ea2959d26de091"
+
+[layers.source]
+path = "../devset-profiles/profiles/nextest"
+
+[[layers]]
+name = "taplo"
+digest = "173be6fd7e1f6f20a9d9e166b61bdb4a562a7c960ebb38535cb9a51955407618"
+
+[layers.source]
+path = "../devset-profiles/profiles/taplo"
+
+[[layers]]
+name = "dprint"
+digest = "8fbd4061a642edcb7e4ffca2869b97a58e9954e4949262864b70c0ee6525f97b"
+
+[layers.source]
+path = "../devset-profiles/profiles/dprint"
+
+[[layers]]
+name = "rumdl"
+digest = "b829acb16cecf257490568e8c6ac089506e90f735bf3befc4b6456887adadab2"
+
+[layers.source]
+path = "../devset-profiles/profiles/rumdl"
+
+[[layers]]
+name = "shellcheck"
+digest = "2b7bb2311a37955cc4f0dd4a5dc6ffa057d567e2925fe44fe2dca98bcec674d6"
+
+[layers.source]
+path = "../devset-profiles/profiles/shellcheck"
+
+[[layers]]
+name = "actionlint"
+digest = "9ab193a34dd3dafc391a82698930cf4bba84313b142d91c841ac04b31e09cf2a"
+
+[layers.source]
+path = "../devset-profiles/profiles/actionlint"
+
+[[layers]]
+name = "zizmor"
+digest = "22646a76fc73ddec52f6093a6cad8c1949e740c0505c63ecb38476addf9c9545"
+
+[layers.source]
+path = "../devset-profiles/profiles/zizmor"
+
+[[layers]]
+name = "vscode-rust"
+digest = "b42907cab326d20d4e09dbc1d39daa91d27656763cfba443d8e71008484016b6"
+
+[layers.source]
+path = "../devset-profiles/profiles/vscode-rust"
+
+[[layers]]
+name = "rust"
+digest = "bac41daaf51fe25a166ba048bacb4e127d36980c072d0f80ac536d2c7d7ea36d"
+
+[layers.source]
+path = "../devset-profiles/profiles/rust"
+
+[[layers]]
+name = "rustfmt-nightly"
+digest = "e05264a4f690d07e781c1ecf378cf82b25cd83e43b662cdae1a95a654eacde2b"
+
+[layers.source]
+path = "../devset-profiles/profiles/rustfmt-nightly"

@@ -25,7 +25,6 @@ exact = "5d4ab1e2034719a034f5916dc093235acf0db6ebaff41839867866acd9131eb9"
 canonical = "5d4ab1e2034719a034f5916dc093235acf0db6ebaff41839867866acd9131eb9"
 --- .devset/.gitignore
 /conflicts/
-/pending.toml
 /.lock
 --- .devset/.gitattributes
 base/** -diff -text

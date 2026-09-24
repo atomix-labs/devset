@@ -1,0 +1,36 @@
+$ devset init --path ../rust
+     Created .gitignore [block: rust]
+    Finished 1 change
+[exit 0]
+$ devset init --path ../node
+     Created .gitignore [block: node]
+    Finished 1 change
+[exit 0]
+--- .gitignore
+/deployments/local/*
+
+# >>> devset: rust >>>
+/target
+# <<< devset: rust <<<
+
+# >>> devset: node >>>
+node_modules/
+# <<< devset: node <<<
+$ devset status --exit-code
+rust 1.0.0  ../rust
+node 1.0.0  ../node
+
+1 file matches the profile.
+[exit 0]
+$ devset apply
+     Updated .gitignore [block: rust]
+    Finished 1 change
+[exit 0]
+$ devset status
+error: the block has no closing marker
+ --> .gitignore:7:1
+  |
+7 | / # >>> devset: node >>>
+8 | | node_modules/
+  | |_^
+[exit 2]

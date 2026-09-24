@@ -1,0 +1,59 @@
+$ devset init --path ../lints
+     Adopted Cargo.toml [keys: lints]
+    Finished 1 change
+[exit 0]
+--- Cargo.toml
+[workspace]
+members = ["a"]
+
+[workspace.lints.clippy]
+# ours
+module_name_repetitions = "allow"
+unwrap_used = "warn"
+pedantic = { level = "deny", priority = -1 }
+$ devset status --exit-code
+lints 1.0.0  ../lints
+
+Drifted — `devset apply --force` restores:
+    edited     Cargo.toml [keys: lints]  owned  restore
+[exit 1]
+$ devset diff
+--- Cargo.toml  (profile lints)
++++ Cargo.toml  (yours)
+@@ -4,5 +4,5 @@
+ [workspace.lints.clippy]
+ # ours
+ module_name_repetitions = "allow"
+-unwrap_used = "deny"
++unwrap_used = "warn"
+ pedantic = { level = "deny", priority = -1 }
+[exit 0]
+$ devset apply --force
+    Restored Cargo.toml [keys: lints]
+    Finished 1 change
+[exit 0]
+--- Cargo.toml
+[workspace]
+members = ["a"]
+
+[workspace.lints.clippy]
+# ours
+module_name_repetitions = "allow"
+unwrap_used = "deny"
+pedantic = { level = "deny", priority = -1 }
+$ devset status --exit-code
+lints 1.0.0  ../lints
+
+1 file matches the profile.
+[exit 0]
+--- .devset/state.toml
+version = 1
+
+[parts."Cargo.toml".lints]
+scope = "keys"
+exact = "08f2205700c898a25aed53507117e9c9a4dc5c3045a80413c381de19206b4d89"
+canonical = "08f2205700c898a25aed53507117e9c9a4dc5c3045a80413c381de19206b4d89"
+$ devset apply
+     Removed Cargo.toml [keys: lints]
+    Finished 1 change
+[exit 0]

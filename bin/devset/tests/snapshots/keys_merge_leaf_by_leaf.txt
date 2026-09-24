@@ -1,0 +1,60 @@
+$ devset init --git ../profiles.git --branch main --path p
+     Created deny.toml [keys: p]
+    Finished 1 change
+    Fetching ../profiles.git
+[exit 0]
+$ devset update
+      Merged deny.toml [keys: p]
+    Finished 1 change
+    Fetching ../profiles.git
+[exit 0]
+--- deny.toml
+[graph]
+targets = ["x86_64-unknown-linux-gnu"]
+
+[bans]
+multiple-versions = "deny"
+wildcards = "allow" # a local exception
+highlight = "all"
+
+[licenses]
+allow = ["MIT", "Apache-2.0"]
+$ devset update
+  Conflicted deny.toml [keys: p]  both changed `bans.wildcards`
+    Finished 1 conflict
+    Fetching ../profiles.git
+help: resolve the files in .devset/conflicts/, then run `devset update --continue`;
+      or take the update back with `devset update --abort`
+[exit 1]
+--- .devset/conflicts/deny.toml
+[graph]
+targets = ["x86_64-unknown-linux-gnu"]
+
+[bans]
+multiple-versions = "deny"
+<<<<<<< ours
+wildcards = "allow" # a local exception
+||||||| original
+wildcards = "deny" # a local exception
+=======
+wildcards = "warn" # a local exception
+>>>>>>> theirs
+highlight = "all"
+
+[licenses]
+allow = ["MIT", "Apache-2.0"]
+$ devset status
+p 1.0.0  ../profiles.git branch main path p  @4720d24
+
+Conflicts — resolve in .devset/conflicts/, then run `devset update --continue`:
+    conflict   deny.toml [keys: p]  merge  → .devset/conflicts/deny.toml
+[exit 0]
+$ devset update --continue
+      Merged deny.toml [keys: p]
+    Finished 1 change
+[exit 0]
+$ devset status --exit-code
+p 1.0.0  ../profiles.git branch main path p  @4720d24
+
+1 file matches the profile.
+[exit 0]

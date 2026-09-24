@@ -10,7 +10,7 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 const BINARY_SNIFF: usize = 8000;
 
 /// UTF-8 byte order mark.
-const BOM: &[u8] = b"\xEF\xBB\xBF";
+pub(crate) const BOM: &[u8] = b"\xEF\xBB\xBF";
 
 /// A BLAKE3 digest, serialized as lowercase hex.
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
@@ -173,7 +173,12 @@ mod tests {
             (b"\n\na\n\n b\n", b"\n\na\n\n b\n"),
             (b"a\rb\n", b"a\rb\n"),
         ] {
-            assert_eq!(canon(input), want, "input {:?}", String::from_utf8_lossy(input));
+            assert_eq!(
+                canon(input),
+                want,
+                "input {:?}",
+                String::from_utf8_lossy(input)
+            );
         }
     }
 
@@ -181,7 +186,10 @@ mod tests {
     fn binary_is_exact() {
         let bytes = b"a \0 b  \r\n";
         let fp = Fingerprint::of(bytes);
-        assert_eq!(fp.exact, fp.canonical, "binary content must not be canonicalized");
+        assert_eq!(
+            fp.exact, fp.canonical,
+            "binary content must not be canonicalized"
+        );
     }
 
     proptest! {

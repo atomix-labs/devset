@@ -3,9 +3,7 @@
     "rust-lang.rust-analyzer",
     "tamasfe.even-better-toml",
     "dprint.dprint",
-    "nefrob.vscode-just-syntax",
     "rvben.rumdl",
-    "charliermarsh.ruff",
-    "timonwong.shellcheck"
+    "nefrob.vscode-just-syntax"
   ]
 }

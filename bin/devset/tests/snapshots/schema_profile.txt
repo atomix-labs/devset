@@ -5,27 +5,27 @@ $ devset schema profile
   "description": "`profile.toml`.",
   "type": "object",
   "properties": {
-    "files": {
-      "description": "Managed files, by path in the target and under `files/`.",
-      "type": "object",
-      "additionalProperties": {
-        "$ref": "#/$defs/FileSpec"
-      }
+    "profile": {
+      "description": "Identity and requirements.",
+      "$ref": "#/$defs/Meta"
     },
     "merge": {
       "description": "Merge defaults.",
       "$ref": "#/$defs/MergeSpec",
       "default": {}
     },
-    "profile": {
-      "description": "Identity and requirements.",
-      "$ref": "#/$defs/Meta"
-    },
     "vars": {
       "description": "Variables templates use; the target answers them.",
       "type": "object",
       "additionalProperties": {
         "$ref": "#/$defs/VarSpec"
+      }
+    },
+    "files": {
+      "description": "Managed files, by path in the target and under `files/`.",
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/FileSpec"
       }
     }
   },
@@ -34,6 +34,169 @@ $ devset schema profile
     "profile"
   ],
   "$defs": {
+    "Meta": {
+      "description": "The `[profile]` table.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "description": "Names the profile in output, in collisions, and to `update`.",
+          "type": "string"
+        },
+        "version": {
+          "description": "For humans; a git layer is pinned by commit.",
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null
+        },
+        "description": {
+          "description": "One line for humans.",
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null
+        },
+        "devset": {
+          "description": "The devset versions the profile works with.",
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null
+        },
+        "requires": {
+          "description": "Profiles this one builds on, each a layer of its own before it.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Requirement"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "name"
+      ]
+    },
+    "Requirement": {
+      "description": "A profile another profile builds on./n/nA string is a sibling: a path relative to the requiring profile, inside its source and at its/nrevision. A table is a git source, written as a `[[layers]]` entry is.",
+      "anyOf": [
+        {
+          "description": "A profile beside this one, by relative path.",
+          "type": "string"
+        },
+        {
+          "description": "A profile in a git repository, at its own ref.",
+          "$ref": "#/$defs/SourceSpec"
+        }
+      ]
+    },
+    "SourceSpec": {
+      "description": "A source as written in `config.toml`: Cargo's git-dependency fields.",
+      "type": "object",
+      "properties": {
+        "git": {
+          "description": "Repository URL.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "tag": {
+          "description": "Tag to use; only with `git`.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "branch": {
+          "description": "Branch to use; only with `git`.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "rev": {
+          "description": "Full commit id to use; only with `git`.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "path": {
+          "description": "The profile's directory: relative to the target, or within the repository with `git`.",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "MergeSpec": {
+      "description": "A `[merge]` table: defaults in `profile.toml`, decisions in `.devset/config.toml`.",
+      "type": "object",
+      "properties": {
+        "on-conflict": {
+          "description": "What an update does when a file conflicts.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/OnConflict"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "driver": {
+          "description": "A merge program, with `%O %A %B %P` substituted./n/nFrom a profile it is only a suggestion: devset never runs a program a profile names.",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "OnConflict": {
+      "description": "What an update does when a file conflicts.",
+      "oneOf": [
+        {
+          "description": "Write every other file and advance the lock; conflicts wait in `.devset/conflicts/`.",
+          "type": "string",
+          "const": "apply-others"
+        },
+        {
+          "description": "Write nothing but the conflicts until every one is resolved.",
+          "type": "string",
+          "const": "apply-none"
+        }
+      ]
+    },
+    "VarSpec": {
+      "description": "A `[vars.name]` entry.",
+      "type": "object",
+      "properties": {
+        "prompt": {
+          "description": "What to ask; the name if unset.",
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null
+        },
+        "default": {
+          "description": "The answer offered.",
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null
+        }
+      },
+      "additionalProperties": false
+    },
     "FileSpec": {
       "description": "A profile's `[files./"path/"]` entry.",
       "type": "object",
@@ -50,11 +213,6 @@ $ devset schema profile
           ],
           "default": null
         },
-        "template": {
-          "description": "Whether the file is a template, rendered with the target's answers.",
-          "type": "boolean",
-          "default": false
-        },
         "validate": {
           "description": "How a merged result is checked; inferred from the extension unless set.",
           "anyOf": [
@@ -66,9 +224,56 @@ $ devset schema profile
             }
           ],
           "default": null
+        },
+        "template": {
+          "description": "Whether the file is a template, rendered with the target's answers.",
+          "type": "boolean",
+          "default": false
+        },
+        "scope": {
+          "description": "How much of the file devset owns: all of it, the keys the payload defines, or a block.",
+          "$ref": "#/$defs/Scope",
+          "default": "file"
+        },
+        "comment": {
+          "description": "The comment syntax of a block's markers, where devset does not know the file type's.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Comment"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "executable": {
+          "description": "Whether devset writes the file executable, mode 755, as a script it ships must be.",
+          "type": "boolean",
+          "default": false
         }
       },
       "additionalProperties": false
+    },
+    "Policy": {
+      "description": "How devset manages a file.",
+      "oneOf": [
+        {
+          "description": "The profile is authoritative; local edits are drift.",
+          "type": "string",
+          "const": "owned"
+        },
+        {
+          "description": "Local edits are kept, and merged with the profile's.",
+          "type": "string",
+          "const": "merge"
+        },
+        {
+          "description": "Written once if absent; the target's from then on.",
+          "type": "string",
+          "const": "once"
+        }
+      ]
     },
     "Format": {
       "description": "How a file is checked after a merge: it must parse, with no duplicate keys.",
@@ -95,126 +300,65 @@ $ devset schema profile
         }
       ]
     },
-    "MergeSpec": {
-      "description": "A `[merge]` table: defaults in `profile.toml`, decisions in `.devset/config.toml`.",
-      "type": "object",
-      "properties": {
-        "driver": {
-          "description": "A merge program, with `%O %A %B %P` substituted./n/nFrom a profile it is only a suggestion: devset never runs a program a profile names.",
-          "type": [
-            "string",
-            "null"
-          ]
-        },
-        "on-conflict": {
-          "description": "What an update does when a file conflicts.",
-          "anyOf": [
-            {
-              "$ref": "#/$defs/OnConflict"
-            },
-            {
-              "type": "null"
-            }
-          ]
-        }
-      },
-      "additionalProperties": false
-    },
-    "Meta": {
-      "description": "The `[profile]` table.",
-      "type": "object",
-      "properties": {
-        "description": {
-          "description": "One line for humans.",
-          "type": [
-            "string",
-            "null"
-          ],
-          "default": null
-        },
-        "devset": {
-          "description": "The devset versions the profile works with.",
-          "type": [
-            "string",
-            "null"
-          ],
-          "default": null
-        },
-        "name": {
-          "description": "Names the profile in output, in collisions, and to `update`.",
-          "type": "string"
-        },
-        "version": {
-          "description": "For humans; a git layer is pinned by commit.",
-          "type": [
-            "string",
-            "null"
-          ],
-          "default": null
-        }
-      },
-      "additionalProperties": false,
-      "required": [
-        "name"
-      ]
-    },
-    "OnConflict": {
-      "description": "What an update does when a file conflicts.",
+    "Scope": {
+      "description": "How much of a file a profile owns.",
       "oneOf": [
         {
-          "description": "Write every other file and advance the lock; conflicts wait in `.devset/conflicts/`.",
+          "description": "The whole file.",
           "type": "string",
-          "const": "apply-others"
+          "const": "file"
         },
         {
-          "description": "Write nothing but the conflicts until every one is resolved.",
+          "description": "Every leaf the payload, a partial document, defines; the file's other keys are the target's.",
           "type": "string",
-          "const": "apply-none"
+          "const": "keys"
+        },
+        {
+          "description": "One comment-marked block, named after the profile; the file's other lines are the target's.",
+          "type": "string",
+          "const": "block"
         }
       ]
     },
-    "Policy": {
-      "description": "How devset manages a file.",
+    "Comment": {
+      "description": "A line comment syntax, which a block's markers are written in.",
       "oneOf": [
         {
-          "description": "The profile is authoritative; local edits are drift.",
+          "description": "`#`: shells, TOML, YAML, Python, `.gitignore`.",
           "type": "string",
-          "const": "owned"
+          "const": "#"
         },
         {
-          "description": "Local edits are kept, and merged with the profile's.",
+          "description": "`//`: C, Rust, JavaScript, JSONC.",
           "type": "string",
-          "const": "merge"
+          "const": "//"
         },
         {
-          "description": "Written once if absent; the target's from then on.",
+          "description": "`--`: SQL, Lua, Haskell.",
           "type": "string",
-          "const": "once"
+          "const": "--"
+        },
+        {
+          "description": "`;`: INI, Lisp, assembly.",
+          "type": "string",
+          "const": ";"
+        },
+        {
+          "description": "`%`: TeX, Erlang, MATLAB.",
+          "type": "string",
+          "const": "%"
+        },
+        {
+          "description": "`/* */`: CSS.",
+          "type": "string",
+          "const": "/*"
+        },
+        {
+          "description": "`<!-- -->`: Markdown, HTML, XML.",
+          "type": "string",
+          "const": "<!--"
         }
       ]
-    },
-    "VarSpec": {
-      "description": "A `[vars.name]` entry.",
-      "type": "object",
-      "properties": {
-        "default": {
-          "description": "The answer offered.",
-          "type": [
-            "string",
-            "null"
-          ],
-          "default": null
-        },
-        "prompt": {
-          "description": "What to ask; the name if unset.",
-          "type": [
-            "string",
-            "null"
-          ],
-          "default": null
-        }
-      },
-      "additionalProperties": false
     }
   }
 }

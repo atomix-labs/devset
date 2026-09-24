@@ -1,0 +1,45 @@
+$ devset init --path ../profiles
+error: ../profiles is not a profile: it has no profile.toml
+  |
+  = help: these are profiles: ../profiles/base and ../profiles/rust; name one with `--path`
+[exit 2]
+$ devset init --path ../profiles/rust/files
+error: ../profiles/rust/files is not a profile: it has no profile.toml
+  |
+  = help: ../profiles/rust is a profile: name it with `--path ../profiles/rust`
+[exit 2]
+$ devset init --git ../profiles.git
+    Fetching ../profiles.git
+error: ../profiles.git is not a profile: it has no profile.toml
+  |
+  = help: rust is a profile: name it with `--path rust`
+[exit 2]
+$ devset init --git ../profiles.git --branch nope
+    Fetching ../profiles.git
+error: ../profiles.git has no branch nope
+  |
+  = help: list its branches with `git ls-remote --heads ../profiles.git`
+[exit 2]
+$ devset init --path ../t
+note: answered name = "x", the default
+  |
+  = help: pass `--var name=…` to choose another
+error: template t.txt uses `nmae`, which no profile declares
+  |
+  = help: did you mean `name`?
+[exit 2]
+$ devset init --path 
+error: invalid source: `path` is empty
+[exit 2]
+$ devset init --path ../profiles/base
+error: two layers are named rust: ../profiles/rust and ../profiles/base
+  |
+  = help: a layer's name picks it in `from` and `devset update`: rename one profile, or remove one layer with `devset remove`
+[exit 2]
+$ devset status
+error: merge driver `tool %X %A`: placeholders are %O, %A, %B, %P and %%
+ --> .devset/config.toml:5:10
+  |
+5 | driver = "tool %X %A"
+  |          ^^^^^^^^^^^^
+[exit 2]

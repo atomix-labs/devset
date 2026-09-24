@@ -1,12 +1,3 @@
-# Workspace Markdown Linter Configuration
-
 [global]
-disable       = ["MD013", "MD038", "MD049", "MD050", "MD052"]
-exclude       = ["docs/book", "target"]
-extend-enable = ["MD063"]
-
-[MD033]
-allowed_elements = ["details", "summary", "code", "span"]
-
-[MD063]
-ignore-words = ["devset"]
+# Line length is the formatter's to keep.
+disable = ["MD013"]

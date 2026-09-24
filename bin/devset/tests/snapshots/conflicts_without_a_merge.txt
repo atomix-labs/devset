@@ -1,0 +1,23 @@
+$ devset init --path ../p
+     Created b.dat
+     Created m.toml
+     Created o.toml
+    Finished 3 changes
+[exit 0]
+$ devset apply
+  Conflicted b.dat  binary: the sidecar holds the profile's version
+  Conflicted m.toml  its recorded base is missing, so it merged without one
+     Updated o.toml
+    Finished 1 change, 2 conflicts
+help: resolve the files in .devset/conflicts/, then run `devset update --continue`;
+      or take the update back with `devset update --abort`
+[exit 1]
+--- .devset/conflicts/m.toml
+<<<<<<< ours
+a = 1
+b = 2
+||||||| original
+=======
+z = 0
+a = 1
+>>>>>>> theirs

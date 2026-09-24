@@ -1,0 +1,14 @@
+$ devset init --path ../tools
+     Created notes.txt
+     Created setup.sh
+    Finished 2 changes
+[exit 0]
+$ devset apply
+     Updated setup.sh
+    Finished 1 change
+[exit 0]
+$ devset status --exit-code
+tools 1.0.0  ../tools
+
+All 2 files match the profile.
+[exit 0]

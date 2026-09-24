@@ -1,0 +1,25 @@
+$ devset init --path ../old
+     Created Cargo.toml [keys: old]
+    Finished 1 change
+[exit 0]
+$ devset init --path ../new
+     Created new.toml
+    Finished 1 change
+[exit 0]
+$ devset apply
+     Adopted Cargo.toml [keys: new]
+     Removed Cargo.toml [keys: old]
+    Finished 2 changes
+[exit 0]
+--- Cargo.toml
+[workspace]
+members = ["a"]
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+$ devset status --exit-code
+old 1.0.0  ../old
+new 1.0.0  ../new
+
+All 2 files match the profile.
+[exit 0]

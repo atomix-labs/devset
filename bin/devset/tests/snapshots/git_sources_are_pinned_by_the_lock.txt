@@ -12,6 +12,7 @@ rust 1.0.0  ../profiles.git tag v1 path rust  @8365cbb
 version = 1
 
 [[layers]]
+name = "rust"
 rev = "8365cbbedf111b17d7b2420b89171e26b62d66b9"
 digest = "a2ef4d2858b7dfadbedcdd46bb701c2638dff6ed83b419353e9b0f5c710ed48e"
 

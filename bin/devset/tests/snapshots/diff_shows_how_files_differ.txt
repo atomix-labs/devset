@@ -1,0 +1,39 @@
+$ devset init --path ../p
+     Created a.toml
+     Created b.toml
+     Created c.toml
+     Created logo.png
+     Created same.toml
+    Finished 5 changes
+[exit 0]
+$ devset diff
+[exit 0]
+$ devset diff
+--- a.toml  (profile p)
++++ a.toml  (yours)
+@@ -1 +1 @@
+-x = 1
++x = 2
+--- b.toml  (profile p)
++++ b.toml  (yours)
+@@ -1 +1,2 @@
+ y = 1
++w = 0
+--- c.toml  (profile p)
++++ /dev/null
+@@ -1 +0,0 @@
+-z = 1
+Binary files differ: logo.png
+[exit 0]
+$ devset diff ../b.toml
+--- b.toml  (profile p)
++++ b.toml  (yours)
+@@ -1 +1,2 @@
+ y = 1
++w = 0
+[exit 0]
+$ devset diff b.tml
+error: b.tml is not a file devset manages
+  |
+  = help: did you mean `b.toml`?
+[exit 2]

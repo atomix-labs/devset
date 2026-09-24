@@ -7,7 +7,7 @@ use devset_core::plan::Step;
 use devset_core::{RelPath, Survey, Target};
 use github_actions::{CommandWithProperties, SummaryError, append_job_summary};
 
-use crate::report::{Change, Standing, Wrote, state};
+use crate::report::{Change, Standing, Wrote, files, in_sync, state};
 
 /// Whether devset runs in a GitHub Actions job.
 fn active() -> bool {
@@ -41,6 +41,11 @@ pub(crate) fn status(survey: &Survey, target: &Target) -> io::Result<()> {
         return Ok(());
     }
     let mut rows = Vec::new();
+    let apply = if survey.unfinished() {
+        "`devset update --continue`"
+    } else {
+        "`devset apply`"
+    };
     for entry in survey.entries() {
         let path = &entry.path;
         let (level, next) = match Standing::of(entry) {
@@ -48,22 +53,28 @@ pub(crate) fn status(survey: &Survey, target: &Target) -> io::Result<()> {
                 "error",
                 "resolve `.devset/conflicts/`, then run `devset update --continue`".to_owned(),
             ),
-            Standing::Drifted(change) => {
-                ("error", format!("`devset apply --force` would {} it", change.verb()))
-            },
-            Standing::Pending(change) => {
-                ("warning", format!("`devset apply` would {} it", change.verb()))
-            },
+            Standing::Drifted(change) => (
+                "error",
+                format!("`devset apply --force` would {} it", change.verb()),
+            ),
+            Standing::Pending(change) => ("warning", format!("{apply} would {} it", change.verb())),
             Standing::Local | Standing::InSync => continue,
         };
         let state = state(entry);
-        annotate(level, &file(target, path), &format!("{path} is {state}; {next}"))?;
-        rows.push(format!("| `{path}` | {state} | {next} |"));
+        annotate(
+            level,
+            &file(target, path),
+            &format!("{entry} is {state}; {next}"),
+        )?;
+        rows.push(format!("| `{entry}` | {state} | {next} |"));
     }
     let summary = if rows.is_empty() {
-        format!("### devset\n\nAll {} files match the profile.\n", survey.entries().len())
+        format!("### devset\n\n{}\n", in_sync(files(survey)))
     } else {
-        format!("### devset\n\n| File | State | Next |\n| --- | --- | --- |\n{}\n", rows.join("\n"))
+        format!(
+            "### devset\n\n| File | State | Next |\n| --- | --- | --- |\n{}\n",
+            rows.join("\n")
+        )
     };
     summarize(&summary)
 }
@@ -75,13 +86,13 @@ pub(crate) fn conflicts(steps: &[Step], target: &Target, wrote: Wrote) -> io::Re
     }
     for step in steps {
         if Change::of(&step.entry, step.action) == Some(Change::Conflict) {
-            let path = &step.entry.path;
+            let (entry, path) = (&step.entry, &step.entry.path);
             let why = step.note.as_deref().unwrap_or("conflicting changes");
             let message = match wrote {
-                Wrote::Nothing { .. } => format!("{path} would conflict: {why}"),
+                Wrote::Nothing { .. } => format!("{entry} would conflict: {why}"),
                 Wrote::All | Wrote::Conflicts => {
-                    format!("{path} conflicted: {why}; resolve .devset/conflicts/{path}")
-                },
+                    format!("{entry} conflicted: {why}; resolve .devset/conflicts/{path}")
+                }
             };
             annotate("error", &file(target, path), &message)?;
         }

@@ -1,0 +1,12 @@
+[[layers]]
+path = "../devset-profiles/profiles/rust"
+
+# devset builds on nightly, so it formats with rustfmt's unstable options.
+[[layers]]
+path = "../devset-profiles/profiles/rustfmt-nightly"
+
+[files."rustfmt.toml"]
+from = "rustfmt-nightly"
+
+[files.".just/rustfmt.just"]
+from = "rustfmt-nightly"

@@ -1,0 +1,10 @@
+$ devset remove a
+    Removing layer a  ../profiles.git branch main path a
+     Removed a.toml
+    Finished 1 change
+[exit 0]
+$ devset update
+     Updated b.toml
+    Finished 1 change
+    Fetching ../profiles.git
+[exit 0]

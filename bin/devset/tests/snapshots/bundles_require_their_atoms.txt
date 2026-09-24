@@ -1,0 +1,30 @@
+$ devset init --path ../profiles/both
+     Created a.toml
+     Created b.toml
+    Finished 2 changes
+[exit 0]
+$ devset status -v
+a 1.0.0  ../profiles/a  (required by both)
+b 1.0.0  ../profiles/b  (required by both)
+both 1.0.0  ../profiles/both
+  merge driver: builtin
+
+In sync:
+    unchanged  a.toml  owned  (a)
+    unchanged  b.toml  owned  (b)
+
+All 2 files match the profile.
+[exit 0]
+--- .devset/config.toml
+[[layers]]
+path = "../profiles/both"
+$ devset update a
+error: a is required by both, not configured by this target
+  |
+  = help: name both, which brings it in
+[exit 2]
+$ devset remove a
+error: a is required by both, not configured by this target
+  |
+  = help: name both, which brings it in
+[exit 2]

@@ -8,7 +8,9 @@ use std::io;
 use camino::Utf8PathBuf;
 use thiserror::Error;
 
+use crate::part::Scope;
 use crate::path::RelPath;
+use crate::source::Oid;
 use crate::vars::{Question, VarName};
 
 /// A [`Result`](result::Result) that fails with an [`Error`](enum@Error) unless told otherwise.
@@ -20,6 +22,10 @@ pub type Result<T, E = Error> = result::Result<T, E>;
 /// `Error::Target(TargetError::Busy)` is one lock, [`Error::Target`] every target failure.
 #[derive(Debug, Error)]
 #[non_exhaustive]
+#[expect(
+    clippy::error_impl_error,
+    reason = "the crate's one umbrella error, named as `io::Error` and `serde_json::Error` are"
+)]
 pub enum Error {
     /// Filesystem or process I/O failed; the message names the path.
     #[error(transparent)]
@@ -84,6 +90,9 @@ pub enum SourceError {
     /// Neither `git` nor `path` is set.
     #[error("invalid source: needs `git` or `path`")]
     NoLocation,
+    /// A local `path` is empty.
+    #[error("invalid source: `path` is empty")]
+    EmptyPath,
     /// `tag`, `branch` or `rev` is set without `git`.
     #[error("invalid source: `tag`, `branch` and `rev` need `git`")]
     RefWithoutGit,
@@ -114,12 +123,34 @@ pub enum SourceError {
     /// `git` is not on `PATH`.
     #[error("git sources need `git`, which is not on PATH")]
     NoGit,
+    /// The remote has no such branch or tag, or no default branch.
+    #[error("{url} has no {reference}")]
+    NoRef {
+        /// The remote, as configured.
+        url: String,
+        /// What was asked for: `branch <name>`, `tag <name>` or `a default branch`.
+        reference: String,
+    },
+    /// The remote has no commit with the pinned id.
+    #[error("{url} has no commit {rev}")]
+    NoCommit {
+        /// The remote, as configured.
+        url: String,
+        /// The commit asked for.
+        rev: Oid,
+    },
+    /// The remote needs credentials that git could not get.
+    #[error("{url} needs credentials, and git could not get them")]
+    Credentials {
+        /// The remote, as configured.
+        url: String,
+    },
     /// A `git` command failed.
-    #[error("git {command} failed: {stderr}")]
+    #[error("git {command} failed: {}", stderr.lines().next().unwrap_or("with no message"))]
     Git {
-        /// The subcommand and its arguments.
+        /// The subcommand, and the remote as configured when it reached one.
         command: String,
-        /// What git reported.
+        /// What git reported, one message per line.
         stderr: String,
     },
 }
@@ -133,6 +164,8 @@ pub enum ProfileError {
     NotAProfile {
         /// The source, as configured.
         location: String,
+        /// The directories that do hold one, as `path` would name them.
+        profiles: Vec<String>,
     },
     /// The profile's `devset` requirement excludes this build.
     #[error("profile {profile} requires devset {requires}; this is {version}", version = crate::VERSION)]
@@ -175,6 +208,77 @@ pub enum ProfileError {
         first: RelPath,
         /// The path that folds onto it.
         second: RelPath,
+    },
+    /// Requirements lead back to a profile already being expanded.
+    #[error("requirements form a cycle: {}", chain.join(" → "))]
+    Cycle {
+        /// Each source on the way round, the repeated one last.
+        chain: Vec<String>,
+    },
+    /// Requirements nest deeper than devset follows.
+    #[error("requirements nest too deep: {}", chain.join(" → "))]
+    TooDeep {
+        /// Each source on the way down.
+        chain: Vec<String>,
+    },
+    /// One profile is required at two refs, which would provide one set of files twice.
+    #[error("{first} and {second} are one profile at two refs")]
+    Diverged {
+        /// The source met first.
+        first: String,
+        /// The source met second.
+        second: String,
+    },
+    /// A sibling requirement points outside the requiring profile's source.
+    #[error("profile {profile} requires {path}, which is outside its source")]
+    Escapes {
+        /// The requiring profile's name.
+        profile: String,
+        /// The requirement, as written.
+        path: String,
+    },
+    /// Keys are owned in a file devset does not read as TOML, JSON or YAML.
+    #[error("{path} is not read as TOML, JSON or YAML, so a profile cannot own its keys")]
+    NoKeys {
+        /// The file.
+        path: RelPath,
+    },
+    /// A block is owned in a file whose comment syntax devset does not know.
+    #[error("devset knows no comment syntax for {path}, which a block's markers need")]
+    NoComment {
+        /// The file.
+        path: RelPath,
+    },
+    /// Two layers own overlapping keys of one file.
+    #[error("{first} and {second} both own {key} in {path}")]
+    Overlap {
+        /// The file.
+        path: RelPath,
+        /// The key, as people write it.
+        key: String,
+        /// The layer met first.
+        first: String,
+        /// The layer that overlaps it.
+        second: String,
+    },
+    /// Layers own one file in different scopes: one whole and another in part, or one by keys
+    /// and another by a block.
+    #[error("{path} is owned in different scopes: {}", scopes(layers))]
+    Scopes {
+        /// The file.
+        path: RelPath,
+        /// Each layer, with its scope.
+        layers: Vec<(String, Scope)>,
+    },
+    /// Two layers' profiles have one name, which must tell layers apart.
+    #[error("two layers are named {name}: {first} and {second}")]
+    SameName {
+        /// The name.
+        name: String,
+        /// The first layer's source.
+        first: String,
+        /// The second layer's source.
+        second: String,
     },
     /// Two layers set one setting differently, and the target does not decide.
     #[error("{first} and {second} set {key} differently")]
@@ -220,6 +324,22 @@ pub enum TargetError {
         /// Every layer's name.
         layers: Vec<String>,
     },
+    /// A path named on the command line is not a file devset manages.
+    #[error("{path} is not a file devset manages")]
+    NotManaged {
+        /// The path, as given.
+        path: String,
+        /// Every managed path.
+        managed: Vec<RelPath>,
+    },
+    /// A layer named where only a configured one will do is one another profile requires.
+    #[error("{name} is required by {by}, not configured by this target")]
+    Required {
+        /// The layer asked for.
+        name: String,
+        /// The profile that requires it.
+        by: String,
+    },
     /// `config.toml` overrides a path no layer provides.
     #[error(".devset/config.toml overrides {path}, which no layer provides")]
     StaleOverride {
@@ -228,17 +348,13 @@ pub enum TargetError {
         /// Every path the layers provide.
         provided: Vec<RelPath>,
     },
-    /// A managed path on disk is a symlink or a directory.
-    #[error("{path} is not a regular file")]
+    /// A managed path on disk is a symlink, a directory or a special file.
+    #[error("{path} is {kind}, not a regular file")]
     NotAFile {
-        /// The path on disk.
-        path: Utf8PathBuf,
-    },
-    /// A recorded base is missing, or does not match its digest.
-    #[error("the recorded base of {path} in .devset/base/ is missing or damaged")]
-    CorruptBase {
         /// The managed path.
         path: RelPath,
+        /// What is there instead: `a symlink`, `a directory` or `a special file`.
+        kind: &'static str,
     },
     /// Another devset holds the target's lock.
     #[error("another devset is running in this target")]
@@ -274,12 +390,22 @@ pub enum VarError {
         /// One per variable.
         questions: Vec<Question>,
     },
-    /// A template does not render.
-    #[error("template {path}: {reason}")]
+    /// A template uses a variable no profile declares.
+    #[error("template {path} uses `{name}`, which no profile declares")]
+    Undeclared {
+        /// The template.
+        path: RelPath,
+        /// The variable.
+        name: String,
+        /// Every declared name.
+        declared: Vec<VarName>,
+    },
+    /// A template cannot be read as text.
+    #[error("template {path} cannot be rendered: {reason}")]
     Template {
         /// The template.
         path: RelPath,
-        /// What the renderer reported.
+        /// Why not.
         reason: String,
     },
 }
@@ -295,6 +421,12 @@ pub enum MergeError {
         line: String,
         /// The rule it breaks.
         reason: &'static str,
+    },
+    /// The driver's program is not installed, or not on `PATH`.
+    #[error("merge driver `{program}` is not installed")]
+    NoDriver {
+        /// The program.
+        program: String,
     },
     /// A driver program did not run to completion.
     #[error("merge driver `{program}`: {reason}")]
@@ -313,6 +445,21 @@ pub enum MergeError {
     /// Resolutions were to be installed, and no conflict waits.
     #[error("there are no conflicts to continue from")]
     NothingToContinue,
+    /// An update was to be taken back, and none is unfinished.
+    #[error("there is no unfinished update to abort")]
+    NothingToAbort,
+    /// Taking an update back would discard changes made since it.
+    #[error("{} changed since the update: {}", plural(paths.len(), "file"), list(paths))]
+    ChangedSince {
+        /// Each changed file, relative to the target root.
+        paths: Vec<String>,
+    },
+    /// A copy an update saved, to take it back, is missing or damaged.
+    #[error("the saved copy of {path} in .devset/conflicts/.devset/ is missing or damaged")]
+    CorruptUndo {
+        /// The file it would restore, relative to the target root.
+        path: String,
+    },
     /// A resolution still has conflict markers.
     #[error(".devset/conflicts/{path} still has conflict markers")]
     Unmerged {
@@ -338,7 +485,20 @@ fn list<T: Display>(items: impl IntoIterator<Item = T>) -> String {
     }
 }
 
+/// Each layer and its scope: "`file` by base and `keys` by lints".
+fn scopes(layers: &[(String, Scope)]) -> String {
+    list(
+        layers
+            .iter()
+            .map(|(layer, scope)| format!("`{}` by {layer}", scope.as_str())),
+    )
+}
+
 /// `n` and `noun`, pluralised.
 fn plural(n: usize, noun: &str) -> String {
-    if n == 1 { format!("1 {noun}") } else { format!("{n} {noun}s") }
+    if n == 1 {
+        format!("1 {noun}")
+    } else {
+        format!("{n} {noun}s")
+    }
 }

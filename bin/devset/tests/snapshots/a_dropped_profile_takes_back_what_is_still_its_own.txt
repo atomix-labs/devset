@@ -1,0 +1,74 @@
+$ devset init --path ../gone
+     Created .gitignore [block: gone]
+     Created Cargo.toml [keys: gone]
+     Created as-written.toml
+     Created edited.toml
+     Created justfile [block: gone]
+     Created nested/deep/d.toml
+     Created once.toml
+    Finished 7 changes
+[exit 0]
+--- .devset/state.toml
+version = 1
+
+[files."as-written.toml"]
+exact = "700d22f9add80fee0e537c94bfd8320a18ea8eae00d899547f0e6bc2f52acb39"
+canonical = "700d22f9add80fee0e537c94bfd8320a18ea8eae00d899547f0e6bc2f52acb39"
+
+[files."edited.toml"]
+exact = "5d4ab1e2034719a034f5916dc093235acf0db6ebaff41839867866acd9131eb9"
+canonical = "5d4ab1e2034719a034f5916dc093235acf0db6ebaff41839867866acd9131eb9"
+
+[files."nested/deep/d.toml"]
+exact = "895a533b49337545ef4938a00398efa4915332f9b9dfd932353472248b997cd9"
+canonical = "895a533b49337545ef4938a00398efa4915332f9b9dfd932353472248b997cd9"
+
+[files."once.toml"]
+exact = "d881afceba1a378499d1dfcc09a0d3e91ad7a2bce5f65e8bf315090b3bb1ebfe"
+canonical = "d881afceba1a378499d1dfcc09a0d3e91ad7a2bce5f65e8bf315090b3bb1ebfe"
+policy = "once"
+
+[parts.".gitignore".gone]
+scope = "block"
+exact = "cb43051e103f43408ad06fe1c44cea0492f41d473265615ec4cede6939a4f7e0"
+canonical = "cb43051e103f43408ad06fe1c44cea0492f41d473265615ec4cede6939a4f7e0"
+
+[parts."Cargo.toml".gone]
+scope = "keys"
+exact = "30af192683dce1e3d827de570ba95fcd00ebfec585c972d249570353ab48d6b1"
+canonical = "30af192683dce1e3d827de570ba95fcd00ebfec585c972d249570353ab48d6b1"
+
+[parts.justfile.gone]
+scope = "block"
+exact = "e024cdaea8bcdc8c34f15b12bc98c921b8125d7f80702b0544005c65ed584bde"
+canonical = "e024cdaea8bcdc8c34f15b12bc98c921b8125d7f80702b0544005c65ed584bde"
+$ devset status
+gone 1.0.0  ../gone  (changed since it was applied)
+
+Pending — `devset apply` will:
+    dropped    .gitignore [block: gone]         remove
+    dropped    Cargo.toml [keys: gone]          remove
+    dropped    as-written.toml                  remove
+    dropped    edited.toml                      untrack
+    dropped    justfile [block: gone]           remove
+    dropped    nested/deep/d.toml               remove
+    dropped    once.toml                        untrack
+[exit 0]
+$ devset apply
+     Removed .gitignore [block: gone]
+     Removed Cargo.toml [keys: gone]
+     Removed as-written.toml
+   Untracked edited.toml
+     Removed justfile [block: gone]
+     Removed nested/deep/d.toml
+   Untracked once.toml
+    Finished 7 changes
+[exit 0]
+--- Cargo.toml
+[workspace]
+members = ["a"]
+$ devset status --exit-code
+gone 1.0.0  ../gone
+
+The profile provides no files.
+[exit 0]

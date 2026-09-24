@@ -1,0 +1,73 @@
+# Runs every `nightly-*` recipe each night, each a job of its own: the checks too slow for every
+# change, and those whose inputs change without a commit. With `nightly.skip_unchanged` in
+# .github/automation.json, a night with no commit since the last green one is skipped.
+name: nightly
+
+on:
+  schedule:
+    - cron: "40 1 * * *"
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: read
+
+env:
+  MISE_LOCKED: "1"
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      recipes: ${{ steps.plan.outputs.recipes }}
+    steps:
+      # Unless the repository skips a night with no commit since the last green one.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - id: moved
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const { settings } = require(`${process.env.GITHUB_WORKSPACE}/.github/scripts/issue.js`)
+            if (context.eventName !== 'schedule' || !settings().nightly?.skip_unchanged) return true
+            const { data } = await github.rest.actions.listWorkflowRuns({
+              ...context.repo, workflow_id: 'nightly.yml', event: 'schedule', status: 'success', per_page: 1,
+            })
+            return data.workflow_runs[0]?.head_sha !== context.sha
+      - uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c # v4.3.0
+        if: steps.moved.outputs.result == 'true'
+        with:
+          version: 2026.9.12
+          install_args: just
+      - id: plan
+        if: steps.moved.outputs.result == 'true'
+        run: echo "recipes=$(just --summary | tr ' ' '\n' | jq -Rnc '[inputs | select(startswith("nightly-"))]')" >> "$GITHUB_OUTPUT"
+
+  run:
+    needs: plan
+    if: needs.plan.outputs.recipes != '[]' && needs.plan.outputs.recipes != ''
+    strategy:
+      fail-fast: false
+      matrix:
+        recipe: ${{ fromJSON(needs.plan.outputs.recipes) }}
+    name: ${{ matrix.recipe }}
+    runs-on: ${{ vars.CI_RUNNER || 'ubuntu-latest' }}
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # Every locked tool, then the task `bootstrap`: `just setup`, as on a laptop.
+      - uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c # v4.3.0
+        with:
+          version: 2026.9.12
+          bootstrap: true
+      - if: hashFiles('Cargo.lock') != ''
+        uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+        with:
+          key: ${{ matrix.recipe }}
+      - env:
+          RECIPE: ${{ matrix.recipe }}
+        run: just "$RECIPE"
