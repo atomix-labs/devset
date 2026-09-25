@@ -1,2 +1,4 @@
 [[layers]]
-path = "../atxp/profiles/rust"
+git  = "https://github.com/atomix-labs/atxp"
+tag  = "v0.1.0"
+path = "profiles/rust"
