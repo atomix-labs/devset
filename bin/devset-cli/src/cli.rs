@@ -7,7 +7,7 @@ use devset_core::source::SourceSpec;
 
 /// Apply versioned file bundles to a directory, and update them without losing local edits.
 #[derive(Debug, Parser)]
-#[command(version, styles = clap_cargo::style::CLAP_STYLING, after_help = "\
+#[command(name = "devset", version, styles = clap_cargo::style::CLAP_STYLING, after_help = "\
 Examples:
   devset init --git https://github.com/acme/profiles --tag v1.4.0 --path rust
   devset status

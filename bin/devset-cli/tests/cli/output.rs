@@ -95,3 +95,11 @@ fn completions_are_printed() {
     assert!(log.contains("_devset()"), "a bash completion function");
     assert!(log.ends_with("[exit 0]\n"), "that succeeds");
 }
+
+#[test]
+fn version_names_the_binary() {
+    let sb = Sandbox::new();
+    let log = sb.devset(".", &["--version"]);
+    let version = format!("devset {}", env!("CARGO_PKG_VERSION"));
+    assert_eq!(log.lines().nth(1), Some(version.as_str()), "the binary's name, not its package's");
+}
