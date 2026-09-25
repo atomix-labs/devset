@@ -49,7 +49,7 @@ Examples:
         #[command(flatten)]
         answers: Answers,
     },
-    /// Remove a layer; its files stay, no longer tracked.
+    /// Remove a layer: its unchanged files go, and edited ones stay, untracked.
     #[command(after_help = "\
 Examples:
   devset remove base             by its profile name

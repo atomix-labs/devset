@@ -46,7 +46,7 @@ fn remove_takes_a_layer_and_its_overrides() {
     log += &sb.devset("repo", &["remove", "team", "--dry-run"]);
     log += &sb.devset("repo", &["remove", "team"]);
     write!(log, "--- .devset/config.toml\n{}", sb.read("repo/.devset/config.toml")).unwrap();
-    assert!(sb.path("repo/t.toml").exists(), "a removed layer's files stay");
+    assert!(sb.path("repo/t.toml").exists(), "a removed layer's `once` file stays");
     log += &sb.devset("repo", &["status", "-v"]);
     sb.assert(&log, snapbox::file!["snapshots/remove_takes_a_layer_and_its_overrides.txt"]);
 }
