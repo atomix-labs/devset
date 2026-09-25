@@ -35,7 +35,7 @@ error: unknown field `polcy`, expected one of `policy`, `validate`, `template`, 
   | ^^^^^
 [exit 2]
 $ devset init --path ../newer
-error: profile newer requires devset >=99; this is 0.1.0
+error: profile newer requires devset >=99; this is [..]
   |
   = help: upgrade devset, or pin the profile to an older version
 [exit 2]
