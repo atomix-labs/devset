@@ -3,7 +3,7 @@
 Every release, newest first, written by [git-cliff](https://git-cliff.org) from the commits.
 [BREAKING-CHANGES.md](BREAKING-CHANGES.md) says how to move across a breaking change.
 
-## [Unreleased]
+## [0.1.0](https://github.com/atomix-labs/devset/releases/tag/v0.1.0) - 2026-09-25
 
 ### Features
 
@@ -27,10 +27,13 @@ Every release, newest first, written by [git-cliff](https://git-cliff.org) from 
 
 ### Documentation
 
+- [535af61](https://github.com/atomix-labs/devset/commit/535af61b31a3290bf9684443db02e7ec6584218b) Give each reader a document of their own
+- [5318363](https://github.com/atomix-labs/devset/commit/5318363780313643f84f32c564a92b0e93f1f37b) Write the manual, its reference generated from the build
 - [458c63f](https://github.com/atomix-labs/devset/commit/458c63fbd7b1c3798d772d432247c2daf2af6da8) *(devset-core)* Give the library its own README
 
 ### Miscellaneous
 
+- [303a630](https://github.com/atomix-labs/devset/commit/303a63072bd714af6b58551a1bea6169248e8960) Take atxp v0.2.1, with mdbook and lychee
 - [cda0d29](https://github.com/atomix-labs/devset/commit/cda0d29be1b7b3fb6f71876d17abc21f98d00cc1) *(devset-cli)* Split the end-to-end tests by area
 - [4c9b6ab](https://github.com/atomix-labs/devset/commit/4c9b6ab0ded5f3019b1fd10ddf5e9ddfd1089ece) Take atxp v0.2.0, with msrv and cargo-binaries
 - [cd3af67](https://github.com/atomix-labs/devset/commit/cd3af67f0a1fbc5dfd83c85331ec97e7de661dd0) Take atxp from its v0.1.0 tag
