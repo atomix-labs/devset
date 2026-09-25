@@ -51,7 +51,7 @@ path = "../atxp/profiles/setup"
 
 [[layers]]
 name = "rustup"
-digest = "da4d2cb8f95e93c63354ee3709c3fccbe2daf6bba8c0058d64e21ba248ada5f5"
+digest = "4ff098cc070ecbf76ca2c2f1c9fe70cdadf076df2f3b6788d84ac00f08a8e7e2"
 
 [layers.source]
 path = "../atxp/profiles/rustup"

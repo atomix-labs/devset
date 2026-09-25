@@ -113,8 +113,8 @@ exact = "4830eed6ef06ca7a7846a988b53f4d920dd2213f23c2554a587bf2420a91c321"
 canonical = "4830eed6ef06ca7a7846a988b53f4d920dd2213f23c2554a587bf2420a91c321"
 
 [files.".config/mise/conf.d/devset-rustup.toml"]
-exact = "ab182a45dd58a43510abdf2e5c66adebd34db5c3a608c5c50a772d59645ff5d6"
-canonical = "ab182a45dd58a43510abdf2e5c66adebd34db5c3a608c5c50a772d59645ff5d6"
+exact = "79ac28a9f97913fbfa1e416ce2999029998d3bf3736e1ee705b17cecbc9109bd"
+canonical = "79ac28a9f97913fbfa1e416ce2999029998d3bf3736e1ee705b17cecbc9109bd"
 
 [files.".config/mise/conf.d/devset-setup.toml"]
 exact = "8c2cd5b7b7bce3987b224d782cd52bb84077c6c2ecf965ab5581efa33f1bace2"
@@ -279,8 +279,12 @@ exact = "d72d228bc25e9d2e52c2b7ccdd3b9e1d05d7723d32f8696aba3d19ae2292e39b"
 canonical = "d72d228bc25e9d2e52c2b7ccdd3b9e1d05d7723d32f8696aba3d19ae2292e39b"
 
 [files.".just/rustup.just"]
-exact = "9166cc13fc49775bb9a85102bec37be9ff8a3abb14a193dde7644b921121e1b4"
-canonical = "9166cc13fc49775bb9a85102bec37be9ff8a3abb14a193dde7644b921121e1b4"
+exact = "d865229489a6e4d1654974d5634ade9908c331df4513ebbf33e8dbbf4c5ee2ff"
+canonical = "d865229489a6e4d1654974d5634ade9908c331df4513ebbf33e8dbbf4c5ee2ff"
+
+[files.".just/rustup.sh"]
+exact = "7b86c522ceac318f73e69dd4f5565a15b1c64b94e66b536cd1b93f54e0e3dcca"
+canonical = "7b86c522ceac318f73e69dd4f5565a15b1c64b94e66b536cd1b93f54e0e3dcca"
 
 [files.".just/shellcheck.just"]
 exact = "477ce2e6ad0721d1f42ade00e5a26fa946b25f038b900d7946509d6129dafe45"
