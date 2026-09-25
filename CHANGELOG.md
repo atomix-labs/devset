@@ -3,6 +3,27 @@
 Every release, newest first, written by [git-cliff](https://git-cliff.org) from the commits.
 [BREAKING-CHANGES.md](BREAKING-CHANGES.md) says how to move across a breaking change.
 
+## [0.1.2](https://github.com/atomix-labs/devset/releases/tag/v0.1.2) - 2026-09-25
+
+### Features
+
+- [e25315a](https://github.com/atomix-labs/devset/commit/e25315a2c39de3603b3fe3fc6265a03fa0764141) *(devset-cli)* Let cargo-binstall install the release's binary
+
+### Documentation
+
+- [79fed9f](https://github.com/atomix-labs/devset/commit/79fed9f7218145c76dbd5715f1aafb04868bbc79) Install from crates.io, and say how a release publishes
+- [2ebd5b9](https://github.com/atomix-labs/devset/commit/2ebd5b934764fa78b7bd0f41336b2828e6b84a34) *(release)* Run the checks before tagging
+- [e2fb5d4](https://github.com/atomix-labs/devset/commit/e2fb5d4e1916b86b6b34f16fd48595c398b722e0) *(release)* Keep the manual's pinned install at the latest release
+
+### Miscellaneous
+
+- [c3e6add](https://github.com/atomix-labs/devset/commit/c3e6addde05456af51501b70d7499284c6c50777) Give each crate its licence text, homepage and categories
+- [6c77236](https://github.com/atomix-labs/devset/commit/6c772362c935e6795ff572dd25773743de133e71) Take atxp v0.3.1, which publishes the crates to crates.io
+- [e24616b](https://github.com/atomix-labs/devset/commit/e24616b39277476447d03fcd762283b57e7f37f1) Take atxp v0.2.2: one mise cache for CI, a longer download timeout
+- [2dd821a](https://github.com/atomix-labs/devset/commit/2dd821a5bf61407361c05ed2a94fef83be84470f) *(devset-cli)* Match any devset version in the requirement refusal
+
+**Full Changelog**: <https://github.com/atomix-labs/devset/compare/v0.1.1...v0.1.2>
+
 ## [0.1.1](https://github.com/atomix-labs/devset/releases/tag/v0.1.1) - 2026-09-25
 
 ### Bug Fixes
