@@ -11,8 +11,6 @@
 //! devset update --continue
 //! ```
 
-#![feature(non_exhaustive_omitted_patterns_lint, normalize_lexically, strict_provenance_lints)]
-
 extern crate alloc;
 
 mod ask;
@@ -26,7 +24,7 @@ use std::env;
 use std::io::{self, Write};
 use std::process::ExitCode;
 
-use camino::{Utf8Path, Utf8PathBuf};
+use camino::{Utf8Component, Utf8Path, Utf8PathBuf};
 use clap::{Args, CommandFactory, Parser, Subcommand, ValueEnum};
 use clap_cargo::style::GOOD;
 use devset_core::profile::{Manifest, VarName};
@@ -408,9 +406,7 @@ fn managed(
     paths
         .iter()
         .map(|given| {
-            // `..` resolved by name alone, as a shell resolves `cd ../x`.
-            let full = cwd.join(given).as_std_path().normalize_lexically().ok();
-            let full = full.and_then(|full| Utf8PathBuf::from_path_buf(full).ok());
+            let full = lexical(&cwd.join(given));
             let inside = full.as_deref().and_then(|full| full.strip_prefix(target.root()).ok());
             let path = inside.and_then(|relative| RelPath::new(relative.as_str()).ok());
             path.filter(|path| managed.contains(path)).ok_or_else(|| {
@@ -440,4 +436,42 @@ fn apply(
     report::suggestions(shell, &suggestions)?;
     report::dropped(shell, &dropped, dry_run)?;
     Ok(if conflicts { ExitCode::FAILURE } else { ExitCode::SUCCESS })
+}
+
+/// `path` with `.` and `..` resolved by name alone, as a shell resolves `cd ../x`; `None` where a
+/// `..` climbs above the root.
+fn lexical(path: &Utf8Path) -> Option<Utf8PathBuf> {
+    let mut resolved = Utf8PathBuf::new();
+    for component in path.components() {
+        match component {
+            Utf8Component::CurDir => {},
+            Utf8Component::ParentDir => {
+                if !resolved.pop() {
+                    return None;
+                }
+            },
+            Utf8Component::Prefix(_) | Utf8Component::RootDir | Utf8Component::Normal(_) => {
+                resolved.push(component);
+            },
+        }
+    }
+    Some(resolved)
+}
+
+#[cfg(test)]
+mod tests {
+    use camino::Utf8Path;
+
+    use super::lexical;
+
+    #[test]
+    fn lexical_resolves_dots_by_name() {
+        let resolved = lexical(Utf8Path::new("/repo/./sub/../deny.toml"));
+        assert_eq!(
+            resolved.as_deref(),
+            Some(Utf8Path::new("/repo/deny.toml")),
+            "`.` and `..` resolved"
+        );
+        assert_eq!(lexical(Utf8Path::new("/..")), None, "and none above the root");
+    }
 }

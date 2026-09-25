@@ -1,7 +1,5 @@
 //! End to end: the `devset` binary against real directories and git repositories.
 
-#![feature(non_exhaustive_omitted_patterns_lint, strict_provenance_lints)]
-
 #[cfg(test)]
 mod tests {
     use core::fmt::Write as _;

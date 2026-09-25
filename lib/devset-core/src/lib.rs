@@ -55,8 +55,6 @@
 //! The files people write have modules of their own: [`profile`] for `profile.toml`,
 //! [`target`] for `.devset/config.toml`, and [`source`] for where a layer comes from.
 
-#![feature(non_exhaustive_omitted_patterns_lint, strict_provenance_lints)]
-
 extern crate alloc;
 
 pub mod plan;
