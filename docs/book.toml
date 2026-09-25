@@ -1,0 +1,9 @@
+[book]
+title       = "devset"
+description = "Versioned file bundles, applied to a directory and updated without losing local edits"
+language    = "en"
+
+[output.html]
+git-repository-url = "https://github.com/atomix-labs/devset"
+edit-url-template  = "https://github.com/atomix-labs/devset/edit/main/docs/{path}"
+site-url           = "/devset/"

@@ -3,5 +3,6 @@
   "chore": { "labels": ["dependencies"], "type": "Task" },
   "assignees": [],
   "bump": { "mode": "pr" },
-  "nightly": { "skip_unchanged": true }
+  "nightly": { "skip_unchanged": true },
+  "pages": { "recipe": "check-mdbook", "path": "docs/book" }
 }

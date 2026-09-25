@@ -1,3 +1,13 @@
+# devset's own recipes; the block below them is the `just` profile's.
+
+# Checks the manual's command reference and schemas are what this checkout's devset prints.
+check-docs:
+    mise exec -- python3 scripts/docs.py check
+
+# Writes the manual's command reference and schemas from this checkout's devset.
+fix-docs:
+    mise exec -- python3 scripts/docs.py fix
+
 # >>> devset: just >>>
 # Each atom's recipes, where the atom is applied.
 import? '.just/actionlint.just'

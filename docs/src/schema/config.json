@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Config",
+  "description": "`.devset/config.toml`: the layers, and the target's word on every setting they carry.",
+  "type": "object",
+  "properties": {
+    "layers": { "description": "Profiles to apply, in order.", "type": "array", "items": { "$ref": "#/$defs/SourceSpec" }, "default": [] },
+    "merge": { "description": "Merge settings; these override every layer's.", "$ref": "#/$defs/MergeSpec", "default": {} },
+    "files": { "description": "Overrides of the layers' `[files]` entries.", "type": "object", "additionalProperties": { "$ref": "#/$defs/Override" } }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "SourceSpec": {
+      "description": "A source as written in `config.toml`: Cargo's git-dependency fields.",
+      "type": "object",
+      "properties": {
+        "git": { "description": "Repository URL.", "type": ["string", "null"] },
+        "tag": { "description": "Tag to use; only with `git`.", "type": ["string", "null"] },
+        "branch": { "description": "Branch to use; only with `git`.", "type": ["string", "null"] },
+        "rev": { "description": "Full commit id to use; only with `git`.", "type": ["string", "null"] },
+        "path": { "description": "The profile's directory: relative to the target, or within the repository with `git`.", "type": ["string", "null"] }
+      },
+      "additionalProperties": false
+    },
+    "MergeSpec": {
+      "description": "A `[merge]` table: defaults in `profile.toml`, decisions in `.devset/config.toml`.",
+      "type": "object",
+      "properties": {
+        "on-conflict": { "description": "What an update does when a file conflicts.", "anyOf": [{ "$ref": "#/$defs/OnConflict" }, { "type": "null" }] },
+        "driver": {
+          "description": "A merge program, with `%O %A %B %P` substituted.\n\nFrom a profile it is only a suggestion: devset never runs a program a profile names.",
+          "type": ["string", "null"]
+        }
+      },
+      "additionalProperties": false
+    },
+    "OnConflict": {
+      "description": "What an update does when a file conflicts.",
+      "oneOf": [
+        { "description": "Write every other file and advance the lock; conflicts wait in `.devset/conflicts/`.", "type": "string", "const": "apply-others" },
+        { "description": "Write nothing but the conflicts until every one is resolved.", "type": "string", "const": "apply-none" }
+      ]
+    },
+    "Override": {
+      "description": "A `[files.\"path\"]` entry in `config.toml`, overriding the providing layer's.",
+      "type": "object",
+      "properties": {
+        "from": { "description": "The layer that provides the file, when several do.", "type": ["string", "null"], "default": null },
+        "policy": { "description": "How devset manages the file.", "anyOf": [{ "$ref": "#/$defs/Policy" }, { "type": "null" }], "default": null },
+        "validate": { "description": "How a merged result is checked.", "anyOf": [{ "$ref": "#/$defs/Format" }, { "type": "null" }], "default": null }
+      },
+      "additionalProperties": false
+    },
+    "Policy": {
+      "description": "How devset manages a file.",
+      "oneOf": [
+        { "description": "The profile is authoritative; local edits are drift.", "type": "string", "const": "owned" },
+        { "description": "Local edits are kept, and merged with the profile's.", "type": "string", "const": "merge" },
+        { "description": "Written once if absent; the target's from then on.", "type": "string", "const": "once" }
+      ]
+    },
+    "Format": {
+      "description": "How a file is checked after a merge: it must parse, with no duplicate keys.",
+      "oneOf": [
+        { "description": "TOML.", "type": "string", "const": "toml" },
+        { "description": "JSON with comments and trailing commas (JSONC), a superset of JSON.", "type": "string", "const": "json" },
+        { "description": "YAML.", "type": "string", "const": "yaml" },
+        { "description": "Not checked.", "type": "string", "const": "none" }
+      ]
+    }
+  }
+}
