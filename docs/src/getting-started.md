@@ -12,15 +12,25 @@ macOS on Apple silicon. With [mise](https://mise.jdx.dev):
 mise use -g github:atomix-labs/devset
 ```
 
+With [cargo-binstall](https://github.com/cargo-bins/cargo-binstall), which takes
+the same archive:
+
+```sh
+cargo binstall devset-cli
+```
+
 Or download the archive for your machine from the
 [releases](https://github.com/atomix-labs/devset/releases), check it against the
 `.sha256` beside it, and put `devset` on your `PATH`.
 
-From source, with Rust 1.98 or later:
+From source, with Rust 1.98 or later, from
+[crates.io](https://crates.io/crates/devset-cli):
 
 ```sh
-cargo install --locked --git https://github.com/atomix-labs/devset devset-cli
+cargo install --locked devset-cli
 ```
+
+The package is `devset-cli`; the binary it installs is `devset`.
 
 A profile in a git repository needs `git` on your `PATH`; a profile in a local
 directory needs nothing else.

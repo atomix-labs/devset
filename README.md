@@ -1,7 +1,7 @@
 # devset
 
 [![CI][ci badge]][ci] [![Release][release badge]][releases]
-[![License][license badge]][license]
+[![crates.io][crates badge]][crates] [![License][license badge]][license]
 
 [Manual] · [Changelog] · [Breaking Changes] · [Architecture] · [Contributing] ·
 [Report a bug] · [Request a feature]
@@ -16,14 +16,16 @@ content it needs. [atxp] is a collection of such bundles for Rust repositories.
 ## Install
 
 A static binary for Linux, on x86-64 and Arm, and one for macOS on Apple
-silicon, with every [release][releases]:
+silicon, with every [release][releases]; or a build from [crates.io][crates]:
 
 ```sh
-mise use -g github:atomix-labs/devset
+mise use -g github:atomix-labs/devset   # the release's binary
+cargo binstall devset-cli               # the same binary, through cargo-binstall
+cargo install --locked devset-cli       # built from crates.io, with Rust 1.98 or later
 ```
 
-[Getting Started][getting started] has the other ways, from an archive or from
-source.
+The package is `devset-cli`; the binary is `devset`.
+[Getting Started][getting started] has the rest.
 
 ## Quick Start
 
@@ -85,6 +87,7 @@ devset update                 # later: takes the profile's changes, merging your
   from the commits.
 - [BREAKING-CHANGES.md][Breaking Changes]: how to move across a breaking change.
 - [SECURITY.md][Security]: how to report a vulnerability.
+- [devset-core's API][docs.rs]: the library behind the command line, on docs.rs.
 
 ## Contributing
 
@@ -111,5 +114,8 @@ MIT: see [LICENSE][license].
 [ci badge]: https://img.shields.io/github/actions/workflow/status/atomix-labs/devset/check.yml?branch=main&style=flat-square&logo=github&label=check
 [releases]: https://github.com/atomix-labs/devset/releases
 [release badge]: https://img.shields.io/github/v/release/atomix-labs/devset?style=flat-square&sort=semver
+[crates]: https://crates.io/crates/devset-cli
+[crates badge]: https://img.shields.io/crates/v/devset-cli?style=flat-square
+[docs.rs]: https://docs.rs/devset-core
 [license]: LICENSE
 [license badge]: https://img.shields.io/github/license/atomix-labs/devset?style=flat-square
