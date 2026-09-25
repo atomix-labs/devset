@@ -1,0 +1,2 @@
+[tools]
+"github:rust-lang/mdBook" = "0.5.4"

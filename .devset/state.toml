@@ -96,6 +96,14 @@ canonical = "393377cdcbf869f184e985329669fec02943f8742427a0e8c4a9758dda06bdcb"
 exact = "ee20c57ec281754f3d1c92e5e64c6a482fbee1a3796cb9817e64e7143f79fee6"
 canonical = "ee20c57ec281754f3d1c92e5e64c6a482fbee1a3796cb9817e64e7143f79fee6"
 
+[files.".config/mise/conf.d/devset-lychee.toml"]
+exact = "9117cc8303cc9a60ff4025c04349bbb6cf4af6e999ea54172429295834708926"
+canonical = "9117cc8303cc9a60ff4025c04349bbb6cf4af6e999ea54172429295834708926"
+
+[files.".config/mise/conf.d/devset-mdbook.toml"]
+exact = "3a7736d08cb535b3a1d72a97727f96ca972eae4af4af9b3659f84dc89d660fd5"
+canonical = "3a7736d08cb535b3a1d72a97727f96ca972eae4af4af9b3659f84dc89d660fd5"
+
 [files.".config/mise/conf.d/devset-mise.toml"]
 exact = "10d268b7366a5589c7bf7257504e08a604ab841889384bf7d61f2f6cffccbcd3"
 canonical = "10d268b7366a5589c7bf7257504e08a604ab841889384bf7d61f2f6cffccbcd3"
@@ -254,6 +262,10 @@ canonical = "b82c7ea8483ec0ce3b3a3d16cf7b268d549252ccb2ec98c838a7f3f82968ab08"
 exact = "374ec6793598c830fe0b49bb3aada0504c950db0ff4986f4d9f290fc58f71fc7"
 canonical = "374ec6793598c830fe0b49bb3aada0504c950db0ff4986f4d9f290fc58f71fc7"
 
+[files.".just/lychee.just"]
+exact = "24833f9058c87bd176a306a3545037871036eef5fd61b92cfde3fa4fa438e96f"
+canonical = "24833f9058c87bd176a306a3545037871036eef5fd61b92cfde3fa4fa438e96f"
+
 [files.".just/manifest-lint.just"]
 exact = "8e54b63e959a71b12d6c65bb651608c4ccfd25b0c1d76ecbb8b087c86c06dc2a"
 canonical = "8e54b63e959a71b12d6c65bb651608c4ccfd25b0c1d76ecbb8b087c86c06dc2a"
@@ -261,6 +273,10 @@ canonical = "8e54b63e959a71b12d6c65bb651608c4ccfd25b0c1d76ecbb8b087c86c06dc2a"
 [files.".just/manifest-lint.py"]
 exact = "d6d6b562a987082a50e3bf9e442a20e8ddd2af7235930c0f25a39e5e5952812e"
 canonical = "d6d6b562a987082a50e3bf9e442a20e8ddd2af7235930c0f25a39e5e5952812e"
+
+[files.".just/mdbook.just"]
+exact = "fa5612e6a38d89a2266aae4e3055c8b30b3b10a370821067cf11c1755100f22a"
+canonical = "fa5612e6a38d89a2266aae4e3055c8b30b3b10a370821067cf11c1755100f22a"
 
 [files.".just/mise.just"]
 exact = "cdd62d3a0bfad2545b71465595c32dbb00396dc7592c73333565f62e3a2aab51"
@@ -339,8 +355,8 @@ exact = "72ee3e8c53d5bd06ec7a0f78d8f50adea11cf53656884797d840be37bca55fa2"
 canonical = "72ee3e8c53d5bd06ec7a0f78d8f50adea11cf53656884797d840be37bca55fa2"
 
 [files."cliff.toml"]
-exact = "761a43ebb6e39303c753f1e7bcffe2864f9db2fd28fc271d9489119554eed7e0"
-canonical = "761a43ebb6e39303c753f1e7bcffe2864f9db2fd28fc271d9489119554eed7e0"
+exact = "a4799a52ebc7c6dc41daa1349e62257083c8a54658230a9d26c92c77d54c3fd1"
+canonical = "a4799a52ebc7c6dc41daa1349e62257083c8a54658230a9d26c92c77d54c3fd1"
 
 [files."committed.toml"]
 exact = "e247332cdf9e82db6b29a70b0d6628a6dba1054fcb1e76664602f6cda7cfe20e"
@@ -427,6 +443,16 @@ scope = "keys"
 exact = "68831b2dd35963a8ea8bf917e85c7589af6d50a22829b8484830ab831c3bbad4"
 canonical = "68831b2dd35963a8ea8bf917e85c7589af6d50a22829b8484830ab831c3bbad4"
 
+[parts.".config/mise/mise.lock".lychee]
+scope = "keys"
+exact = "e1652f8b93020d153329e4f11e1bdd1afe92dc27a7647d93d7c12d5bde85e8b8"
+canonical = "e1652f8b93020d153329e4f11e1bdd1afe92dc27a7647d93d7c12d5bde85e8b8"
+
+[parts.".config/mise/mise.lock".mdbook]
+scope = "keys"
+exact = "786f0e03f041c5dfb6928de6195a3da6150e4651a9eff4f4d706ca30dc08bfb7"
+canonical = "786f0e03f041c5dfb6928de6195a3da6150e4651a9eff4f4d706ca30dc08bfb7"
+
 [parts.".config/mise/mise.lock".mise]
 scope = "keys"
 exact = "0fb168524fa02523e21e4989d57e573227f369ed77e5f753846dfd239629575f"
@@ -497,6 +523,11 @@ canonical = "0cbe53d0a71209593ab3ba3b2520b14719cb4042d19b07b39c61d1b203a645e2"
 scope = "block"
 exact = "b0313ea5869c870f3d419bba4fc8aadc8c50d37a64b9c424febe1893b31f57bb"
 canonical = "b0313ea5869c870f3d419bba4fc8aadc8c50d37a64b9c424febe1893b31f57bb"
+
+[parts.".gitignore".mdbook]
+scope = "block"
+exact = "379d5a57689a4baf62aee0364a15896e1293505a3f52cae69689bb918d314cbf"
+canonical = "379d5a57689a4baf62aee0364a15896e1293505a3f52cae69689bb918d314cbf"
 
 [parts.".rumdl.toml".rumdl]
 scope = "keys"

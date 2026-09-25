@@ -37,3 +37,7 @@ flamegraph.svg
 # <<< devset: gitignore-rust <<<
 # devset's own Claude Code settings, shared by everyone who works on it.
 !.claude/settings.json
+
+# >>> devset: mdbook >>>
+/docs/book/
+# <<< devset: mdbook <<<

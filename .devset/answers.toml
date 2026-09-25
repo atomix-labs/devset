@@ -1,4 +1,5 @@
 assignees = ""
+book_dir = "docs"
 bump_mode = "pr"
 line_width = "100"
 repository = "atomix-labs/devset"
