@@ -8,6 +8,14 @@ check-docs:
 fix-docs:
     mise exec -- python3 scripts/docs.py fix
 
+# Points the manual's pinned install at v$RELEASE_VERSION.
+release-docs:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    : "${RELEASE_VERSION:?set it: RELEASE_VERSION=x.y.z just release}"
+    sed -i.bak -E "s|(github:atomix-labs/devset@)[0-9]+\.[0-9]+\.[0-9]+|\1$RELEASE_VERSION|" docs/src/ci.md
+    rm docs/src/ci.md.bak
+
 # >>> devset: just >>>
 # Each atom's recipes, where the atom is applied.
 import? '.just/actionlint.just'

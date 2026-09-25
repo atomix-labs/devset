@@ -39,8 +39,9 @@ silicon. devset is not published to crates.io yet.
    ```
 
    Every `release-*` recipe runs: `release-git-cliff` writes `CHANGELOG.md` from
-   the commits since the last tag, and `release-cargo-bump` sets both crates'
-   version, and the lock's.
+   the commits since the last tag, `release-cargo-bump` sets both crates'
+   version, and the lock's, and `release-docs` points the manual's pinned
+   install at the new version.
 3. Read the new section; fix a commit's subject by rewording the commit, not the
    file.
 4. Commit it as `chore(release): vx.y.z`, which the changelog leaves out; sign
