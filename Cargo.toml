@@ -3,10 +3,6 @@
 [workspace]
 resolver = "3"
 members  = ["lib/*", "bin/*"]
-exclude  = ["target", "docs", ".claude"]
-
-[workspace.metadata.cargo-shear]
-ignored-paths = ["**/tests/compile_fail/*.rs", "**/tests/compile_pass/*.rs"]
 
 [workspace.package]
 version      = "0.1.0"

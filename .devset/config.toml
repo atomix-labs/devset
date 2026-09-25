@@ -1,4 +1,15 @@
 [[layers]]
 git  = "https://github.com/atomix-labs/atxp"
-tag  = "v0.1.0"
+tag  = "v0.2.0"
 path = "profiles/rust"
+
+# devset builds on stable too, and its releases ship the `devset` binary.
+[[layers]]
+git  = "https://github.com/atomix-labs/atxp"
+tag  = "v0.2.0"
+path = "profiles/msrv"
+
+[[layers]]
+git  = "https://github.com/atomix-labs/atxp"
+tag  = "v0.2.0"
+path = "profiles/cargo-binaries"

@@ -178,6 +178,10 @@ canonical = "cb2a644dae030eaefe4c0b7e1f4cdcae4b055c14b950a49b20679bacf00db6dc"
 exact = "ea6512a3902a3caadf7e967ae8bf25fa60da72f0639f9af3f6fb0b42a98d5c09"
 canonical = "ea6512a3902a3caadf7e967ae8bf25fa60da72f0639f9af3f6fb0b42a98d5c09"
 
+[files.".github/workflows/release.yml"]
+exact = "78de7532b6e37a13265b5ff4bc96e4e4e2374039c94ef319455d078cb5cd8754"
+canonical = "78de7532b6e37a13265b5ff4bc96e4e4e2374039c94ef319455d078cb5cd8754"
+
 [files.".github/workflows/watch.yml"]
 exact = "51beac8abe7056cba86bd93d9dde1993c4ea9854ea820dc3f6c2e8a659ea51e0"
 canonical = "51beac8abe7056cba86bd93d9dde1993c4ea9854ea820dc3f6c2e8a659ea51e0"
@@ -190,9 +194,17 @@ canonical = "16253fa2b0144339f427808d4070502b7dc50f1155ecde41f4789957e1ee9e24"
 exact = "9fda509c3111177cfeceac7aeaabb8d9df483a62e8597b9fdf2a83f15427e77c"
 canonical = "9fda509c3111177cfeceac7aeaabb8d9df483a62e8597b9fdf2a83f15427e77c"
 
+[files.".just/cargo-binaries.just"]
+exact = "110f9dbe6c75b242b13b5245a96ad4385087db0abf0b0c47be1adc035a577368"
+canonical = "110f9dbe6c75b242b13b5245a96ad4385087db0abf0b0c47be1adc035a577368"
+
+[files.".just/cargo-binaries.sh"]
+exact = "c0570313d06e5095d2bd15e480c7f97d327a9539f2920237f6734e0a7fdf480b"
+canonical = "c0570313d06e5095d2bd15e480c7f97d327a9539f2920237f6734e0a7fdf480b"
+
 [files.".just/cargo-bump.just"]
-exact = "5425a2616b6616571ca505514241b03da4e34713b632ad39638901c61722ef5e"
-canonical = "5425a2616b6616571ca505514241b03da4e34713b632ad39638901c61722ef5e"
+exact = "7b8a4643cba8bdfdc75c1985f6ccfe6e4ca9d21d0435d77faa466e011ae1a8cd"
+canonical = "7b8a4643cba8bdfdc75c1985f6ccfe6e4ca9d21d0435d77faa466e011ae1a8cd"
 
 [files.".just/cargo-bump.py"]
 exact = "667da99bd258bb1f6aa5e51e345487a0ae6ffd8204972a3fa1f6c2ae4bcdab18"
@@ -238,6 +250,10 @@ canonical = "6919685ae0c386030d90b00dd64ec0edbe3b3e07e663aa225631ce15185eb229"
 exact = "b82c7ea8483ec0ce3b3a3d16cf7b268d549252ccb2ec98c838a7f3f82968ab08"
 canonical = "b82c7ea8483ec0ce3b3a3d16cf7b268d549252ccb2ec98c838a7f3f82968ab08"
 
+[files.".just/lints-nightly.just"]
+exact = "374ec6793598c830fe0b49bb3aada0504c950db0ff4986f4d9f290fc58f71fc7"
+canonical = "374ec6793598c830fe0b49bb3aada0504c950db0ff4986f4d9f290fc58f71fc7"
+
 [files.".just/manifest-lint.just"]
 exact = "8e54b63e959a71b12d6c65bb651608c4ccfd25b0c1d76ecbb8b087c86c06dc2a"
 canonical = "8e54b63e959a71b12d6c65bb651608c4ccfd25b0c1d76ecbb8b087c86c06dc2a"
@@ -253,6 +269,14 @@ canonical = "cdd62d3a0bfad2545b71465595c32dbb00396dc7592c73333565f62e3a2aab51"
 [files.".just/mise.py"]
 exact = "e6a97248c2f8b01616fdae0226f254fd6cc2561e8ee82088b70c5caa5db2839c"
 canonical = "e6a97248c2f8b01616fdae0226f254fd6cc2561e8ee82088b70c5caa5db2839c"
+
+[files.".just/msrv.just"]
+exact = "a166c28fada978976128071e8f31d540b239a359b363ee52f2c64037b9f9a076"
+canonical = "a166c28fada978976128071e8f31d540b239a359b363ee52f2c64037b9f9a076"
+
+[files.".just/msrv.py"]
+exact = "15246e5f058f93d7b4b540cafb94a501bf83ce4a05210978cb12695855e26851"
+canonical = "15246e5f058f93d7b4b540cafb94a501bf83ce4a05210978cb12695855e26851"
 
 [files.".just/nextest.just"]
 exact = "21229628d20436bbe876f580708784eba18137ad6ebda6b3915750a2e15a3eb1"
@@ -505,8 +529,8 @@ canonical = "50bb63c811be6194bee9518ab80709abd703fbef205297d02580809700e7910e"
 
 [parts."Cargo.toml".lints]
 scope = "keys"
-exact = "a56298d3ac83dc3b696772884085e3a4b45ff8adf53be2faeec6c57668338773"
-canonical = "a56298d3ac83dc3b696772884085e3a4b45ff8adf53be2faeec6c57668338773"
+exact = "97ae3bed43a289ecb77fd9f99ed84523563adf60c44f27a624f9f62308af2744"
+canonical = "97ae3bed43a289ecb77fd9f99ed84523563adf60c44f27a624f9f62308af2744"
 
 [parts."clippy.toml".clippy]
 scope = "keys"
@@ -526,8 +550,8 @@ policy = "merge"
 
 [parts.justfile.just]
 scope = "block"
-exact = "3420072f9d896f9bad66a477481d50b9a1a12f900cf4a24075a4804be4af45cf"
-canonical = "3420072f9d896f9bad66a477481d50b9a1a12f900cf4a24075a4804be4af45cf"
+exact = "5e6b55849c861908fe08b1de983e95c03e0392fab1500c9b203bbe68f4f1dbcd"
+canonical = "5e6b55849c861908fe08b1de983e95c03e0392fab1500c9b203bbe68f4f1dbcd"
 
 [parts."ruff.toml".ruff]
 scope = "keys"
