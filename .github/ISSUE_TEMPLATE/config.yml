@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: atxp
+    url: https://github.com/atomix-labs/atxp/issues
+    about: Report a problem with one of atxp's profiles, which devset applies

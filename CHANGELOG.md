@@ -1,0 +1,38 @@
+# Changelog
+
+Every release, newest first, written by [git-cliff](https://git-cliff.org) from the commits.
+[BREAKING-CHANGES.md](BREAKING-CHANGES.md) says how to move across a breaking change.
+
+## [Unreleased]
+
+### Features
+
+- [f1c1430](https://github.com/atomix-labs/devset/commit/f1c1430439e4ad607b415c8eb55870ec013d1bdf) *(devset-cli)* Name the manual in --help
+- [01bbdf9](https://github.com/atomix-labs/devset/commit/01bbdf9c4c06060a6a2857bbdf52d476ef8dac53) Build on stable Rust
+
+### Bug Fixes
+
+- [c182bdf](https://github.com/atomix-labs/devset/commit/c182bdf0f9687de579185961c3a889338d1170f1) *(devset-cli)* Say what remove does with a layer's files
+- [3ff590d](https://github.com/atomix-labs/devset/commit/3ff590db9f57ffdd4a7c270f43e4981646ad1686) *(devset-cli)* Wrap the requires line at whole names
+- [ffa4cdb](https://github.com/atomix-labs/devset/commit/ffa4cdb65dc9681f2c5638a553d5afbef49a77c4) *(devset-core)* Write YAML values as the payload writes them
+- [056f968](https://github.com/atomix-labs/devset/commit/056f968a3a2f42aff91271945bcc6f313cff01e2) *(ci)* Install the toolchain before mise builds any tool
+- [6db3b23](https://github.com/atomix-labs/devset/commit/6db3b23c21dace0538838531e32eca68ad2830ab) *(devset-core)* Write the keys a profile adds in the payload's layout
+
+### Refactor
+
+- [2f3f3cf](https://github.com/atomix-labs/devset/commit/2f3f3cf10d638f386b1f7c97e31fba717d598496) *(devset-cli)* Split the report by what it reports
+- [0bd3272](https://github.com/atomix-labs/devset/commit/0bd3272b60e839be38285a7a2fcc2d7424e382b6) *(devset-cli)* Move the command line into cli.rs
+- [30f7cc2](https://github.com/atomix-labs/devset/commit/30f7cc284ed9f070f9084682700d7bef4b7b6986) Name the CLI crate devset-cli
+- [b04cac3](https://github.com/atomix-labs/devset/commit/b04cac3a8b1ac71ee5546f8d1ace8e8b1d7b743a) *(devset-core)* Write files atomically through camino-tempfile
+
+### Documentation
+
+- [458c63f](https://github.com/atomix-labs/devset/commit/458c63fbd7b1c3798d772d432247c2daf2af6da8) *(devset-core)* Give the library its own README
+
+### Miscellaneous
+
+- [cda0d29](https://github.com/atomix-labs/devset/commit/cda0d29be1b7b3fb6f71876d17abc21f98d00cc1) *(devset-cli)* Split the end-to-end tests by area
+- [4c9b6ab](https://github.com/atomix-labs/devset/commit/4c9b6ab0ded5f3019b1fd10ddf5e9ddfd1089ece) Take atxp v0.2.0, with msrv and cargo-binaries
+- [cd3af67](https://github.com/atomix-labs/devset/commit/cd3af67f0a1fbc5dfd83c85331ec97e7de661dd0) Take atxp from its v0.1.0 tag
+- [81910b8](https://github.com/atomix-labs/devset/commit/81910b8ec3927a8745af89113361e3bfc80d2082) Format with atxp's rustfmt, taplo and dprint
+- [11b2829](https://github.com/atomix-labs/devset/commit/11b2829bae84f2603e381a720ca97c4e06ce522f) Take atxp's rust bundle

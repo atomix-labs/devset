@@ -1,0 +1,4 @@
+- [ ] The title is a Conventional Commit: `type(scope): subject`
+- [ ] `just check` passes
+- [ ] A change to a command's help or a schema has run `just fix-docs`
+- [ ] A breaking change has its entry in `BREAKING-CHANGES.md`
