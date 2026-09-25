@@ -20,10 +20,10 @@ registries:
     type: cargo-registry
     url: https://example.com
 updates:
-- directory: /
-  package-ecosystem: cargo
-  schedule:
-    interval: weekly
+  - package-ecosystem: cargo
+    directory: /
+    schedule:
+      interval: weekly
 $ devset apply --force
     Restored .vscode/settings.json [keys: editor]
     Finished 1 change

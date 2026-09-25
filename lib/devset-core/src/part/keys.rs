@@ -19,7 +19,7 @@ pub(crate) struct Written {
     pub leaves: Vec<(Key, Value)>,
     /// The leaves written as arrays of tables, `[[key]]`: TOML's alone.
     pub tables: BTreeSet<Key>,
-    /// The document as written, whose layout a key it adds to a file keeps: TOML's alone.
+    /// The document as written, whose layout a value it adds to a file keeps, in TOML and YAML.
     pub source: String,
 }
 

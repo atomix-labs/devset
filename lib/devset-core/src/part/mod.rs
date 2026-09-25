@@ -121,7 +121,7 @@ impl Syntax {
             Self::Json | Self::Yaml => {
                 let mut leaves = Vec::new();
                 walk(&self.semantic(text)?, &mut Vec::new(), &mut leaves);
-                Ok(Written { leaves, ..Written::default() })
+                Ok(Written { leaves, source: text.to_owned(), ..Written::default() })
             },
         }
     }
@@ -135,8 +135,8 @@ impl Syntax {
             .collect())
     }
 
-    /// A document with each edit made, in order, as `payload` writes each: TOML keeps the
-    /// payload's arrays of tables, and the layout of a key it adds.
+    /// A document with each edit made, in order, as `payload` writes each: TOML and YAML keep the
+    /// layout of a value the payload gives, and TOML its arrays of tables.
     fn apply(self, text: &str, edits: &[Edit<'_>], payload: &Written) -> Parsed<String> {
         match self {
             Self::Toml => toml::apply(text, edits, payload),
@@ -455,6 +455,25 @@ unsafe_code = \"deny\"
         assert!(out.contains("# ours"), "comments survive: {out}");
         assert!(out.contains("package-ecosystem: cargo"), "the target's keys stay");
         assert!(out.contains("type: cargo-registry"), "a nested key is added");
+    }
+
+    #[test]
+    fn yaml_new_keys_keep_the_payload_layout() {
+        let shape = keys(".yamllint.yaml");
+        let payload = "extends: default\nignore-from-file: [.gitignore]\nrules:\n  truthy:\n    allowed-values: [\"true\", \"false\"]\n";
+        let out = splice(&shape, "extends: default\n", payload);
+        assert!(
+            out.contains("ignore-from-file: [.gitignore]\n"),
+            "a new sequence is written as the payload writes it: {out}"
+        );
+        assert!(
+            out.contains("rules:\n  truthy:\n    allowed-values: [\"true\", \"false\"]\n"),
+            "and a new value under mappings made for it, quotes and all: {out}"
+        );
+        let shape = keys(".github/dependabot.yml");
+        let updates = "updates:\n  - package-ecosystem: cargo\n    directory: \"/\"\n";
+        let out = splice(&shape, "version: 2\n", updates);
+        assert!(out.ends_with(updates), "a sequence of mappings keeps its keys' order: {out}");
     }
 
     #[test]

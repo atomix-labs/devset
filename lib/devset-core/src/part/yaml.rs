@@ -5,9 +5,9 @@ use alloc::collections::BTreeMap;
 use core::str::FromStr;
 
 use serde_json::Value;
-use yaml_edit::{Document, Mapping, ScalarValue, YamlFile, YamlValue};
+use yaml_edit::{Document, Mapping, ScalarValue, YamlFile, YamlNode, YamlValue};
 
-use super::keys::Written;
+use super::keys::{Written, lookup};
 use super::{Edit, Failure};
 
 /// The first document's value, which must be a mapping; an empty stream is an empty one.
@@ -24,8 +24,9 @@ pub(super) fn semantic(text: &str) -> Result<Value, Failure> {
     }
 }
 
-/// `text` with each edit made, in order.
-pub(super) fn apply(text: &str, edits: &[Edit<'_>], _: &Written) -> Result<String, Failure> {
+/// `text` with each edit made, in order; a value the payload gives is written as the payload writes
+/// it.
+pub(super) fn apply(text: &str, edits: &[Edit<'_>], payload: &Written) -> Result<String, Failure> {
     let file = YamlFile::from_str(text).map_err(|e| (None, e.to_string()))?;
     let document = if let Some(document) = file.document() {
         document
@@ -36,17 +37,38 @@ pub(super) fn apply(text: &str, edits: &[Edit<'_>], _: &Written) -> Result<Strin
     let root = document
         .as_mapping()
         .ok_or_else(|| (None, "the document is not a mapping, so it has no keys".to_owned()))?;
+    // The payload as written, and its values; a payload that does not parse lends no layout.
+    let source = YamlFile::from_str(&payload.source).ok().zip(semantic(&payload.source).ok());
     for &(key, value) in edits {
         match value {
-            Some(value) => set(&root, key, value)?,
+            Some(value) => {
+                let written = source
+                    .as_ref()
+                    .filter(|(_, values)| lookup(values, key) == Some(value))
+                    .and_then(|(written, _)| node(written, key));
+                set(&root, key, value, written)?;
+            },
             None => remove(&root, key),
         }
     }
     Ok(file.to_string())
 }
 
-/// Writes `value` at `key`, creating the mappings on the way.
-fn set(mapping: &Mapping, key: &[String], value: &Value) -> Result<(), Failure> {
+/// The node `file`'s first document writes at `key`.
+fn node(file: &YamlFile, key: &[String]) -> Option<YamlNode> {
+    let (leaf, parents) = key.split_last()?;
+    let mut mapping = file.document()?.as_mapping()?;
+    for segment in parents {
+        mapping = mapping.get_mapping(segment.as_str())?;
+    }
+    mapping.get(leaf.as_str())
+}
+
+/// Writes `value` at `key`, creating the mappings on the way: as `written`, the payload's own
+/// writing of it, if given.
+fn set(
+    mapping: &Mapping, key: &[String], value: &Value, written: Option<YamlNode>,
+) -> Result<(), Failure> {
     let Some((leaf, parents)) = key.split_last() else {
         return Ok(());
     };
@@ -59,7 +81,10 @@ fn set(mapping: &Mapping, key: &[String], value: &Value) -> Result<(), Failure> 
             .get_mapping(segment.as_str())
             .ok_or_else(|| (None, format!("{segment} is not a mapping, so it takes no keys")))?;
     }
-    mapping.set(leaf.as_str(), yaml(value));
+    match written {
+        Some(written) => mapping.set(leaf.as_str(), written),
+        None => mapping.set(leaf.as_str(), yaml(value)),
+    }
     Ok(())
 }
 
@@ -81,7 +106,7 @@ fn remove(mapping: &Mapping, key: &[String]) {
     }
 }
 
-/// `value` as a YAML value.
+/// `value` as a YAML value, for a value the payload does not give as it is, such as a merge's.
 ///
 /// A mapping's keys come out sorted: `yaml-edit` indents only the values it builds itself, and it
 /// builds mappings from sorted maps.
