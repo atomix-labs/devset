@@ -1,4 +1,0 @@
-["MD024","siblings_only"]	true
-["MD033","allowed_elements"]	["details","summary","code","span"]
-["global","disable"]	["MD013","MD038","MD049","MD050","MD052"]
-["global","extend-enable"]	["MD063"]
