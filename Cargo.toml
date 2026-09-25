@@ -5,7 +5,7 @@ resolver = "3"
 members  = ["lib/*", "bin/*"]
 
 [workspace.package]
-version      = "0.1.0"
+version      = "0.1.1"
 edition      = "2024"
 rust-version = "1.98"
 license      = "MIT"
@@ -201,4 +201,4 @@ walkdir               = "2.5.0"
 yaml-edit             = { version = "0.3.2", default-features = false }
 
 # internal
-devset-core = { path = "lib/devset-core", version = "0.1.0" }
+devset-core = { path = "lib/devset-core", version = "0.1.1" }
