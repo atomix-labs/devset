@@ -135,13 +135,14 @@ fn headings(out: &mut impl Write, layers: &[Layer], verbose: bool) -> io::Result
     Ok(())
 }
 
-/// `lead` and then `names`, comma-separated and wrapped under the first.
+/// `lead` and then `names`, comma-separated and wrapped under the first, each name whole.
 fn wrapped(lead: &str, names: &[&str]) -> String {
     let indent = " ".repeat(lead.len());
     let options = textwrap::Options::new(100)
         .initial_indent(lead)
         .subsequent_indent(&indent)
-        .break_words(false);
+        .break_words(false)
+        .word_splitter(textwrap::WordSplitter::NoHyphenation);
     textwrap::fill(&names.join(", "), options)
 }
 
@@ -190,5 +191,20 @@ impl fmt::Display for Heading<'_> {
             Applied::Never => write!(f, "  {WARN}(not applied yet){WARN:#}")?,
         }
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::wrapped;
+
+    #[test]
+    fn names_wrap_whole() {
+        let text = wrapped("  requires ", &["rust-toolchain"; 8]);
+        assert!(text.lines().count() > 1, "a long list wraps: {text}");
+        assert!(
+            text.lines().all(|line| line.ends_with(',') || line.ends_with("toolchain")),
+            "at a name's end: {text}"
+        );
     }
 }
