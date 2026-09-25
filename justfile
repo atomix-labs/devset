@@ -30,6 +30,7 @@ import? '.just/cargo-workspace-lints.just'
 import? '.just/clippy.just'
 import? '.just/committed.just'
 import? '.just/conftest.just'
+import? '.just/crates-io.just'
 import? '.just/dprint.just'
 import? '.just/git-cliff.just'
 import? '.just/lints-nightly.just'
@@ -76,6 +77,9 @@ release: (_each "release")
 
 # Runs every `package-*` recipe: what a release ships, built for this machine into dist/.
 package: (_each "package")
+
+# Runs every `publish-*` recipe: what a release puts in a registry, once the release is out.
+publish: (_each "publish")
 
 # Runs every recipe named `<verb>-*`, and names each that fails.
 _each verb:

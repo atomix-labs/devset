@@ -187,8 +187,8 @@ exact = "0e36063a555ba5185d36127a496eb749ed2d5b85b56152090cc962f100b8131e"
 canonical = "0e36063a555ba5185d36127a496eb749ed2d5b85b56152090cc962f100b8131e"
 
 [files.".github/workflows/release.yml"]
-exact = "78de7532b6e37a13265b5ff4bc96e4e4e2374039c94ef319455d078cb5cd8754"
-canonical = "78de7532b6e37a13265b5ff4bc96e4e4e2374039c94ef319455d078cb5cd8754"
+exact = "08c74a6ca3eb251bbe492991b1c436c2f543cf29d3dd34f009cf40d4fc7365e1"
+canonical = "08c74a6ca3eb251bbe492991b1c436c2f543cf29d3dd34f009cf40d4fc7365e1"
 
 [files.".github/workflows/watch.yml"]
 exact = "51beac8abe7056cba86bd93d9dde1993c4ea9854ea820dc3f6c2e8a659ea51e0"
@@ -250,6 +250,14 @@ canonical = "73eafc85b8ad153e279c2f99864d4b348cb61b406bb7296d9cd23844c5a45da8"
 exact = "65ecc13aca1ba8526b23227896f629397fe572a9b867ae4f4cbba641ee34a889"
 canonical = "65ecc13aca1ba8526b23227896f629397fe572a9b867ae4f4cbba641ee34a889"
 
+[files.".just/crates-io.just"]
+exact = "d6a418b25f7fa6267c09065d5d24052d0cc32ed2b0423fa60d297943b6e073b5"
+canonical = "d6a418b25f7fa6267c09065d5d24052d0cc32ed2b0423fa60d297943b6e073b5"
+
+[files.".just/crates-io.py"]
+exact = "0f443f930af4bd47cc4bef3454e58cc24f42be71a1fc22bfa37d22334a30ac59"
+canonical = "0f443f930af4bd47cc4bef3454e58cc24f42be71a1fc22bfa37d22334a30ac59"
+
 [files.".just/dprint.just"]
 exact = "6919685ae0c386030d90b00dd64ec0edbe3b3e07e663aa225631ce15185eb229"
 canonical = "6919685ae0c386030d90b00dd64ec0edbe3b3e07e663aa225631ce15185eb229"
@@ -263,8 +271,8 @@ exact = "374ec6793598c830fe0b49bb3aada0504c950db0ff4986f4d9f290fc58f71fc7"
 canonical = "374ec6793598c830fe0b49bb3aada0504c950db0ff4986f4d9f290fc58f71fc7"
 
 [files.".just/lychee.just"]
-exact = "24833f9058c87bd176a306a3545037871036eef5fd61b92cfde3fa4fa438e96f"
-canonical = "24833f9058c87bd176a306a3545037871036eef5fd61b92cfde3fa4fa438e96f"
+exact = "85a0b311860e9be8e7acd39d3d884ec9dd0518ed55b29aa6f031df62dc46d5f9"
+canonical = "85a0b311860e9be8e7acd39d3d884ec9dd0518ed55b29aa6f031df62dc46d5f9"
 
 [files.".just/manifest-lint.just"]
 exact = "8e54b63e959a71b12d6c65bb651608c4ccfd25b0c1d76ecbb8b087c86c06dc2a"
@@ -581,8 +589,8 @@ policy = "merge"
 
 [parts.justfile.just]
 scope = "block"
-exact = "5e6b55849c861908fe08b1de983e95c03e0392fab1500c9b203bbe68f4f1dbcd"
-canonical = "5e6b55849c861908fe08b1de983e95c03e0392fab1500c9b203bbe68f4f1dbcd"
+exact = "f3d5a4392200d273d994dc141d62b969d81d80d251f7c92297cec85582fddae0"
+canonical = "f3d5a4392200d273d994dc141d62b969d81d80d251f7c92297cec85582fddae0"
 
 [parts."ruff.toml".ruff]
 scope = "keys"

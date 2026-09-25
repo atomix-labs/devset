@@ -1,26 +1,31 @@
 [[layers]]
 git  = "https://github.com/atomix-labs/atxp"
-tag  = "v0.2.2"
+tag  = "v0.3.1"
 path = "profiles/rust"
 
-# devset builds on stable too, and its releases ship the `devset` binary.
+# devset builds on stable too, its releases ship the `devset` binary, and its crates go to crates.io.
 [[layers]]
 git  = "https://github.com/atomix-labs/atxp"
-tag  = "v0.2.2"
+tag  = "v0.3.1"
 path = "profiles/msrv"
 
 [[layers]]
 git  = "https://github.com/atomix-labs/atxp"
-tag  = "v0.2.2"
+tag  = "v0.3.1"
 path = "profiles/cargo-binaries"
+
+[[layers]]
+git  = "https://github.com/atomix-labs/atxp"
+tag  = "v0.3.1"
+path = "profiles/crates-io"
 
 # The manual, built and deployed to Pages, and every document's links checked.
 [[layers]]
 git  = "https://github.com/atomix-labs/atxp"
-tag  = "v0.2.2"
+tag  = "v0.3.1"
 path = "profiles/mdbook"
 
 [[layers]]
 git  = "https://github.com/atomix-labs/atxp"
-tag  = "v0.2.2"
+tag  = "v0.3.1"
 path = "profiles/lychee"
