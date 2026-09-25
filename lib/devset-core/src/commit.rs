@@ -5,8 +5,8 @@ use std::collections::HashSet;
 use std::fs::TryLockError;
 use std::io::{self, Write};
 
-use atomic_write_file::AtomicWriteFile;
 use camino::Utf8Path;
+use camino_tempfile::Builder;
 use serde::Serialize;
 
 use crate::digest::Digest;
@@ -300,15 +300,55 @@ pub(crate) fn to_toml<T: Serialize + ?Sized>(value: &T) -> Result<String> {
     Ok(toml::to_string(value).map_err(io::Error::other)?)
 }
 
-/// Replaces `path` with `bytes` atomically, creating parent directories.
+/// Replaces `path` with `bytes` atomically, creating parent directories: the bytes reach the disk
+/// in a file beside it, which takes its place in one rename. A file already there keeps its mode.
 pub(crate) fn write(path: &Utf8Path, bytes: &[u8]) -> Result<()> {
-    if let Some(parent) = path.parent() {
-        fs_err::create_dir_all(parent)?;
-    }
+    let dir = path
+        .parent()
+        .filter(|dir| !dir.as_str().is_empty())
+        .unwrap_or_else(|| Utf8Path::new("."));
+    fs_err::create_dir_all(dir)?;
     let with_path = |e: io::Error| io::Error::new(e.kind(), format!("{path}: {e}"));
-    let mut file = AtomicWriteFile::open(path).map_err(with_path)?;
+    let kept = fs_err::metadata(path)
+        .ok()
+        .map(|metadata| metadata.permissions());
+    let mut file = new_file(dir).map_err(with_path)?;
+    if let Some(permissions) = kept {
+        file.as_file()
+            .set_permissions(permissions)
+            .map_err(with_path)?;
+    }
     file.write_all(bytes).map_err(with_path)?;
-    file.commit().map_err(with_path)?;
+    file.as_file().sync_all().map_err(with_path)?;
+    file.persist(path).map_err(|e| with_path(e.error))?;
+    sync_dir(dir)
+}
+
+/// A temporary file in `dir`, as readable as a new file the umask allows.
+#[cfg(unix)]
+fn new_file(dir: &Utf8Path) -> io::Result<camino_tempfile::NamedUtf8TempFile> {
+    use std::fs::Permissions;
+    use std::os::unix::fs::PermissionsExt as _;
+    Builder::new()
+        .permissions(Permissions::from_mode(0o666))
+        .tempfile_in(dir)
+}
+
+/// A temporary file in `dir`.
+#[cfg(not(unix))]
+fn new_file(dir: &Utf8Path) -> io::Result<camino_tempfile::NamedUtf8TempFile> {
+    Builder::new().tempfile_in(dir)
+}
+
+/// Makes a rename in `dir` durable.
+#[cfg(unix)]
+fn sync_dir(dir: &Utf8Path) -> Result<()> {
+    Ok(fs_err::File::open(dir)?.sync_all()?)
+}
+
+/// A rename is durable once it returns here.
+#[cfg(not(unix))]
+fn sync_dir(_: &Utf8Path) -> Result<()> {
     Ok(())
 }
 
@@ -363,5 +403,54 @@ pub(crate) fn remove_if_present(path: &Utf8Path) -> Result<()> {
     match removed {
         Err(e) if e.kind() != io::ErrorKind::NotFound => Err(e.into()),
         Ok(()) | Err(_) => Ok(()),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::write;
+
+    #[test]
+    fn write_replaces_a_file_and_leaves_nothing_beside_it() {
+        let dir = camino_tempfile::tempdir().expect("a directory");
+        let path = dir.path().join("a/b.txt");
+        write(&path, b"one").expect("writes a new file, and its directory");
+        write(&path, b"two").expect("replaces it");
+        assert_eq!(
+            fs_err::read(&path).expect("reads it"),
+            b"two",
+            "the new bytes"
+        );
+        let names: Vec<_> = fs_err::read_dir(dir.path().join("a"))
+            .expect("lists the directory")
+            .map(|entry| entry.expect("an entry").file_name())
+            .collect();
+        assert_eq!(names, ["b.txt"], "no temporary file is left");
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn write_keeps_the_mode_a_file_has() {
+        use std::fs::Permissions;
+        use std::os::unix::fs::PermissionsExt as _;
+
+        let dir = camino_tempfile::tempdir().expect("a directory");
+        let path = dir.path().join("run.sh");
+        write(&path, b"one").expect("writes a new file");
+        let mode = |path| {
+            fs_err::metadata(path)
+                .expect("its metadata")
+                .permissions()
+                .mode()
+                & 0o777
+        };
+        assert_eq!(
+            mode(&path) & 0o600,
+            0o600,
+            "a new file is its owner's to read and write"
+        );
+        fs_err::set_permissions(&path, Permissions::from_mode(0o751)).expect("sets a mode");
+        write(&path, b"two").expect("replaces it");
+        assert_eq!(mode(&path), 0o751, "a replaced file keeps its mode");
     }
 }

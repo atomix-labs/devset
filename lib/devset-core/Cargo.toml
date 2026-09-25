@@ -19,7 +19,6 @@ workspace = true
 
 [dependencies]
 # external
-atomic-write-file     = { workspace = true }
 blake3                = { workspace = true }
 camino                = { workspace = true }
 camino-tempfile       = { workspace = true }

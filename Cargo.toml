@@ -174,7 +174,6 @@ incremental   = true
 annotate-snippets     = "0.12.16"
 anstream              = "1.0.0"
 anstyle               = "1.0.14"
-atomic-write-file     = "0.3.1"
 blake3                = "1.8.7"
 camino                = { version = "1.2.6", features = ["serde1"] }
 camino-tempfile       = "1.4.1"
