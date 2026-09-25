@@ -1,0 +1,4 @@
+# Built with cargo: the musl release takes an asset pattern per platform, which mise's lock
+# does not keep.
+[tools]
+"cargo:cargo-shear" = "1.13.4"

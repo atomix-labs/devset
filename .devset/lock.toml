@@ -5,193 +5,312 @@ name = "editorconfig"
 digest = "3053772865162fecf372b01c23669cd4f211743fd3feb2ef09f5871eff4cab84"
 
 [layers.source]
-path = "../devset-profiles/profiles/editorconfig"
+path = "../atxp/profiles/editorconfig"
 
 [[layers]]
 name = "gitattributes"
 digest = "769b4c0321a9448e0a11daf7f00593c8ea97d77a6e0a8a260d131fd325748533"
 
 [layers.source]
-path = "../devset-profiles/profiles/gitattributes"
+path = "../atxp/profiles/gitattributes"
+
+[[layers]]
+name = "gitignore"
+digest = "650cd60c9627814b58733a87fa25d21b6380530db2be97f2add0667055d2540f"
+
+[layers.source]
+path = "../atxp/profiles/gitignore"
 
 [[layers]]
 name = "gitignore-rust"
 digest = "cc6c4a62dd6822e0ebe40704b084074fffae5eed871871be60c7b73601f23032"
 
 [layers.source]
-path = "../devset-profiles/profiles/gitignore-rust"
+path = "../atxp/profiles/gitignore-rust"
 
 [[layers]]
 name = "mise"
 digest = "70eb4bc05d91fa440b28c498932ef7cd86da30210da0b899b1d40f8fe5e55ba4"
 
 [layers.source]
-path = "../devset-profiles/profiles/mise"
+path = "../atxp/profiles/mise"
 
 [[layers]]
 name = "just"
-digest = "5d5c71999093caba4db3b1997ee40d938806ee515f85cac75f275535718ccefd"
+digest = "67c8f80b14289ee640bec35ee2ce82412d74550c52657c0c664624207f51f9bd"
 
 [layers.source]
-path = "../devset-profiles/profiles/just"
+path = "../atxp/profiles/just"
 
 [[layers]]
 name = "setup"
-digest = "4e4703ce5d8f5c1824baa21ce9ca801691f9fa96aab4ac01991ab2fb307294c6"
+digest = "e99f3713ca6e07fb620e523910198953912b7c0e619207a081c4ec8d28546976"
 
 [layers.source]
-path = "../devset-profiles/profiles/setup"
+path = "../atxp/profiles/setup"
 
 [[layers]]
 name = "rustup"
 digest = "da4d2cb8f95e93c63354ee3709c3fccbe2daf6bba8c0058d64e21ba248ada5f5"
 
 [layers.source]
-path = "../devset-profiles/profiles/rustup"
+path = "../atxp/profiles/rustup"
+
+[[layers]]
+name = "rust-toolchain"
+digest = "206408b7939872f1b937582fd34230db8e16cc3bbb3f59f43311a87c35fbe3c6"
+
+[layers.source]
+path = "../atxp/profiles/rust-toolchain"
 
 [[layers]]
 name = "github-ci"
-digest = "9b260edb7628e8712fce2b23188021e4d47fedf9575fdcdf50da1ad1a5fd1566"
+digest = "61f30be43be5c17490e884572884792fe0759f5c75d5bd611a49f5218d40be9e"
 
 [layers.source]
-path = "../devset-profiles/profiles/github-ci"
+path = "../atxp/profiles/github-ci"
 
 [[layers]]
 name = "github-watch"
 digest = "d45ab8f560d8da3cf8a60fab4140b6b3d9b784a8cd33469f9995916f431a6df5"
 
 [layers.source]
-path = "../devset-profiles/profiles/github-watch"
+path = "../atxp/profiles/github-watch"
 
 [[layers]]
 name = "github-nightly"
 digest = "ad552ccf6febe5c16bf6fd428929bf8e06d3c098739f03dcc6c2623ca38f14f4"
 
 [layers.source]
-path = "../devset-profiles/profiles/github-nightly"
+path = "../atxp/profiles/github-nightly"
 
 [[layers]]
-name = "dependabot-cargo"
-digest = "bbd5817218a8c0aeb7ae18767ec067cdb754fb0caefe7c4922f532223bc6cdf5"
+name = "github-bump"
+digest = "df9c1b609c848d10b60ea33b76edca333bfe150fd328447b61b99012abc716c2"
 
 [layers.source]
-path = "../devset-profiles/profiles/dependabot-cargo"
+path = "../atxp/profiles/github-bump"
 
 [[layers]]
-name = "rust-toolchain"
-digest = "b6537968fcc7dcc2d10aac7aac9a6ccc6a67181da3fc17b66fca8f09b2461ce2"
+name = "dependabot"
+digest = "6eeeb83927f9077afec663512c13572e7eb6829ba5bcbabda7d63e3f9a944dd8"
 
 [layers.source]
-path = "../devset-profiles/profiles/rust-toolchain"
+path = "../atxp/profiles/dependabot"
 
 [[layers]]
-name = "rustfmt"
-digest = "1b7259fd1dddf8bdd2e8d3b67764d87d2768a6966f009a74b06625f4e2a135a0"
+name = "automation"
+digest = "9f29b4ad6a11a241f177742e7e6b6bfc28893aad392bf065cc543aab6fee19ff"
 
 [layers.source]
-path = "../devset-profiles/profiles/rustfmt"
+path = "../atxp/profiles/automation"
+
+[[layers]]
+name = "committed"
+digest = "6f4ef91ab827cb6fa20d8cb725c0a1ef795127d1c34399e40ff45aa674b9f565"
+
+[layers.source]
+path = "../atxp/profiles/committed"
+
+[[layers]]
+name = "git-cliff"
+digest = "cdae462622672fb062c13ec69f2060b4fb96ad49f681f26852ae2200a54c9f54"
+
+[layers.source]
+path = "../atxp/profiles/git-cliff"
+
+[[layers]]
+name = "typos"
+digest = "4a845713ce85af4c9718d0cadb470f1bea46c84095344e0ff8b37164014c942c"
+
+[layers.source]
+path = "../atxp/profiles/typos"
 
 [[layers]]
 name = "clippy"
-digest = "c5272c49b9a8d664b9d2dc22ae2ad177d10ee4311100c8164c9c69678c6e3044"
+digest = "944c0c7ab700d783d0294bbc93821261fc0e17a00736a447c9b2e97b1a3816b5"
 
 [layers.source]
-path = "../devset-profiles/profiles/clippy"
+path = "../atxp/profiles/clippy"
 
 [[layers]]
 name = "rustdoc"
 digest = "3aef3f90fdf02204df98f1855a5cd8cde3abd910c5f916d2397be980cedf6e10"
 
 [layers.source]
-path = "../devset-profiles/profiles/rustdoc"
+path = "../atxp/profiles/rustdoc"
+
+[[layers]]
+name = "rustfmt"
+digest = "437e7d7b6460e9eb1393fd56da895af5d63927b584ef2fdfd4b1c23eec09f125"
+
+[layers.source]
+path = "../atxp/profiles/rustfmt"
+
+[[layers]]
+name = "lints"
+digest = "b1e6c52a13c9b4ea05dc21922392400bc960a40e32cd0a7611034f2f55e71b34"
+
+[layers.source]
+path = "../atxp/profiles/lints"
+
+[[layers]]
+name = "cargo-profiles"
+digest = "dd7ca6a4d849d3f1230e024dd6e7f81a2577c2bb600a8252b044db455e37e6b8"
+
+[layers.source]
+path = "../atxp/profiles/cargo-profiles"
 
 [[layers]]
 name = "cargo-deny"
-digest = "917d3b4a4387c09b7f0cc51a3b0f8927d7cdd3f4c60cb7b074bc536f5fce7858"
+digest = "a94eb9d69a29cee963d33c1e141d0bd789598fb39e1d691a18cd7cfed45d69a9"
 
 [layers.source]
-path = "../devset-profiles/profiles/cargo-deny"
+path = "../atxp/profiles/cargo-deny"
 
 [[layers]]
 name = "cargo-machete"
 digest = "6c8d954f0e6925c2e5b165efe5c519649fdae69f0806803a187f7ef424befdf5"
 
 [layers.source]
-path = "../devset-profiles/profiles/cargo-machete"
+path = "../atxp/profiles/cargo-machete"
+
+[[layers]]
+name = "cargo-shear"
+digest = "7f6fea65c605f127ff25fbc5d0226236a67a2b5eb76fc48ac0ceeb7097d38af4"
+
+[layers.source]
+path = "../atxp/profiles/cargo-shear"
+
+[[layers]]
+name = "cargo-workspace-lints"
+digest = "f78ba2fd02a9515e4f673303c5a2c9a345fd2dc6c13b060ebccecadb38a1e193"
+
+[layers.source]
+path = "../atxp/profiles/cargo-workspace-lints"
 
 [[layers]]
 name = "cargo-hack"
 digest = "a3f677bf114a043cfd9850c29f619f97f28a99d2662db5a87f5434f2db1e78be"
 
 [layers.source]
-path = "../devset-profiles/profiles/cargo-hack"
+path = "../atxp/profiles/cargo-hack"
+
+[[layers]]
+name = "cargo-bump"
+digest = "e2773529f31dd0081a6894e609ca4f7a003fc43f8715806e130542498f1db9af"
+
+[layers.source]
+path = "../atxp/profiles/cargo-bump"
+
+[[layers]]
+name = "manifest-lint"
+digest = "994173510312a51d42c5f7df9d1e19be489d0b548cb0493828db8061370e017d"
+
+[layers.source]
+path = "../atxp/profiles/manifest-lint"
 
 [[layers]]
 name = "nextest"
-digest = "96e915fb6edf2855481e50c81dbeed61e13e08065d340d3787ea2959d26de091"
+digest = "ff4e7eed9978e357a1924363e4d3318fc52739aa12dd34af89f0036fbe509106"
 
 [layers.source]
-path = "../devset-profiles/profiles/nextest"
+path = "../atxp/profiles/nextest"
 
 [[layers]]
 name = "taplo"
-digest = "173be6fd7e1f6f20a9d9e166b61bdb4a562a7c960ebb38535cb9a51955407618"
+digest = "0a4baa89971ebd2e9c90cb0ebf1c0c55ab2a9e1a9149029fa2a27cd278c87e97"
 
 [layers.source]
-path = "../devset-profiles/profiles/taplo"
+path = "../atxp/profiles/taplo"
 
 [[layers]]
 name = "dprint"
-digest = "8fbd4061a642edcb7e4ffca2869b97a58e9954e4949262864b70c0ee6525f97b"
+digest = "63e461c2681418dc0d89853449bc6a33a87253857ae5e0a032b207ba8aced373"
 
 [layers.source]
-path = "../devset-profiles/profiles/dprint"
+path = "../atxp/profiles/dprint"
 
 [[layers]]
 name = "rumdl"
-digest = "b829acb16cecf257490568e8c6ac089506e90f735bf3befc4b6456887adadab2"
+digest = "050ac27a338c3eccfe6c32ea2f785f4aa22ca0f948e62594d769bacc01d6d921"
 
 [layers.source]
-path = "../devset-profiles/profiles/rumdl"
+path = "../atxp/profiles/rumdl"
+
+[[layers]]
+name = "ruff"
+digest = "86e44aa99fc31e6b9e997ab55b0a3a8dc1bbdc3fb44471aa29a584a0f9eb0828"
+
+[layers.source]
+path = "../atxp/profiles/ruff"
+
+[[layers]]
+name = "yamllint"
+digest = "ec7619e9fdf19fb48ecb13450adf766882bdf52b53e8ac9b92274bf7bd77bec8"
+
+[layers.source]
+path = "../atxp/profiles/yamllint"
 
 [[layers]]
 name = "shellcheck"
 digest = "2b7bb2311a37955cc4f0dd4a5dc6ffa057d567e2925fe44fe2dca98bcec674d6"
 
 [layers.source]
-path = "../devset-profiles/profiles/shellcheck"
+path = "../atxp/profiles/shellcheck"
 
 [[layers]]
 name = "actionlint"
-digest = "9ab193a34dd3dafc391a82698930cf4bba84313b142d91c841ac04b31e09cf2a"
+digest = "b5d0ada4eef2552eb2597b409a40e55264c704d49f52fbc97e4524c7d6b7260d"
 
 [layers.source]
-path = "../devset-profiles/profiles/actionlint"
+path = "../atxp/profiles/actionlint"
 
 [[layers]]
 name = "zizmor"
 digest = "22646a76fc73ddec52f6093a6cad8c1949e740c0505c63ecb38476addf9c9545"
 
 [layers.source]
-path = "../devset-profiles/profiles/zizmor"
+path = "../atxp/profiles/zizmor"
+
+[[layers]]
+name = "conftest"
+digest = "f02c8bf6cbc33c2e84f9d5ab8751adcd93211bcf7b558f684b9189210cbff4ca"
+
+[layers.source]
+path = "../atxp/profiles/conftest"
+
+[[layers]]
+name = "policies"
+digest = "6ff3bfd53b2b67fba37201a2fc694529428bed4575b31418c12f3c59fda72fb6"
+
+[layers.source]
+path = "../atxp/profiles/policies"
+
+[[layers]]
+name = "suppressions"
+digest = "6f73365a922de22b17431401ba6a44dcd2c4dc361e63ad99c3b1c6f89989bf2a"
+
+[layers.source]
+path = "../atxp/profiles/suppressions"
 
 [[layers]]
 name = "vscode-rust"
-digest = "b42907cab326d20d4e09dbc1d39daa91d27656763cfba443d8e71008484016b6"
+digest = "4b363c4af0701c9b02b5fde137c0baf57944a001a78f68c15267591a91478e4c"
 
 [layers.source]
-path = "../devset-profiles/profiles/vscode-rust"
+path = "../atxp/profiles/vscode-rust"
+
+[[layers]]
+name = "claude-skills"
+digest = "cdbc453eface8b6e7cd16f9df567dcdeb9937e71d7afa6041f29430269705534"
+
+[layers.source]
+path = "../atxp/profiles/claude-skills"
 
 [[layers]]
 name = "rust"
-digest = "bac41daaf51fe25a166ba048bacb4e127d36980c072d0f80ac536d2c7d7ea36d"
+digest = "af13b3400b657571e56998a1320eb0f043770d3025624be12f327be3ca579e4a"
 
 [layers.source]
-path = "../devset-profiles/profiles/rust"
-
-[[layers]]
-name = "rustfmt-nightly"
-digest = "e05264a4f690d07e781c1ecf378cf82b25cd83e43b662cdae1a95a654eacde2b"
-
-[layers.source]
-path = "../devset-profiles/profiles/rustfmt-nightly"
+path = "../atxp/profiles/rust"

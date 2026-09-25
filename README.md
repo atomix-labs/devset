@@ -245,10 +245,10 @@ in place, untracked.
 
 ## Develop
 
-devset applies the [devset-profiles](https://github.com/atomix-labs/devset-profiles) collection to
-itself: its `rust` bundle, with rustfmt's unstable options, as `devset` builds on a pinned nightly.
-`./setup.sh` readies a checkout: the tools the lock pins, then the toolchain. `just check` runs
-every check, as CI does, and `just fix` every fix.
+devset applies the `rust` bundle of [atxp](https://github.com/atomix-labs/atxp) to itself, on the
+nightly it pins. `./setup.sh` readies a checkout: the tools the lock pins, then the toolchain. `just
+check` runs every check, as CI does, and `just fix` every fix. Commits follow Conventional Commits,
+`type(scope): subject`, the scope the crate or part they change.
 
 ## Out of Scope
 

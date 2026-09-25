@@ -1,2 +1,5 @@
+assignees = ""
+bump_mode = "pr"
 line_width = "100"
-rust_channel = "nightly-2026-09-21"
+repository = "atomix-labs/devset"
+runner_labels = ""

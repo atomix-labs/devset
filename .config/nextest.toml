@@ -1,5 +1,5 @@
 [profile.ci]
-fail-fast = false
+fail-fast      = false
 failure-output = "immediate-final"
 
 [profile.ci.junit]

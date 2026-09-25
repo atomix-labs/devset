@@ -1,0 +1,16 @@
+["excludes"]	["**/target/**","**/*.min.css","**/*.min.js",".just/**","docs/book/**","docs/theme/**","docs/vendor/**","CHANGELOG.md"]
+["includes"]	["**/*.{md,yml,yaml,json,jsonc,py,css,js}"]
+["json","array.preferSingleLine"]	true
+["json","lineWidth"]	160
+["json","object.preferSingleLine"]	true
+["json","trailingCommas"]	"never"
+["lineWidth"]	100
+["markdown","emphasisKind"]	"asterisks"
+["markdown","lineWidth"]	80
+["markdown","strongKind"]	"asterisks"
+["markdown","textWrap"]	"always"
+["plugins"]	["https://plugins.dprint.dev/markdown-0.24.0.wasm@cf7e65674b7eb5d91f85152ae9020dc8b3e73bd7944efcbfb05df71081217764","https://plugins.dprint.dev/json-0.24.0.wasm@07316f98ceda3761d31569795d82b8a104cb078e54e46fb542c2a81728bc48f1","https://plugins.dprint.dev/ruff-0.8.8.wasm@ce4f881eef34163371b54ad502df86ebadcf2d2de34ad40d2e72ad86096a3a73","https://plugins.dprint.dev/typescript-0.96.1.wasm@9c52244de2c25a33addc7ddacff4443234a2dc4b5d3f34131262d1e0df35007c","https://plugins.dprint.dev/g-plane/pretty_yaml-v0.6.0.wasm@40a2fdda7040317eb1b23520f3a00769a5571eedb049c4ca9175c1b9eeba01ae","https://plugins.dprint.dev/g-plane/malva-v0.16.0.wasm@1c1b31f972ef5aae052f97b6723aaf962e0175c5bbe4ba877e092512af354113"]
+["ruff","quoteStyle"]	"double"
+["yaml","braceSpacing"]	false
+["yaml","quotes"]	"preferDouble"
+["yaml","trailingComma"]	false

@@ -1,3 +1,19 @@
 [global]
-# Line length is the formatter's to keep.
-disable = ["MD013"]
+# Line length is the formatter's to keep. MD052 would flag every intra-doc link, `[`Type`][crate::Type]`,
+# a reference the rustdoc-links preprocessor resolves and reports on itself.
+disable = ["MD013", "MD038", "MD049", "MD050", "MD052"]
+# Additive. `enable` is exclusive: it would switch every other rule off.
+extend-enable = ["MD063"]
+
+# Collapsible definitions are a `<details>`/`<summary>` pair, which Markdown has no form of. Narrowed
+# rather than disabling MD033, so every other tag still reports.
+[MD033]
+allowed_elements = ["details", "summary", "code", "span"]
+
+# A heading repeats across a changelog's releases: Features, Bug Fixes.
+[MD024]
+siblings_only = true
+
+# Names, which heading case leaves as they are.
+[MD063]
+ignore-words = ["devset"]

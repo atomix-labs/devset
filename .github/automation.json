@@ -1,0 +1,7 @@
+{
+  "broken": { "labels": ["bug"], "type": "Bug" },
+  "chore": { "labels": ["dependencies"], "type": "Task" },
+  "assignees": [],
+  "bump": { "mode": "pr" },
+  "nightly": { "skip_unchanged": true }
+}

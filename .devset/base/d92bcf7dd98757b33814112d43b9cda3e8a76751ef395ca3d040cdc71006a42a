@@ -1,0 +1,7 @@
+["assignees"]	[]
+["broken","labels"]	["bug"]
+["broken","type"]	"Bug"
+["bump","mode"]	"pr"
+["chore","labels"]	["dependencies"]
+["chore","type"]	"Task"
+["nightly","skip_unchanged"]	true

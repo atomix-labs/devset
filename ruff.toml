@@ -1,0 +1,7 @@
+# The linter only: formatting is dprint's, through its Ruff plugin.
+line-length = 100
+# The helpers in .just/ run on mise's own Python, and are linted where they come from.
+extend-exclude = [".just"]
+
+[lint]
+select = ["E4", "E7", "E9", "F", "I", "B", "SIM", "UP", "RUF", "PLC0415", "D102"]

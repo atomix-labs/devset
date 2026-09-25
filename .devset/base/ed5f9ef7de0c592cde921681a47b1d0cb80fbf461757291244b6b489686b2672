@@ -1,2 +1,0 @@
-["exclude"]	["**/node_modules/**","**/target/**",".devset/**",".config/mise/conf.d/**"]
-["formatting","column_width"]	100

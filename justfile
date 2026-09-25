@@ -1,26 +1,34 @@
 # >>> devset: just >>>
 # Each atom's recipes, where the atom is applied.
 import? '.just/actionlint.just'
+import? '.just/ansible-lint.just'
+import? '.just/cargo-bump.just'
 import? '.just/cargo-deny.just'
 import? '.just/cargo-hack.just'
 import? '.just/cargo-machete.just'
 import? '.just/cargo-shear.just'
 import? '.just/cargo-workspace-lints.just'
 import? '.just/clippy.just'
+import? '.just/committed.just'
 import? '.just/conftest.just'
 import? '.just/dprint.just'
+import? '.just/git-cliff.just'
 import? '.just/lychee.just'
+import? '.just/manifest-lint.just'
 import? '.just/mdbook.just'
 import? '.just/mise.just'
 import? '.just/nextest.just'
 import? '.just/profile-pins.just'
 import? '.just/ruff.just'
 import? '.just/rumdl.just'
+import? '.just/rust-toolchain.just'
 import? '.just/rustdoc.just'
 import? '.just/rustfmt.just'
 import? '.just/rustup.just'
 import? '.just/shellcheck.just'
+import? '.just/suppressions.just'
 import? '.just/taplo.just'
+import? '.just/typos.just'
 import? '.just/yamllint.just'
 import? '.just/zizmor.just'
 
@@ -41,6 +49,9 @@ setup: (_each "setup")
 
 # Runs every `host-*` recipe: the machine's own setup, whose steps may ask for sudo.
 host: (_each "host")
+
+# Runs every `release-*` recipe for $RELEASE_VERSION: each writes what a release needs.
+release: (_each "release")
 
 # Runs every recipe named `<verb>-*`, and names each that fails.
 _each verb:
