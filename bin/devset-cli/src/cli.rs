@@ -11,7 +11,9 @@ use devset_core::source::SourceSpec;
 Examples:
   devset init --git https://github.com/acme/profiles --tag v1.4.0 --path rust
   devset status
-  devset update")]
+  devset update
+
+Manual: https://atomix-labs.github.io/devset/")]
 pub(crate) struct Cli {
     /// Print only results and errors.
     #[arg(long, short, global = true, help_heading = "Global Options")]
