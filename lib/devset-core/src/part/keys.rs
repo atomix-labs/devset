@@ -12,13 +12,15 @@ pub(crate) type Key = Vec<String>;
 pub(crate) type Leaves = BTreeMap<Key, Value>;
 
 /// A partial document as its payload writes it: its leaves in its order, each object's keys in
-/// theirs, and which leaves it writes as arrays of tables.
+/// theirs, which leaves it writes as arrays of tables, and its text.
 #[derive(Clone, Debug, Default)]
 pub(crate) struct Written {
     /// Each leaf and its value, in the document's order.
     pub leaves: Vec<(Key, Value)>,
     /// The leaves written as arrays of tables, `[[key]]`: TOML's alone.
     pub tables: BTreeSet<Key>,
+    /// The document as written, whose layout a key it adds to a file keeps: TOML's alone.
+    pub source: String,
 }
 
 /// `leaves` as content: one line per leaf, sorted, each its key and its value as canonical JSON.

@@ -1,12 +1,10 @@
 //! JSON and JSONC keys: read as values, written through `jsonc-parser`'s concrete syntax tree, so
 //! comments, trailing commas and layout survive.
 
-use alloc::collections::BTreeSet;
-
 use jsonc_parser::cst::{CstInputValue, CstObject, CstRootNode};
 use serde_json::Value;
 
-use super::keys::Key;
+use super::keys::Written;
 use super::{Edit, Failure};
 use crate::format::jsonc;
 
@@ -25,7 +23,7 @@ pub(super) fn semantic(text: &str) -> Result<Value, Failure> {
 }
 
 /// `text` with each edit made, in order.
-pub(super) fn apply(text: &str, edits: &[Edit<'_>], _: &BTreeSet<Key>) -> Result<String, Failure> {
+pub(super) fn apply(text: &str, edits: &[Edit<'_>], _: &Written) -> Result<String, Failure> {
     let root = CstRootNode::parse(text, &jsonc())
         .map_err(|e| (Some(e.range().start..e.range().end), e.kind().to_string()))?;
     let object = root.object_value_or_set();

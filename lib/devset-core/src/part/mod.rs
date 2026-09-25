@@ -123,7 +123,7 @@ impl Syntax {
                 walk(&self.semantic(text)?, &mut Vec::new(), &mut leaves);
                 Ok(Written {
                     leaves,
-                    tables: BTreeSet::new(),
+                    ..Written::default()
                 })
             }
         }
@@ -138,12 +138,13 @@ impl Syntax {
             .collect())
     }
 
-    /// A document with each edit made, in order; a key in `tables` as an array of tables.
-    fn apply(self, text: &str, edits: &[Edit<'_>], tables: &BTreeSet<Key>) -> Parsed<String> {
+    /// A document with each edit made, in order, as `payload` writes each: TOML keeps the
+    /// payload's arrays of tables, and the layout of a key it adds.
+    fn apply(self, text: &str, edits: &[Edit<'_>], payload: &Written) -> Parsed<String> {
         match self {
-            Self::Toml => toml::apply(text, edits, tables),
-            Self::Json => json::apply(text, edits, tables),
-            Self::Yaml => yaml::apply(text, edits, tables),
+            Self::Toml => toml::apply(text, edits, payload),
+            Self::Json => json::apply(text, edits, payload),
+            Self::Yaml => yaml::apply(text, edits, payload),
         }
     }
 }
@@ -274,7 +275,7 @@ impl Shape {
                     text.to_owned()
                 } else {
                     syntax
-                        .apply(text, &edits, &payload.tables)
+                        .apply(text, &edits, payload)
                         .map_err(|f| failed(label, text, f))?
                 }
             }
@@ -392,6 +393,34 @@ mod tests {
         assert!(
             out.contains("pedantic = { level = \"deny\", priority = -1 }"),
             "a new leaf is added"
+        );
+    }
+
+    #[test]
+    fn toml_new_keys_keep_the_payload_layout() {
+        let shape = keys("deny.toml");
+        let payload = "[bans]\nmultiple-versions = \"deny\"\nwildcards         = \"deny\"\ndeny = [\n    { name = \"a\" },\n    { name = \"b\" },\n]\n";
+        let out = splice(
+            &shape,
+            "[bans]\nwildcards = \"allow\"\n\n[graph]\nall-features = true\n",
+            payload,
+        );
+        assert!(
+            out.contains("multiple-versions = \"deny\"\n"),
+            "a new key is aligned as the payload aligns it: {out}"
+        );
+        assert!(
+            out.contains("wildcards = \"deny\"\n"),
+            "a key the file holds keeps the file's layout: {out}"
+        );
+        assert!(
+            out.contains("deny = [\n    { name = \"a\" },\n    { name = \"b\" },\n]"),
+            "and a new value is laid out as the payload lays it out: {out}"
+        );
+        let out = splice(&shape, "[graph]\nall-features = true\n", payload);
+        assert!(
+            out.contains("[bans]\nmultiple-versions = \"deny\"\nwildcards         = \"deny\"\n"),
+            "keys of a new table are aligned as the payload aligns them: {out}"
         );
     }
 

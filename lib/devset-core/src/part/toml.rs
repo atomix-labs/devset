@@ -32,7 +32,11 @@ pub(super) fn leaves(text: &str) -> Result<Written, Failure> {
         .into_iter()
         .filter_map(|key| Some((key.clone(), lookup(&values, &key)?.clone())))
         .collect();
-    Ok(Written { leaves, tables })
+    Ok(Written {
+        leaves,
+        tables,
+        source: text.to_owned(),
+    })
 }
 
 /// Every leaf path under `table`, and those that are arrays of tables.
@@ -61,33 +65,61 @@ fn collect(
     }
 }
 
-/// `text` with each edit made, in order; a key in `tables` is written as an array of tables.
-pub(super) fn apply(
-    text: &str,
-    edits: &[Edit<'_>],
-    tables: &BTreeSet<Key>,
-) -> Result<String, Failure> {
+/// `text` with each edit made, in order; a key the payload writes as an array of tables is written
+/// as one, and a value the payload gives is written in the payload's layout.
+pub(super) fn apply(text: &str, edits: &[Edit<'_>], payload: &Written) -> Result<String, Failure> {
     let mut doc: DocumentMut = text
         .parse()
         .map_err(|e: toml_edit::TomlError| (e.span(), e.message().to_owned()))?;
+    // The payload as written, and its values; a payload that does not parse lends no layout.
+    let source = payload
+        .source
+        .parse::<DocumentMut>()
+        .ok()
+        .zip(semantic(&payload.source).ok());
     for &(key, value) in edits {
         match value {
-            Some(value) => set(&mut doc, key, value, tables.contains(key))?,
+            Some(value) => {
+                let styled = source
+                    .as_ref()
+                    .filter(|(_, values)| lookup(values, key) == Some(value))
+                    .and_then(|(written, _)| layout(written, key));
+                set(&mut doc, key, value, payload.tables.contains(key), styled)?;
+            }
             None => remove(doc.as_table_mut(), key),
         }
     }
     Ok(doc.to_string())
 }
 
+/// How `doc` writes the plain value at `key`: the key, with the space around it, and the value.
+fn layout<'a>(
+    doc: &'a DocumentMut,
+    key: &[String],
+) -> Option<(&'a toml_edit::Key, &'a toml_edit::Value)> {
+    let (leaf, parents) = key.split_last()?;
+    let mut table: &dyn TableLike = doc.as_table();
+    for segment in parents {
+        table = table.get(segment)?.as_table_like()?;
+    }
+    match table.get_key_value(leaf)? {
+        (written, Item::Value(value)) => Some((written, value)),
+        (_, Item::None | Item::Table(_) | Item::ArrayOfTables(_)) => None,
+    }
+}
+
 /// Writes `value` at `key`, creating the tables on the way; a replaced value keeps its comments.
 ///
 /// An array of objects keeps the form the file gives it, or else the payload's: an array of
-/// tables, `[[key]]`, when `as_tables`, and inline otherwise.
+/// tables, `[[key]]`, when `as_tables`, and inline otherwise. With `styled`, the payload's own
+/// writing of the value, the value is written as the payload writes it, and a new key is spaced as
+/// the payload spaces it; a key the file holds keeps the file's spacing.
 fn set(
     doc: &mut DocumentMut,
     key: &[String],
     value: &Value,
     as_tables: bool,
+    styled: Option<(&toml_edit::Key, &toml_edit::Value)>,
 ) -> Result<(), Failure> {
     let Some((leaf, parents)) = key.split_last() else {
         return Ok(());
@@ -117,6 +149,8 @@ fn set(
     };
     let new = if standard && form && tables(value) {
         Item::ArrayOfTables(array_of_tables(value).map_err(failed)?)
+    } else if let Some((_, written)) = styled {
+        Item::Value(written.clone())
     } else {
         Item::Value(toml_value(value).map_err(failed)?)
     };
@@ -127,9 +161,14 @@ fn set(
             *old = new;
         }
         (Some(item), new) => *item = new,
-        (None, new) => {
-            table.insert(leaf, new);
-        }
+        (None, new) => match styled {
+            Some((written, _)) => {
+                table.entry_format(written).or_insert(new);
+            }
+            None => {
+                table.insert(leaf, new);
+            }
+        },
     }
     Ok(())
 }

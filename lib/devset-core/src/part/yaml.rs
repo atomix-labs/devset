@@ -1,13 +1,13 @@
 //! YAML keys, experimental: read as values, written through `yaml-edit`, which keeps comments
 //! and layout. Only the first document of a stream is managed.
 
-use alloc::collections::{BTreeMap, BTreeSet};
+use alloc::collections::BTreeMap;
 use core::str::FromStr;
 
 use serde_json::Value;
 use yaml_edit::{Document, Mapping, ScalarValue, YamlFile, YamlValue};
 
-use super::keys::Key;
+use super::keys::Written;
 use super::{Edit, Failure};
 
 /// The first document's value, which must be a mapping; an empty stream is an empty one.
@@ -28,7 +28,7 @@ pub(super) fn semantic(text: &str) -> Result<Value, Failure> {
 }
 
 /// `text` with each edit made, in order.
-pub(super) fn apply(text: &str, edits: &[Edit<'_>], _: &BTreeSet<Key>) -> Result<String, Failure> {
+pub(super) fn apply(text: &str, edits: &[Edit<'_>], _: &Written) -> Result<String, Failure> {
     let file = YamlFile::from_str(text).map_err(|e| (None, e.to_string()))?;
     let document = if let Some(document) = file.document() {
         document
