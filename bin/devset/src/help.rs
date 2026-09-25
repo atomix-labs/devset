@@ -27,7 +27,7 @@ fn source(error: &SourceError) -> Option<String> {
         }),
         SourceError::NoCommit { .. } => {
             Some("check the commit id, or follow a branch or a tag instead".into())
-        }
+        },
         SourceError::Credentials { .. } => Some(
             "give git credentials for it: a credential helper (for GitHub, `gh auth setup-git`), \
              or an SSH key in ssh-agent"
@@ -52,28 +52,22 @@ fn profile(error: &ProfileError) -> Option<String> {
         ProfileError::NotAProfile { profiles, .. } => match profiles.as_slice() {
             [] => None,
             [one] => Some(format!("{one} is a profile: name it with `--path {one}`")),
-            _ => Some(format!(
-                "these are profiles: {}; name one with `--path`",
-                list(profiles)
-            )),
+            _ => Some(format!("these are profiles: {}; name one with `--path`", list(profiles))),
         },
         ProfileError::Incompatible { .. } => {
             Some("upgrade devset, or pin the profile to an older version".into())
-        }
-        ProfileError::MissingPayload { path, .. } => Some(format!(
-            "add files/{path} to the profile, or remove its [files] entry"
-        )),
+        },
+        ProfileError::MissingPayload { path, .. } => {
+            Some(format!("add files/{path} to the profile, or remove its [files] entry"))
+        },
         ProfileError::Collision { path, layers } => Some(pick(path, layers)),
         ProfileError::Scopes { path, layers } => {
             let names: Vec<String> = layers.iter().map(|(layer, _)| layer.clone()).collect();
             Some(pick(path, &names))
-        }
-        ProfileError::Overlap {
-            path,
-            first,
-            second,
-            ..
-        } => Some(pick(path, &[first.clone(), second.clone()])),
+        },
+        ProfileError::Overlap { path, first, second, .. } => {
+            Some(pick(path, &[first.clone(), second.clone()]))
+        },
         ProfileError::NoKeys { path } => Some(format!(
             "name the format it is written in, or own it another way:\n    [files.\"{path}\"]\n    validate = \"toml\"   # or scope = \"file\", or scope = \"block\""
         )),
@@ -82,23 +76,19 @@ fn profile(error: &ProfileError) -> Option<String> {
         )),
         ProfileError::NotProvided { from, layers, .. } => {
             let near = nearest(from, layers).map(|near| format!("did you mean `{near}`? "));
-            Some(format!(
-                "{}it is provided by {}",
-                near.unwrap_or_default(),
-                list(layers)
-            ))
-        }
+            Some(format!("{}it is provided by {}", near.unwrap_or_default(), list(layers)))
+        },
         ProfileError::FoldCollision { .. } => Some("rename one of them in the profile".into()),
         ProfileError::Cycle { .. } => Some("drop one requirement to break the cycle".into()),
         ProfileError::TooDeep { .. } => {
             Some("require the profiles themselves, rather than a bundle of bundles".into())
-        }
+        },
         ProfileError::Diverged { .. } => {
             Some("require it at one ref everywhere: move the older requirement forward".into())
-        }
+        },
         ProfileError::Escapes { .. } => {
             Some("a sibling lives in the same source; require one elsewhere by git".into())
-        }
+        },
         ProfileError::SameName { .. } => Some(
             "a layer's name picks it in `from` and `devset update`: rename one profile, or remove \
              one layer with `devset remove`"
@@ -106,7 +96,7 @@ fn profile(error: &ProfileError) -> Option<String> {
         ),
         ProfileError::Setting { key, .. } => {
             Some(format!("decide it in .devset/config.toml by setting {key}"))
-        }
+        },
         _ => None,
     }
 }
@@ -123,7 +113,7 @@ fn target(error: &TargetError) -> Option<String> {
     match error {
         TargetError::NotFound { .. } => {
             Some("start one: `devset init --path <profile>` or `devset init --git <url>`".into())
-        }
+        },
         TargetError::Nested { root, .. } => Some(format!("run devset from {root}")),
         TargetError::NoSuchLayer { name, layers } => {
             Some(match (nearest(name, layers), layers.as_slice()) {
@@ -131,7 +121,7 @@ fn target(error: &TargetError) -> Option<String> {
                 (None, []) => "the target has no layers; add one with `devset init`".to_owned(),
                 (None, _) => format!("the layers are {}", list(layers)),
             })
-        }
+        },
         TargetError::NotManaged { path, managed } => Some(nearest(path, managed).map_or_else(
             || "`devset status -v` lists the managed files".to_owned(),
             |near| format!("did you mean `{near}`?"),
@@ -163,12 +153,10 @@ fn var(error: &VarError) -> Option<String> {
             }),
         ),
         VarError::Unanswered { questions } => {
-            let flags: Vec<String> = questions
-                .iter()
-                .map(|q| format!("--var {}=…", q.name))
-                .collect();
+            let flags: Vec<String> =
+                questions.iter().map(|q| format!("--var {}=…", q.name)).collect();
             Some(format!("answer with `{}`", flags.join(" ")))
-        }
+        },
         VarError::Undeclared { name, declared, .. } => Some(
             did_you_mean(name, declared)
                 .unwrap_or_else(|| format!("declare it in the profile: [vars.{name}]")),
@@ -191,10 +179,10 @@ fn merge(error: &MergeError) -> Option<String> {
         ),
         MergeError::Unmerged { .. } | MergeError::Invalid { .. } => {
             Some("fix it, then run `devset update --continue` again".into())
-        }
+        },
         MergeError::ChangedSince { .. } => {
             Some("keep what you need from them, then run `devset update --abort --force`".into())
-        }
+        },
         MergeError::CorruptUndo { .. } => Some(
             "restore that file by hand, or delete .devset/conflicts/ to keep what the update wrote"
                 .into(),

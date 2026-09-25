@@ -20,10 +20,7 @@ pub(super) fn semantic(text: &str) -> Result<Value, Failure> {
     match documents.into_iter().next() {
         None | Some(Value::Null) => Ok(Value::Object(serde_json::Map::new())),
         Some(value @ Value::Object(_)) => Ok(value),
-        Some(_) => Err((
-            None,
-            "the document is not a mapping, so it has no keys".to_owned(),
-        )),
+        Some(_) => Err((None, "the document is not a mapping, so it has no keys".to_owned())),
     }
 }
 
@@ -34,15 +31,11 @@ pub(super) fn apply(text: &str, edits: &[Edit<'_>], _: &Written) -> Result<Strin
         document
     } else {
         file.push_document(Document::new_mapping());
-        file.document()
-            .ok_or_else(|| (None, "an empty stream takes no document".to_owned()))?
+        file.document().ok_or_else(|| (None, "an empty stream takes no document".to_owned()))?
     };
-    let root = document.as_mapping().ok_or_else(|| {
-        (
-            None,
-            "the document is not a mapping, so it has no keys".to_owned(),
-        )
-    })?;
+    let root = document
+        .as_mapping()
+        .ok_or_else(|| (None, "the document is not a mapping, so it has no keys".to_owned()))?;
     for &(key, value) in edits {
         match value {
             Some(value) => set(&root, key, value)?,
@@ -62,12 +55,9 @@ fn set(mapping: &Mapping, key: &[String], value: &Value) -> Result<(), Failure> 
         if mapping.get_mapping(segment.as_str()).is_none() {
             mapping.set(segment.as_str(), Mapping::new());
         }
-        mapping = mapping.get_mapping(segment.as_str()).ok_or_else(|| {
-            (
-                None,
-                format!("{segment} is not a mapping, so it takes no keys"),
-            )
-        })?;
+        mapping = mapping
+            .get_mapping(segment.as_str())
+            .ok_or_else(|| (None, format!("{segment} is not a mapping, so it takes no keys")))?;
     }
     mapping.set(leaf.as_str(), yaml(value));
     Ok(())
@@ -107,10 +97,7 @@ fn yaml(value: &Value) -> YamlValue {
         Value::String(s) => YamlValue::scalar(s.as_str()),
         Value::Array(items) => YamlValue::Sequence(items.iter().map(yaml).collect()),
         Value::Object(object) => YamlValue::Mapping(
-            object
-                .iter()
-                .map(|(k, v)| (k.clone(), yaml(v)))
-                .collect::<BTreeMap<_, _>>(),
+            object.iter().map(|(k, v)| (k.clone(), yaml(v))).collect::<BTreeMap<_, _>>(),
         ),
     }
 }

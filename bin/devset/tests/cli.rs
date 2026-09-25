@@ -129,11 +129,7 @@ mod tests {
         /// Runs `git` in `cwd`, which must succeed.
         fn git(&self, cwd: &str, args: &[&str]) -> String {
             let out = self.command("git", cwd, args).output().unwrap();
-            assert!(
-                out.status.success(),
-                "git {args:?}: {}",
-                String::from_utf8_lossy(&out.stderr)
-            );
+            assert!(out.status.success(), "git {args:?}: {}", String::from_utf8_lossy(&out.stderr));
             String::from_utf8_lossy(&out.stdout).trim().to_owned()
         }
 
@@ -160,9 +156,7 @@ mod tests {
 
         /// Number of blobs in `target`'s base store.
         fn blobs(&self, target: &str) -> usize {
-            fs::read_dir(self.path(&format!("{target}/.devset/base")))
-                .unwrap()
-                .count()
+            fs::read_dir(self.path(&format!("{target}/.devset/base"))).unwrap().count()
         }
     }
 
@@ -203,10 +197,7 @@ mod tests {
             "--force restores owned files"
         );
         log += &sb.devset("repo", &["status", "--exit-code"]);
-        sb.assert(
-            &log,
-            snapbox::file!["snapshots/adoption_and_the_drift_gate.txt"],
-        );
+        sb.assert(&log, snapbox::file!["snapshots/adoption_and_the_drift_gate.txt"]);
     }
 
     #[test]
@@ -222,10 +213,7 @@ mod tests {
             "\u{FEFF}a = 1  \r\n\n\n",
             "a reformatted file is left alone"
         );
-        sb.assert(
-            &log,
-            snapbox::file!["snapshots/cosmetic_edits_are_not_drift.txt"],
-        );
+        sb.assert(&log, snapbox::file!["snapshots/cosmetic_edits_are_not_drift.txt"]);
     }
 
     #[test]
@@ -234,10 +222,7 @@ mod tests {
         sb.profile(
             "profile",
             "demo",
-            &[
-                ("a.toml", "owned", "a = 1\n"),
-                ("b.toml", "owned", "b = 1\n"),
-            ],
+            &[("a.toml", "owned", "a = 1\n"), ("b.toml", "owned", "b = 1\n")],
         );
         let mut log = sb.devset("repo", &["init", "--path", "../profile"]);
         assert_eq!(sb.blobs("repo"), 2, "one blob per base");
@@ -247,15 +232,9 @@ mod tests {
         log += &sb.devset("repo", &["apply"]);
         log += &sb.devset("repo", &["apply"]);
         assert_eq!(sb.read("repo/a.toml"), "a = 2\n", "update");
-        assert!(
-            !sb.path("repo/b.toml").exists(),
-            "a released file as devset wrote it goes"
-        );
+        assert!(!sb.path("repo/b.toml").exists(), "a released file as devset wrote it goes");
         assert_eq!(sb.blobs("repo"), 1, "unreferenced blobs are collected");
-        sb.assert(
-            &log,
-            snapbox::file!["snapshots/profile_changes_update_and_release.txt"],
-        );
+        sb.assert(&log, snapbox::file!["snapshots/profile_changes_update_and_release.txt"]);
     }
 
     #[test]
@@ -268,44 +247,23 @@ mod tests {
         assert_eq!(sb.read("repo/justfile"), "v1\n", "never rewritten");
         fs::remove_file(sb.path("repo/justfile")).unwrap();
         log += &sb.devset("repo", &["apply", "--force"]);
-        assert!(
-            !sb.path("repo/justfile").exists(),
-            "a deletion is respected"
-        );
+        assert!(!sb.path("repo/justfile").exists(), "a deletion is respected");
         sb.assert(&log, snapbox::file!["snapshots/once_is_written_once.txt"]);
     }
 
     #[test]
     fn git_sources_are_pinned_by_the_lock() {
         let sb = Sandbox::new();
-        sb.profile(
-            "work/rust",
-            "rust",
-            &[("rustfmt.toml", "owned", "edition = \"2024\"\n")],
-        );
+        sb.profile("work/rust", "rust", &[("rustfmt.toml", "owned", "edition = \"2024\"\n")]);
         sb.release("v1");
 
-        let mut log = sb.devset(
-            "repo",
-            &[
-                "init",
-                "--git",
-                "../profiles.git",
-                "--tag",
-                "v1",
-                "--path",
-                "rust",
-            ],
-        );
+        let mut log = sb
+            .devset("repo", &["init", "--git", "../profiles.git", "--tag", "v1", "--path", "rust"]);
         log += &sb.devset("repo", &["status"]);
         write!(log, "--- lock.toml\n{}", sb.read("repo/.devset/lock.toml")).unwrap();
 
         // The tag moves upstream; the lock still names the original commit, on any machine.
-        sb.profile(
-            "work/rust",
-            "rust",
-            &[("rustfmt.toml", "owned", "edition = \"2027\"\n")],
-        );
+        sb.profile("work/rust", "rust", &[("rustfmt.toml", "owned", "edition = \"2027\"\n")]);
         sb.git("work", &["commit", "-qam", "v2"]);
         sb.git("work", &["tag", "-fa", "v1", "-m", "moved"]);
         sb.git("work", &["push", "-qf", "../profiles.git", "main", "v1"]);
@@ -317,10 +275,7 @@ mod tests {
             "edition = \"2024\"\n",
             "the locked commit, not the moved tag"
         );
-        sb.assert(
-            &log,
-            snapbox::file!["snapshots/git_sources_are_pinned_by_the_lock.txt"],
-        );
+        sb.assert(&log, snapbox::file!["snapshots/git_sources_are_pinned_by_the_lock.txt"]);
     }
 
     #[test]
@@ -356,23 +311,13 @@ mod tests {
         sb.profile("extra", "extra", &[("b.toml", "owned", "b = 1\n")]);
         let mut log = sb.devset("repo", &["init", "--path", "../base"]);
         let config = sb.read("repo/.devset/config.toml");
-        sb.write(
-            "repo/.devset/config.toml",
-            &format!("# layers, in order\n{config}"),
-        );
+        sb.write("repo/.devset/config.toml", &format!("# layers, in order\n{config}"));
         log += &sb.devset("repo", &["init", "--path", "../extra"]);
         for file in ["config.toml", "state.toml", ".gitignore", ".gitattributes"] {
-            write!(
-                log,
-                "--- .devset/{file}\n{}",
-                sb.read(&format!("repo/.devset/{file}"))
-            )
-            .unwrap();
+            write!(log, "--- .devset/{file}\n{}", sb.read(&format!("repo/.devset/{file}")))
+                .unwrap();
         }
-        sb.assert(
-            &log,
-            snapbox::file!["snapshots/state_lives_in_dot_devset.txt"],
-        );
+        sb.assert(&log, snapbox::file!["snapshots/state_lives_in_dot_devset.txt"]);
     }
 
     #[test]
@@ -380,11 +325,7 @@ mod tests {
         let sb = Sandbox::new();
         sb.profile("ok", "ok", &[("a.toml", "owned", "a\n")]);
         sb.profile("clash", "clash", &[("a.toml", "owned", "b\n")]);
-        sb.profile(
-            "fold",
-            "fold",
-            &[("README.md", "owned", "a\n"), ("readme.md", "owned", "b\n")],
-        );
+        sb.profile("fold", "fold", &[("README.md", "owned", "a\n"), ("readme.md", "owned", "b\n")]);
         sb.profile("reserved", "reserved", &[]);
         sb.write(
             "reserved/profile.toml",
@@ -399,19 +340,13 @@ mod tests {
             "typo/profile.toml",
             "[profile]\nname = \"typo\"\n\n[files.\"a\"]\npolcy = \"once\"\n",
         );
-        sb.write(
-            "newer/profile.toml",
-            "[profile]\nname = \"newer\"\ndevset = \">=99\"\n",
-        );
+        sb.write("newer/profile.toml", "[profile]\nname = \"newer\"\ndevset = \">=99\"\n");
 
         let mut log = sb.devset(".", &["status"]);
         log += &sb.devset("repo", &["init", "--tag", "v1"]);
         log += &sb.devset("repo", &["init", "--path", "../nope"]);
         for bad in ["reserved", "missing", "typo", "newer", "fold"] {
-            log += &sb.devset(
-                &format!("t-{bad}"),
-                &["init", "--path", &format!("../{bad}")],
-            );
+            log += &sb.devset(&format!("t-{bad}"), &["init", "--path", &format!("../{bad}")]);
         }
         log += &sb.devset("repo", &["init", "--path", "../ok"]);
         log += &sb.devset("repo", &["init", "--path", "../ok"]);
@@ -429,10 +364,7 @@ mod tests {
         sb.profile(
             "profile",
             "demo",
-            &[
-                ("a.toml", "owned", "a = 1\n"),
-                ("b.toml", "merge", "b = 1\n"),
-            ],
+            &[("a.toml", "owned", "a = 1\n"), ("b.toml", "merge", "b = 1\n")],
         );
         sb.devset("repo", &["init", "--path", "../profile"]);
         sb.write("repo/a.toml", "a = 2\n");
@@ -461,24 +393,12 @@ mod tests {
         sb.publish(
             "p",
             "p",
-            &[(
-                "deny.toml",
-                "merge",
-                "[licenses]\nallow = [\"MIT\"]\n\n[bans]\ndeny = []\n",
-            )],
+            &[("deny.toml", "merge", "[licenses]\nallow = [\"MIT\"]\n\n[bans]\ndeny = []\n")],
             "v1",
         );
         let mut log = sb.devset(
             "repo",
-            &[
-                "init",
-                "--git",
-                "../profiles.git",
-                "--branch",
-                "main",
-                "--path",
-                "p",
-            ],
+            &["init", "--git", "../profiles.git", "--branch", "main", "--path", "p"],
         );
         sb.write(
             "repo/deny.toml",
@@ -503,10 +423,7 @@ mod tests {
         );
         log += &sb.devset("repo", &["status"]);
         log += &sb.devset("repo", &["apply"]);
-        sb.assert(
-            &log,
-            snapbox::file!["snapshots/update_merges_local_edits.txt"],
-        );
+        sb.assert(&log, snapbox::file!["snapshots/update_merges_local_edits.txt"]);
     }
 
     #[test]
@@ -515,66 +432,35 @@ mod tests {
         sb.publish(
             "p",
             "p",
-            &[
-                ("a.toml", "merge", "x = 1\n"),
-                ("b.toml", "owned", "b = 1\n"),
-            ],
+            &[("a.toml", "merge", "x = 1\n"), ("b.toml", "owned", "b = 1\n")],
             "v1",
         );
         let mut log = sb.devset(
             "repo",
-            &[
-                "init",
-                "--git",
-                "../profiles.git",
-                "--branch",
-                "main",
-                "--path",
-                "p",
-            ],
+            &["init", "--git", "../profiles.git", "--branch", "main", "--path", "p"],
         );
         sb.write("repo/a.toml", "x = 2\n");
         sb.publish(
             "p",
             "p",
-            &[
-                ("a.toml", "merge", "x = 3\n"),
-                ("b.toml", "owned", "b = 2\n"),
-            ],
+            &[("a.toml", "merge", "x = 3\n"), ("b.toml", "owned", "b = 2\n")],
             "v2",
         );
         let github = [("GITHUB_ACTIONS", "true")];
         log += &sb.devset_with(&github, "repo", &["update", "--dry-run"]);
-        assert!(
-            !sb.path("repo/.devset/conflicts").exists(),
-            "a dry run writes no sidecar"
-        );
+        assert!(!sb.path("repo/.devset/conflicts").exists(), "a dry run writes no sidecar");
         log += &sb.devset("repo", &["update"]);
-        assert_eq!(
-            sb.read("repo/a.toml"),
-            "x = 2\n",
-            "the working file is untouched"
-        );
+        assert_eq!(sb.read("repo/a.toml"), "x = 2\n", "the working file is untouched");
         assert_eq!(sb.read("repo/b.toml"), "b = 2\n", "clean files are applied");
         log += &sb.devset("repo", &["status", "--exit-code"]);
         log += &sb.devset("repo", &["apply"]);
         log += &sb.devset("repo", &["update", "--continue"]);
         sb.write("repo/.devset/conflicts/a.toml", "x = 23\n");
         log += &sb.devset("repo", &["update", "--continue"]);
-        assert_eq!(
-            sb.read("repo/a.toml"),
-            "x = 23\n",
-            "the resolution is installed"
-        );
-        assert!(
-            !sb.path("repo/.devset/conflicts").exists(),
-            "sidecars are cleared"
-        );
+        assert_eq!(sb.read("repo/a.toml"), "x = 23\n", "the resolution is installed");
+        assert!(!sb.path("repo/.devset/conflicts").exists(), "sidecars are cleared");
         log += &sb.devset("repo", &["update", "--continue"]);
-        sb.assert(
-            &log,
-            snapbox::file!["snapshots/conflicts_wait_in_sidecars.txt"],
-        );
+        sb.assert(&log, snapbox::file!["snapshots/conflicts_wait_in_sidecars.txt"]);
     }
 
     #[test]
@@ -583,23 +469,12 @@ mod tests {
         sb.publish(
             "p",
             "p",
-            &[
-                ("a.toml", "merge", "x = 1\n"),
-                ("b.toml", "owned", "b = 1\n"),
-            ],
+            &[("a.toml", "merge", "x = 1\n"), ("b.toml", "owned", "b = 1\n")],
             "v1",
         );
         let mut log = sb.devset(
             "repo",
-            &[
-                "init",
-                "--git",
-                "../profiles.git",
-                "--branch",
-                "main",
-                "--path",
-                "p",
-            ],
+            &["init", "--git", "../profiles.git", "--branch", "main", "--path", "p"],
         );
         sb.write(
             "repo/.devset/config.toml",
@@ -612,22 +487,15 @@ mod tests {
         sb.publish(
             "p",
             "p",
-            &[
-                ("a.toml", "merge", "x = 3\n"),
-                ("b.toml", "owned", "b = 2\n"),
-            ],
+            &[("a.toml", "merge", "x = 3\n"), ("b.toml", "owned", "b = 2\n")],
             "v2",
         );
         log += &sb.devset("repo", &["update", "--dry-run"]);
-        assert!(
-            !sb.path("repo/.devset/conflicts").exists(),
-            "a dry run withholds nothing"
-        );
+        assert!(!sb.path("repo/.devset/conflicts").exists(), "a dry run withholds nothing");
         log += &sb.devset("repo", &["update"]);
         assert_eq!(sb.read("repo/b.toml"), "b = 1\n", "nothing else is written");
         assert!(
-            sb.path("repo/.devset/conflicts/.devset/pending.toml")
-                .exists(),
+            sb.path("repo/.devset/conflicts/.devset/pending.toml").exists(),
             "the update waits in its pending lock"
         );
         sb.write("repo/.devset/conflicts/a.toml", "x = 23\n");
@@ -637,14 +505,8 @@ mod tests {
             ("x = 23\n".into(), "b = 2\n".into()),
             "all applied"
         );
-        assert!(
-            !sb.path("repo/.devset/conflicts").exists(),
-            "pending lock removed"
-        );
-        sb.assert(
-            &log,
-            snapbox::file!["snapshots/apply_none_withholds_everything.txt"],
-        );
+        assert!(!sb.path("repo/.devset/conflicts").exists(), "pending lock removed");
+        sb.assert(&log, snapbox::file!["snapshots/apply_none_withholds_everything.txt"]);
     }
 
     #[test]
@@ -653,31 +515,15 @@ mod tests {
         sb.publish(
             "p",
             "p",
-            &[
-                ("a.toml", "merge", "x = 1\n"),
-                ("b.toml", "owned", "b = 1\n"),
-            ],
+            &[("a.toml", "merge", "x = 1\n"), ("b.toml", "owned", "b = 1\n")],
             "v1",
         );
         let mut log = sb.devset(
             "repo",
-            &[
-                "init",
-                "--git",
-                "../profiles.git",
-                "--branch",
-                "main",
-                "--path",
-                "p",
-            ],
+            &["init", "--git", "../profiles.git", "--branch", "main", "--path", "p"],
         );
         sb.write("repo/a.toml", "x = 2\n");
-        let records = || {
-            (
-                sb.read("repo/.devset/lock.toml"),
-                sb.read("repo/.devset/state.toml"),
-            )
-        };
+        let records = || (sb.read("repo/.devset/lock.toml"), sb.read("repo/.devset/state.toml"));
         let (before, bases) = (records(), sb.blobs("repo"));
         sb.publish(
             "p",
@@ -693,35 +539,18 @@ mod tests {
         log += &sb.devset("repo", &["update", "--abort", "--dry-run"]);
         sb.write("repo/b.toml", "b = 9\n");
         log += &sb.devset("repo", &["update", "--abort"]);
-        assert_eq!(
-            sb.read("repo/b.toml"),
-            "b = 9\n",
-            "a refused abort writes nothing"
-        );
+        assert_eq!(sb.read("repo/b.toml"), "b = 9\n", "a refused abort writes nothing");
         log += &sb.devset("repo", &["update", "--abort", "--force"]);
         assert_eq!(
             (sb.read("repo/a.toml"), sb.read("repo/b.toml")),
             ("x = 2\n".into(), "b = 1\n".into()),
             "every file as before the update"
         );
-        assert!(
-            !sb.path("repo/c.toml").exists(),
-            "a file the update created is removed"
-        );
-        assert_eq!(
-            (records(), sb.blobs("repo")),
-            (before, bases),
-            "and the lock, state and bases"
-        );
-        assert!(
-            !sb.path("repo/.devset/conflicts").exists(),
-            "the conflicts are discarded"
-        );
+        assert!(!sb.path("repo/c.toml").exists(), "a file the update created is removed");
+        assert_eq!((records(), sb.blobs("repo")), (before, bases), "and the lock, state and bases");
+        assert!(!sb.path("repo/.devset/conflicts").exists(), "the conflicts are discarded");
         log += &sb.devset("repo", &["update", "--abort"]);
-        sb.assert(
-            &log,
-            snapbox::file!["snapshots/abort_takes_the_update_back.txt"],
-        );
+        sb.assert(&log, snapbox::file!["snapshots/abort_takes_the_update_back.txt"]);
     }
 
     #[test]
@@ -730,23 +559,12 @@ mod tests {
         sb.publish(
             "p",
             "p",
-            &[
-                ("a.toml", "merge", "x = 1\n"),
-                ("b.toml", "owned", "b = 1\n"),
-            ],
+            &[("a.toml", "merge", "x = 1\n"), ("b.toml", "owned", "b = 1\n")],
             "v1",
         );
         let mut log = sb.devset(
             "repo",
-            &[
-                "init",
-                "--git",
-                "../profiles.git",
-                "--branch",
-                "main",
-                "--path",
-                "p",
-            ],
+            &["init", "--git", "../profiles.git", "--branch", "main", "--path", "p"],
         );
         let config = sb.read("repo/.devset/config.toml");
         sb.write(
@@ -758,28 +576,15 @@ mod tests {
         sb.publish(
             "p",
             "p",
-            &[
-                ("a.toml", "merge", "x = 3\n"),
-                ("b.toml", "owned", "b = 2\n"),
-            ],
+            &[("a.toml", "merge", "x = 3\n"), ("b.toml", "owned", "b = 2\n")],
             "v2",
         );
         log += &sb.devset("repo", &["update"]);
         log += &sb.devset("repo", &["update", "--abort"]);
-        assert_eq!(
-            sb.read("repo/.devset/lock.toml"),
-            lock,
-            "the lock never moved"
-        );
-        assert!(
-            !sb.path("repo/.devset/conflicts").exists(),
-            "the withheld lock is discarded"
-        );
+        assert_eq!(sb.read("repo/.devset/lock.toml"), lock, "the lock never moved");
+        assert!(!sb.path("repo/.devset/conflicts").exists(), "the withheld lock is discarded");
         log += &sb.devset("repo", &["status"]);
-        sb.assert(
-            &log,
-            snapbox::file!["snapshots/abort_discards_a_withheld_update.txt"],
-        );
+        sb.assert(&log, snapbox::file!["snapshots/abort_discards_a_withheld_update.txt"]);
     }
 
     #[test]
@@ -788,37 +593,18 @@ mod tests {
         sb.publish(
             "p",
             "p",
-            &[(
-                "c.toml",
-                "merge",
-                "name = \"app\"\nreplicas = 1\nport = 80\n",
-            )],
+            &[("c.toml", "merge", "name = \"app\"\nreplicas = 1\nport = 80\n")],
             "v1",
         );
         let mut log = sb.devset(
             "repo",
-            &[
-                "init",
-                "--git",
-                "../profiles.git",
-                "--branch",
-                "main",
-                "--path",
-                "p",
-            ],
+            &["init", "--git", "../profiles.git", "--branch", "main", "--path", "p"],
         );
-        sb.write(
-            "repo/c.toml",
-            "name = \"app\"\ntimeout = 30\nreplicas = 1\nport = 80\n",
-        );
+        sb.write("repo/c.toml", "name = \"app\"\ntimeout = 30\nreplicas = 1\nport = 80\n");
         sb.publish(
             "p",
             "p",
-            &[(
-                "c.toml",
-                "merge",
-                "name = \"app\"\nreplicas = 1\nport = 80\ntimeout = 60\n",
-            )],
+            &[("c.toml", "merge", "name = \"app\"\nreplicas = 1\nport = 80\ntimeout = 60\n")],
             "v2",
         );
         log += &sb.devset("repo", &["update"]);
@@ -828,10 +614,7 @@ mod tests {
             "never installed"
         );
         log += &sb.devset("repo", &["update", "--continue"]);
-        sb.assert(
-            &log,
-            snapbox::file!["snapshots/invalid_merges_conflict.txt"],
-        );
+        sb.assert(&log, snapbox::file!["snapshots/invalid_merges_conflict.txt"]);
     }
 
     #[test]
@@ -846,10 +629,7 @@ mod tests {
         );
         sb.profile("q", "q", &[("b.txt", "owned", "b\n")]);
         let q = sb.read("q/profile.toml");
-        sb.write(
-            "q/profile.toml",
-            &format!("{q}\n[merge]\non-conflict = \"apply-others\"\n"),
-        );
+        sb.write("q/profile.toml", &format!("{q}\n[merge]\non-conflict = \"apply-others\"\n"));
 
         // A suggested driver is announced, never run.
         let mut log = sb.devset("repo", &["init", "--path", "../p"]);
@@ -917,33 +697,20 @@ mod tests {
                 ("cfg.toml", "owned", "cpu = \"{{ cpu }}\"\n"),
             ],
         );
-        let manifest = sb.read("p/profile.toml").replace(
-            "policy = \"once\"\n",
-            "policy = \"once\"\ntemplate = true\n",
-        );
+        let manifest = sb
+            .read("p/profile.toml")
+            .replace("policy = \"once\"\n", "policy = \"once\"\ntemplate = true\n");
         let manifest = manifest.replace(
             "[files.\"cfg.toml\"]\npolicy = \"owned\"\n",
             "[files.\"cfg.toml\"]\npolicy = \"owned\"\ntemplate = true\n",
         );
         sb.write("p/profile.toml", &format!("{manifest}\n[vars.author]\nprompt = \"Author name\"\n\n[vars.cpu]\ndefault = \"native\"\n"));
         let mut log = sb.devset("repo", &["init", "--path", "../p"]);
-        assert!(
-            !sb.path("repo/.devset").exists(),
-            "nothing written while an answer is missing"
-        );
+        assert!(!sb.path("repo/.devset").exists(), "nothing written while an answer is missing");
         log += &sb.devset("repo", &["init", "--path", "../p", "--var", "auther=Ada"]);
         log += &sb.devset("repo", &["init", "--path", "../p", "--var", "author=Ada"]);
-        assert_eq!(
-            sb.read("repo/Cargo.toml"),
-            "authors = [\"Ada\"]\n",
-            "rendered"
-        );
-        write!(
-            log,
-            "--- .devset/answers.toml\n{}",
-            sb.read("repo/.devset/answers.toml")
-        )
-        .unwrap();
+        assert_eq!(sb.read("repo/Cargo.toml"), "authors = [\"Ada\"]\n", "rendered");
+        write!(log, "--- .devset/answers.toml\n{}", sb.read("repo/.devset/answers.toml")).unwrap();
         log += &sb.devset("repo", &["apply", "--var", "cpu=x86-64-v3"]);
         assert_eq!(
             sb.read("repo/cfg.toml"),
@@ -951,10 +718,7 @@ mod tests {
             "a new answer updates the rendered file"
         );
         log += &sb.devset("repo", &["status"]);
-        sb.assert(
-            &log,
-            snapbox::file!["snapshots/templates_render_answers.txt"],
-        );
+        sb.assert(&log, snapbox::file!["snapshots/templates_render_answers.txt"]);
     }
 
     #[test]
@@ -964,10 +728,7 @@ mod tests {
         sb.profile(
             "rust",
             "rust",
-            &[
-                ("fmt.toml", "owned", "rust\n"),
-                ("rust.toml", "owned", "r\n"),
-            ],
+            &[("fmt.toml", "owned", "rust\n"), ("rust.toml", "owned", "r\n")],
         );
         let mut log = sb.devset("repo", &["init", "--path", "../base"]);
         log += &sb.devset("repo", &["init", "--path", "../rust"]);
@@ -982,16 +743,9 @@ mod tests {
             &format!("{layers}\n[files.\"fmt.toml\"]\nfrom = \"rust\"\n"),
         );
         log += &sb.devset("repo", &["apply", "--force"]);
-        assert_eq!(
-            sb.read("repo/fmt.toml"),
-            "rust\n",
-            "the chosen layer provides it"
-        );
+        assert_eq!(sb.read("repo/fmt.toml"), "rust\n", "the chosen layer provides it");
         log += &sb.devset("repo", &["status", "-v"]);
-        sb.assert(
-            &log,
-            snapbox::file!["snapshots/layers_collide_until_the_target_chooses.txt"],
-        );
+        sb.assert(&log, snapbox::file!["snapshots/layers_collide_until_the_target_chooses.txt"]);
     }
 
     #[test]
@@ -1000,30 +754,19 @@ mod tests {
         sb.profile("p", "rust", &[("a.toml", "owned", "a\n")]);
         let mut log = sb.devset("repo", &["init", "--path", "../p"]);
         log += &sb.devset("repo", &["update", "rsut"]);
-        sb.assert(
-            &log,
-            snapbox::file!["snapshots/update_names_are_suggested.txt"],
-        );
+        sb.assert(&log, snapbox::file!["snapshots/update_names_are_suggested.txt"]);
     }
 
     #[test]
     fn quiet_and_github() {
         let sb = Sandbox::new();
-        sb.profile(
-            "p",
-            "p",
-            &[("a.toml", "owned", "a\n"), ("b.toml", "owned", "b\n")],
-        );
+        sb.profile("p", "p", &[("a.toml", "owned", "a\n"), ("b.toml", "owned", "b\n")]);
         let mut log = sb.devset("repo", &["-q", "init", "--path", "../p"]);
         sb.write("repo/a.toml", "edited\n");
         sb.profile(
             "p",
             "p",
-            &[
-                ("a.toml", "owned", "a\n"),
-                ("b.toml", "owned", "b\n"),
-                ("c.toml", "owned", "c\n"),
-            ],
+            &[("a.toml", "owned", "a\n"), ("b.toml", "owned", "b\n"), ("c.toml", "owned", "c\n")],
         );
         sb.write("summary.md", "");
         let root = sb.root.to_str().unwrap().to_owned();
@@ -1053,10 +796,7 @@ mod tests {
         );
         sb.write("p/files/logo.png", "PNG\0one");
         let manifest = sb.read("p/profile.toml");
-        sb.write(
-            "p/profile.toml",
-            &format!("{manifest}\n[files.\"logo.png\"]\n"),
-        );
+        sb.write("p/profile.toml", &format!("{manifest}\n[files.\"logo.png\"]\n"));
         let mut log = sb.devset("repo", &["init", "--path", "../p"]);
         log += &sb.devset("repo", &["diff"]);
         sb.write("repo/a.toml", "x = 2\n");
@@ -1067,25 +807,14 @@ mod tests {
         log += &sb.devset("repo", &["diff"]);
         log += &sb.devset("repo/sub", &["diff", "../b.toml"]);
         log += &sb.devset("repo", &["diff", "b.tml"]);
-        sb.assert(
-            &log,
-            snapbox::file!["snapshots/diff_shows_how_files_differ.txt"],
-        );
+        sb.assert(&log, snapbox::file!["snapshots/diff_shows_how_files_differ.txt"]);
     }
 
     #[test]
     fn remove_takes_a_layer_and_its_overrides() {
         let sb = Sandbox::new();
-        sb.profile(
-            "base",
-            "base",
-            &[("a.toml", "owned", "a\n"), ("shared.toml", "owned", "1\n")],
-        );
-        sb.profile(
-            "team",
-            "team",
-            &[("t.toml", "owned", "t\n"), ("shared.toml", "owned", "2\n")],
-        );
+        sb.profile("base", "base", &[("a.toml", "owned", "a\n"), ("shared.toml", "owned", "1\n")]);
+        sb.profile("team", "team", &[("t.toml", "owned", "t\n"), ("shared.toml", "owned", "2\n")]);
         let mut log = sb.devset("repo", &["init", "--path", "../base"]);
         let config = sb.read("repo/.devset/config.toml");
         sb.write(
@@ -1099,21 +828,10 @@ mod tests {
         log += &sb.devset("repo", &["remove", "teem"]);
         log += &sb.devset("repo", &["remove", "team", "--dry-run"]);
         log += &sb.devset("repo", &["remove", "team"]);
-        write!(
-            log,
-            "--- .devset/config.toml\n{}",
-            sb.read("repo/.devset/config.toml")
-        )
-        .unwrap();
-        assert!(
-            sb.path("repo/t.toml").exists(),
-            "a removed layer's files stay"
-        );
+        write!(log, "--- .devset/config.toml\n{}", sb.read("repo/.devset/config.toml")).unwrap();
+        assert!(sb.path("repo/t.toml").exists(), "a removed layer's files stay");
         log += &sb.devset("repo", &["status", "-v"]);
-        sb.assert(
-            &log,
-            snapbox::file!["snapshots/remove_takes_a_layer_and_its_overrides.txt"],
-        );
+        sb.assert(&log, snapbox::file!["snapshots/remove_takes_a_layer_and_its_overrides.txt"]);
     }
 
     #[test]
@@ -1126,17 +844,10 @@ mod tests {
         sb.devset("repo", &[&["init"][..], &git, &["--path", "b"]].concat());
         sb.publish("b", "b", &[("b.toml", "owned", "b2\n")], "b2");
         let mut log = sb.devset("repo", &["remove", "a"]);
-        assert_eq!(
-            sb.read("repo/b.toml"),
-            "b1\n",
-            "b stays at its locked commit"
-        );
+        assert_eq!(sb.read("repo/b.toml"), "b1\n", "b stays at its locked commit");
         log += &sb.devset("repo", &["update"]);
         assert_eq!(sb.read("repo/b.toml"), "b2\n", "until updated");
-        sb.assert(
-            &log,
-            snapbox::file!["snapshots/layers_stay_pinned_when_another_is_removed.txt"],
-        );
+        sb.assert(&log, snapbox::file!["snapshots/layers_stay_pinned_when_another_is_removed.txt"]);
     }
 
     #[test]
@@ -1145,24 +856,10 @@ mod tests {
         sb.publish(
             "p",
             "p",
-            &[
-                ("a.toml", "merge", "x = 1\n"),
-                ("b.toml", "owned", "b = 1\n"),
-            ],
+            &[("a.toml", "merge", "x = 1\n"), ("b.toml", "owned", "b = 1\n")],
             "v1",
         );
-        sb.devset(
-            "repo",
-            &[
-                "init",
-                "--git",
-                "../profiles.git",
-                "--branch",
-                "main",
-                "--path",
-                "p",
-            ],
-        );
+        sb.devset("repo", &["init", "--git", "../profiles.git", "--branch", "main", "--path", "p"]);
         let config = sb.read("repo/.devset/config.toml");
         sb.write(
             "repo/.devset/config.toml",
@@ -1172,37 +869,21 @@ mod tests {
         sb.publish(
             "p",
             "p",
-            &[
-                ("a.toml", "merge", "x = 3\n"),
-                ("b.toml", "owned", "b = 2\n"),
-            ],
+            &[("a.toml", "merge", "x = 3\n"), ("b.toml", "owned", "b = 2\n")],
             "v2",
         );
         sb.devset("repo", &["update"]);
         let log = sb.devset("repo", &["status", "--exit-code"]);
-        sb.assert(
-            &log,
-            snapbox::file!["snapshots/unfinished_updates_fail_the_gate.txt"],
-        );
+        sb.assert(&log, snapbox::file!["snapshots/unfinished_updates_fail_the_gate.txt"]);
     }
 
     #[test]
     fn conflicts_without_a_merge() {
         let sb = Sandbox::new();
-        sb.profile(
-            "p",
-            "p",
-            &[
-                ("m.toml", "merge", "a = 1\n"),
-                ("o.toml", "owned", "o = 1\n"),
-            ],
-        );
+        sb.profile("p", "p", &[("m.toml", "merge", "a = 1\n"), ("o.toml", "owned", "o = 1\n")]);
         sb.write("p/files/b.dat", "B\0one");
         let manifest = sb.read("p/profile.toml");
-        sb.write(
-            "p/profile.toml",
-            &format!("{manifest}\n[files.\"b.dat\"]\npolicy = \"merge\"\n"),
-        );
+        sb.write("p/profile.toml", &format!("{manifest}\n[files.\"b.dat\"]\npolicy = \"merge\"\n"));
         let mut log = sb.devset("repo", &["init", "--path", "../p"]);
         // A base store that was never committed, then cloned: the bases are gone.
         fs::remove_dir_all(sb.path("repo/.devset/base")).unwrap();
@@ -1212,26 +893,11 @@ mod tests {
         sb.write("p/files/b.dat", "B\0theirs");
         sb.write("p/files/o.toml", "o = 2\n");
         log += &sb.devset("repo", &["apply"]);
-        assert_eq!(
-            sb.read("repo/o.toml"),
-            "o = 2\n",
-            "every other file proceeds"
-        );
-        assert_eq!(
-            sb.read("repo/.devset/conflicts/b.dat"),
-            "B\0theirs",
-            "the profile's version"
-        );
-        write!(
-            log,
-            "--- .devset/conflicts/m.toml\n{}",
-            sb.read("repo/.devset/conflicts/m.toml")
-        )
-        .unwrap();
-        sb.assert(
-            &log,
-            snapbox::file!["snapshots/conflicts_without_a_merge.txt"],
-        );
+        assert_eq!(sb.read("repo/o.toml"), "o = 2\n", "every other file proceeds");
+        assert_eq!(sb.read("repo/.devset/conflicts/b.dat"), "B\0theirs", "the profile's version");
+        write!(log, "--- .devset/conflicts/m.toml\n{}", sb.read("repo/.devset/conflicts/m.toml"))
+            .unwrap();
+        sb.assert(&log, snapbox::file!["snapshots/conflicts_without_a_merge.txt"]);
     }
 
     #[test]
@@ -1241,20 +907,13 @@ mod tests {
         sb.profile("profiles/base", "rust", &[("b.toml", "owned", "b\n")]);
         sb.publish("rust", "rust", &[("a.toml", "owned", "a\n")], "v1");
         sb.profile("t", "t", &[("t.txt", "owned", "hi {{ nmae }}\n")]);
-        let manifest = sb
-            .read("t/profile.toml")
-            .replace("policy = \"owned\"\n", "template = true\n");
-        sb.write(
-            "t/profile.toml",
-            &format!("{manifest}\n[vars.name]\ndefault = \"x\"\n"),
-        );
+        let manifest =
+            sb.read("t/profile.toml").replace("policy = \"owned\"\n", "template = true\n");
+        sb.write("t/profile.toml", &format!("{manifest}\n[vars.name]\ndefault = \"x\"\n"));
         let mut log = sb.devset("r1", &["init", "--path", "../profiles"]);
         log += &sb.devset("r2", &["init", "--path", "../profiles/rust/files"]);
         log += &sb.devset("r3", &["init", "--git", "../profiles.git"]);
-        log += &sb.devset(
-            "r4",
-            &["init", "--git", "../profiles.git", "--branch", "nope"],
-        );
+        log += &sb.devset("r4", &["init", "--git", "../profiles.git", "--branch", "nope"]);
         log += &sb.devset("r5", &["init", "--path", "../t"]);
         log += &sb.devset("r6", &["init", "--path", ""]);
         sb.devset("r7", &["init", "--path", "../profiles/rust"]);
@@ -1264,10 +923,7 @@ mod tests {
             "[[layers]]\npath = \"../profiles/rust\"\n\n[merge]\ndriver = \"tool %X %A\"\n",
         );
         log += &sb.devset("r8", &["status"]);
-        sb.assert(
-            &log,
-            snapbox::file!["snapshots/mistakes_are_named_with_their_fix.txt"],
-        );
+        sb.assert(&log, snapbox::file!["snapshots/mistakes_are_named_with_their_fix.txt"]);
     }
 
     #[test]
@@ -1282,25 +938,15 @@ mod tests {
     fn dropped_answers_are_noted() {
         let sb = Sandbox::new();
         sb.profile("p", "p", &[("t.txt", "owned", "{{ cpu }}\n")]);
-        let manifest = sb
-            .read("p/profile.toml")
-            .replace("policy = \"owned\"\n", "template = true\n");
-        sb.write(
-            "p/profile.toml",
-            &format!("{manifest}\n[vars.cpu]\ndefault = \"x86-64-v2\"\n"),
-        );
+        let manifest =
+            sb.read("p/profile.toml").replace("policy = \"owned\"\n", "template = true\n");
+        sb.write("p/profile.toml", &format!("{manifest}\n[vars.cpu]\ndefault = \"x86-64-v2\"\n"));
         sb.profile("q", "q", &[("q.txt", "owned", "q\n")]);
         sb.devset("repo", &["init", "--path", "../p"]);
         let mut log = sb.devset("repo", &["init", "--path", "../q"]);
         log += &sb.devset("repo", &["remove", "p"]);
-        assert!(
-            !sb.path("repo/.devset/answers.toml").exists(),
-            "no answers left"
-        );
-        sb.assert(
-            &log,
-            snapbox::file!["snapshots/dropped_answers_are_noted.txt"],
-        );
+        assert!(!sb.path("repo/.devset/answers.toml").exists(), "no answers left");
+        sb.assert(&log, snapbox::file!["snapshots/dropped_answers_are_noted.txt"]);
     }
 
     /// Adds `requires` to the `[profile]` table of the profile at `dir`.
@@ -1328,29 +974,17 @@ mod tests {
             "one layer, every atom"
         );
         log += &sb.devset("repo", &["status", "-v"]);
-        write!(
-            log,
-            "--- .devset/config.toml\n{}",
-            sb.read("repo/.devset/config.toml")
-        )
-        .unwrap();
+        write!(log, "--- .devset/config.toml\n{}", sb.read("repo/.devset/config.toml")).unwrap();
         log += &sb.devset("repo", &["update", "a"]);
         log += &sb.devset("repo", &["remove", "a"]);
-        sb.assert(
-            &log,
-            snapbox::file!["snapshots/bundles_require_their_atoms.txt"],
-        );
+        sb.assert(&log, snapbox::file!["snapshots/bundles_require_their_atoms.txt"]);
     }
 
     #[test]
     fn git_siblings_share_their_requirer_commit() {
         let sb = Sandbox::new();
         sb.profile("work/profiles/a", "a", &[("a.toml", "owned", "a = 1\n")]);
-        sb.profile(
-            "work/profiles/rust",
-            "rust",
-            &[("r.toml", "owned", "r = 1\n")],
-        );
+        sb.profile("work/profiles/rust", "rust", &[("r.toml", "owned", "r = 1\n")]);
         requiring(&sb, "work/profiles/rust", r#"["../a"]"#);
         sb.git("work", &["init", "-q", "-b", "main"]);
         sb.git("work", &["add", "-A"]);
@@ -1358,53 +992,24 @@ mod tests {
         sb.git(".", &["clone", "-q", "--bare", "work", "profiles.git"]);
         let mut log = sb.devset(
             "repo",
-            &[
-                "init",
-                "--git",
-                "../profiles.git",
-                "--branch",
-                "main",
-                "--path",
-                "profiles/rust",
-            ],
+            &["init", "--git", "../profiles.git", "--branch", "main", "--path", "profiles/rust"],
         );
         sb.write("work/profiles/a/files/a.toml", "a = 2\n");
         sb.git("work", &["commit", "-qam", "v2"]);
         sb.git("work", &["push", "-q", "../profiles.git", "main"]);
         log += &sb.devset("repo", &["apply"]);
-        assert_eq!(
-            sb.read("repo/a.toml"),
-            "a = 1\n",
-            "the sibling stays at the locked commit"
-        );
+        assert_eq!(sb.read("repo/a.toml"), "a = 1\n", "the sibling stays at the locked commit");
         log += &sb.devset("repo", &["update", "rust"]);
-        assert_eq!(
-            sb.read("repo/a.toml"),
-            "a = 2\n",
-            "and moves with its requirer"
-        );
+        assert_eq!(sb.read("repo/a.toml"), "a = 2\n", "and moves with its requirer");
         log += &sb.devset("repo", &["status"]);
-        sb.assert(
-            &log,
-            snapbox::file!["snapshots/git_siblings_share_their_requirer_commit.txt"],
-        );
+        sb.assert(&log, snapbox::file!["snapshots/git_siblings_share_their_requirer_commit.txt"]);
     }
 
     #[test]
     fn an_organisation_builds_on_a_collection() {
         let sb = Sandbox::new();
-        sb.publish(
-            "rust",
-            "rust",
-            &[("rustfmt.toml", "owned", "max_width = 100\n")],
-            "v1",
-        );
-        sb.publish(
-            "rust",
-            "rust",
-            &[("rustfmt.toml", "owned", "max_width = 110\n")],
-            "v2",
-        );
+        sb.publish("rust", "rust", &[("rustfmt.toml", "owned", "max_width = 100\n")], "v1");
+        sb.publish("rust", "rust", &[("rustfmt.toml", "owned", "max_width = 110\n")], "v2");
         sb.profile("org", "org", &[("org.toml", "owned", "org = true\n")]);
         let pin = |tag: &str| {
             format!(
@@ -1420,11 +1025,7 @@ mod tests {
             "the collection at the org's tag"
         );
         log += &sb.devset("repo", &["update"]);
-        assert_eq!(
-            sb.read("repo/rustfmt.toml"),
-            "max_width = 100\n",
-            "a tag does not move"
-        );
+        assert_eq!(sb.read("repo/rustfmt.toml"), "max_width = 100\n", "a tag does not move");
         requiring(&sb, "org", "[]");
         sb.profile("org", "org", &[("org.toml", "owned", "org = true\n")]);
         requiring(&sb, "org", &pin("v2"));
@@ -1434,10 +1035,7 @@ mod tests {
             "max_width = 110\n",
             "until the org requires the next"
         );
-        sb.assert(
-            &log,
-            snapbox::file!["snapshots/an_organisation_builds_on_a_collection.txt"],
-        );
+        sb.assert(&log, snapbox::file!["snapshots/an_organisation_builds_on_a_collection.txt"]);
     }
 
     #[test]
@@ -1471,7 +1069,7 @@ mod tests {
                 "<<<<<<<" | "|||||||" => side = "skip",
                 "=======" if !side.is_empty() => side = "keep",
                 ">>>>>>>" => side = "",
-                _ if side == "skip" => {}
+                _ if side == "skip" => {},
                 _ => out.push_str(line),
             }
         }
@@ -1482,70 +1080,37 @@ mod tests {
     fn keys_join_the_target_file() {
         let sb = Sandbox::new();
         let lints = "[workspace.lints.clippy]\nunwrap_used = \"deny\"\npedantic = { level = \"deny\", priority = -1 }\n";
-        sb.entries(
-            "lints",
-            "lints",
-            &[("Cargo.toml", "scope = \"keys\"", lints)],
-        );
+        sb.entries("lints", "lints", &[("Cargo.toml", "scope = \"keys\"", lints)]);
         sb.write(
             "repo/Cargo.toml",
             "[workspace]\nmembers = [\"a\"]\n\n[workspace.lints.clippy]\n# ours\nmodule_name_repetitions = \"allow\"\nunwrap_used = \"warn\"\n",
         );
         let mut log = sb.devset("repo", &["init", "--path", "../lints"]);
         let cargo = sb.read("repo/Cargo.toml");
-        assert!(
-            cargo.contains("unwrap_used = \"warn\""),
-            "adopted: a key the file holds stays"
-        );
+        assert!(cargo.contains("unwrap_used = \"warn\""), "adopted: a key the file holds stays");
         assert!(cargo.contains("pedantic"), "and one it lacks is written");
         write!(log, "--- Cargo.toml\n{cargo}").unwrap();
         log += &sb.devset("repo", &["status", "--exit-code"]);
         log += &sb.devset("repo", &["diff"]);
         log += &sb.devset("repo", &["apply", "--force"]);
         let cargo = sb.read("repo/Cargo.toml");
-        assert!(
-            cargo.contains("unwrap_used = \"deny\""),
-            "--force restores the shared key"
-        );
-        assert!(
-            cargo.contains("# ours\nmodule_name_repetitions = \"allow\""),
-            "and no other"
-        );
+        assert!(cargo.contains("unwrap_used = \"deny\""), "--force restores the shared key");
+        assert!(cargo.contains("# ours\nmodule_name_repetitions = \"allow\""), "and no other");
         write!(log, "--- Cargo.toml\n{cargo}").unwrap();
 
         let cargo = cargo
-            .replace(
-                "module_name_repetitions = \"allow\"",
-                "module_name_repetitions = \"warn\"",
-            )
+            .replace("module_name_repetitions = \"allow\"", "module_name_repetitions = \"warn\"")
             .replace("unwrap_used = \"deny\"", "unwrap_used   =   'deny'   # why");
-        sb.write(
-            "repo/Cargo.toml",
-            &format!("{cargo}too_many_lines = \"allow\"\n"),
-        );
+        sb.write("repo/Cargo.toml", &format!("{cargo}too_many_lines = \"allow\"\n"));
         log += &sb.devset("repo", &["status", "--exit-code"]);
-        write!(
-            log,
-            "--- .devset/state.toml\n{}",
-            sb.read("repo/.devset/state.toml")
-        )
-        .unwrap();
+        write!(log, "--- .devset/state.toml\n{}", sb.read("repo/.devset/state.toml")).unwrap();
 
         sb.entries("lints", "lints", &[]);
         log += &sb.devset("repo", &["apply"]);
         let cargo = sb.read("repo/Cargo.toml");
-        assert!(
-            !cargo.contains("pedantic"),
-            "a dropped part as recorded goes, reformatted or not"
-        );
-        assert!(
-            cargo.contains("too_many_lines"),
-            "and the file's own keys stay"
-        );
-        sb.assert(
-            &log,
-            snapbox::file!["snapshots/keys_join_the_target_file.txt"],
-        );
+        assert!(!cargo.contains("pedantic"), "a dropped part as recorded goes, reformatted or not");
+        assert!(cargo.contains("too_many_lines"), "and the file's own keys stay");
+        sb.assert(&log, snapbox::file!["snapshots/keys_join_the_target_file.txt"]);
     }
 
     #[test]
@@ -1553,33 +1118,19 @@ mod tests {
         use std::os::unix::fs::PermissionsExt as _;
         let sb = Sandbox::new();
         let files = |script: &'static str| {
-            [
-                ("setup.sh", "executable = true", script),
-                ("notes.txt", "", "notes\n"),
-            ]
+            [("setup.sh", "executable = true", script), ("notes.txt", "", "notes\n")]
         };
         sb.entries("tools", "tools", &files("#!/bin/sh\necho ready\n"));
         let mut log = sb.devset("repo", &["init", "--path", "../tools"]);
         let mode = |rel: &str| fs::metadata(sb.path(rel)).unwrap().permissions().mode() & 0o777;
-        assert_eq!(
-            mode("repo/setup.sh"),
-            0o755,
-            "an executable file is written 755"
-        );
+        assert_eq!(mode("repo/setup.sh"), 0o755, "an executable file is written 755");
         assert_eq!(mode("repo/notes.txt") & 0o111, 0, "and no other file is");
         sb.entries("tools", "tools", &files("#!/bin/sh\necho ready again\n"));
         log += &sb.devset("repo", &["apply"]);
-        assert_eq!(
-            mode("repo/setup.sh"),
-            0o755,
-            "and it stays so when written again"
-        );
+        assert_eq!(mode("repo/setup.sh"), 0o755, "and it stays so when written again");
         fs::set_permissions(sb.path("repo/setup.sh"), fs::Permissions::from_mode(0o644)).unwrap();
         log += &sb.devset("repo", &["status", "--exit-code"]);
-        sb.assert(
-            &log,
-            snapbox::file!["snapshots/executable_files_are_written_executable.txt"],
-        );
+        sb.assert(&log, snapbox::file!["snapshots/executable_files_are_written_executable.txt"]);
     }
 
     #[test]
@@ -1593,23 +1144,13 @@ mod tests {
         let mut log = sb.devset("repo", &["init", "--path", "../old"]);
         log += &sb.devset("repo", &["init", "--path", "../new"]);
         sb.entries("old", "old", &[]);
-        sb.entries(
-            "new",
-            "new",
-            &[("new.toml", "", "n = 1\n"), ("Cargo.toml", keys, lints)],
-        );
+        sb.entries("new", "new", &[("new.toml", "", "n = 1\n"), ("Cargo.toml", keys, lints)]);
         log += &sb.devset("repo", &["apply"]);
         let cargo = sb.read("repo/Cargo.toml");
-        assert!(
-            cargo.contains("unsafe_code = \"forbid\""),
-            "the key the new owner took stays"
-        );
+        assert!(cargo.contains("unsafe_code = \"forbid\""), "the key the new owner took stays");
         write!(log, "--- Cargo.toml\n{cargo}").unwrap();
         log += &sb.devset("repo", &["status", "--exit-code"]);
-        sb.assert(
-            &log,
-            snapbox::file!["snapshots/a_key_that_changes_hands_stays.txt"],
-        );
+        sb.assert(&log, snapbox::file!["snapshots/a_key_that_changes_hands_stays.txt"]);
     }
 
     #[test]
@@ -1626,53 +1167,27 @@ mod tests {
                 ("nested/deep/d.toml", "", "d = 1\n"),
                 ("justfile", block, "import? '.just/gone.just'\n"),
                 (".gitignore", block, "/target\n"),
-                (
-                    "Cargo.toml",
-                    keys,
-                    "[workspace.lints.rust]\nunsafe_code = \"forbid\"\n",
-                ),
+                ("Cargo.toml", keys, "[workspace.lints.rust]\nunsafe_code = \"forbid\"\n"),
             ],
         );
         sb.write("repo/justfile", "default:\n    @just --list\n");
         sb.write("repo/Cargo.toml", "[workspace]\nmembers = [\"a\"]\n");
         let mut log = sb.devset("repo", &["init", "--path", "../gone"]);
-        write!(
-            log,
-            "--- .devset/state.toml\n{}",
-            sb.read("repo/.devset/state.toml")
-        )
-        .unwrap();
+        write!(log, "--- .devset/state.toml\n{}", sb.read("repo/.devset/state.toml")).unwrap();
         sb.write("repo/edited.toml", "b = 2\n");
         sb.entries("gone", "gone", &[]);
         log += &sb.devset("repo", &["status"]);
         log += &sb.devset("repo", &["apply"]);
-        assert!(
-            !sb.path("repo/as-written.toml").exists(),
-            "a file as devset wrote it goes"
-        );
-        assert!(
-            !sb.path("repo/nested").exists(),
-            "with the directories it leaves empty"
-        );
-        assert_eq!(
-            sb.read("repo/edited.toml"),
-            "b = 2\n",
-            "an edited file stays"
-        );
-        assert_eq!(
-            sb.read("repo/once.toml"),
-            "c = 1\n",
-            "as does one that became the target's"
-        );
+        assert!(!sb.path("repo/as-written.toml").exists(), "a file as devset wrote it goes");
+        assert!(!sb.path("repo/nested").exists(), "with the directories it leaves empty");
+        assert_eq!(sb.read("repo/edited.toml"), "b = 2\n", "an edited file stays");
+        assert_eq!(sb.read("repo/once.toml"), "c = 1\n", "as does one that became the target's");
         assert_eq!(
             sb.read("repo/justfile"),
             "default:\n    @just --list\n",
             "a block goes, and the rest of its file stays as it was"
         );
-        assert!(
-            !sb.path("repo/.gitignore").exists(),
-            "a file that was only the block goes"
-        );
+        assert!(!sb.path("repo/.gitignore").exists(), "a file that was only the block goes");
         let cargo = sb.read("repo/Cargo.toml");
         assert!(!cargo.contains("unsafe_code"), "keys go");
         assert!(cargo.contains("members"), "and the file's own stay");
@@ -1693,20 +1208,11 @@ mod tests {
         sb.release("v1");
         let mut log = sb.devset(
             "repo",
-            &[
-                "init",
-                "--git",
-                "../profiles.git",
-                "--branch",
-                "main",
-                "--path",
-                "p",
-            ],
+            &["init", "--git", "../profiles.git", "--branch", "main", "--path", "p"],
         );
-        let edited = sb.read("repo/deny.toml").replace(
-            "wildcards = \"deny\"",
-            "wildcards = \"allow\" # a local exception",
-        );
+        let edited = sb
+            .read("repo/deny.toml")
+            .replace("wildcards = \"deny\"", "wildcards = \"allow\" # a local exception");
         sb.write(
             "repo/deny.toml",
             &format!("[graph]\ntargets = [\"x86_64-unknown-linux-gnu\"]\n\n{edited}"),
@@ -1716,18 +1222,9 @@ mod tests {
         sb.release("v2");
         log += &sb.devset("repo", &["update"]);
         let deny = sb.read("repo/deny.toml");
-        assert!(
-            deny.contains("wildcards = \"allow\" # a local exception"),
-            "ours kept"
-        );
-        assert!(
-            deny.contains("allow = [\"MIT\", \"Apache-2.0\"]"),
-            "theirs taken"
-        );
-        assert!(
-            !deny.contains("confidence-threshold"),
-            "a key the profile dropped goes"
-        );
+        assert!(deny.contains("wildcards = \"allow\" # a local exception"), "ours kept");
+        assert!(deny.contains("allow = [\"MIT\", \"Apache-2.0\"]"), "theirs taken");
+        assert!(!deny.contains("confidence-threshold"), "a key the profile dropped goes");
         assert!(deny.contains("[graph]"), "the target's own tables stay");
         write!(log, "--- deny.toml\n{deny}").unwrap();
 
@@ -1735,25 +1232,15 @@ mod tests {
         sb.entries("work/p", "p", &[("deny.toml", entry, &v3)]);
         sb.release("v3");
         log += &sb.devset("repo", &["update"]);
-        assert_eq!(
-            sb.read("repo/deny.toml"),
-            deny,
-            "a conflict leaves the file"
-        );
+        assert_eq!(sb.read("repo/deny.toml"), deny, "a conflict leaves the file");
         let sidecar = sb.read("repo/.devset/conflicts/deny.toml");
         write!(log, "--- .devset/conflicts/deny.toml\n{sidecar}").unwrap();
         log += &sb.devset("repo", &["status"]);
         sb.write("repo/.devset/conflicts/deny.toml", &theirs(&sidecar));
         log += &sb.devset("repo", &["update", "--continue"]);
-        assert!(
-            sb.read("repo/deny.toml").contains("wildcards = \"warn\""),
-            "resolved"
-        );
+        assert!(sb.read("repo/deny.toml").contains("wildcards = \"warn\""), "resolved");
         log += &sb.devset("repo", &["status", "--exit-code"]);
-        sb.assert(
-            &log,
-            snapbox::file!["snapshots/keys_merge_leaf_by_leaf.txt"],
-        );
+        sb.assert(&log, snapbox::file!["snapshots/keys_merge_leaf_by_leaf.txt"]);
     }
 
     #[test]
@@ -1763,11 +1250,7 @@ mod tests {
         sb.entries(
             "lints",
             "lints",
-            &[(
-                "Cargo.toml",
-                keys,
-                "[workspace.lints.clippy]\nunwrap_used = \"deny\"\n",
-            )],
+            &[("Cargo.toml", keys, "[workspace.lints.clippy]\nunwrap_used = \"deny\"\n")],
         );
         sb.entries(
             "rust",
@@ -1777,17 +1260,9 @@ mod tests {
         sb.entries(
             "strict",
             "strict",
-            &[(
-                "Cargo.toml",
-                keys,
-                "[workspace.lints]\nclippy = { all = \"deny\" }\n",
-            )],
+            &[("Cargo.toml", keys, "[workspace.lints]\nclippy = { all = \"deny\" }\n")],
         );
-        sb.profile(
-            "whole",
-            "whole",
-            &[("Cargo.toml", "owned", "[package]\nname = \"x\"\n")],
-        );
+        sb.profile("whole", "whole", &[("Cargo.toml", "owned", "[package]\nname = \"x\"\n")]);
         sb.write("repo/Cargo.toml", "[workspace]\nmembers = []\n");
         let mut log = sb.devset("repo", &["init", "--path", "../lints"]);
         log += &sb.devset("repo", &["init", "--path", "../rust"]);
@@ -1801,15 +1276,9 @@ mod tests {
         );
         sb.write("repo/.devset/config.toml", &config);
         log += &sb.devset("repo", &["apply"]);
-        assert!(
-            !sb.read("repo/Cargo.toml").contains("[package]"),
-            "`from` picks the part"
-        );
+        assert!(!sb.read("repo/Cargo.toml").contains("[package]"), "`from` picks the part");
         log += &sb.devset("repo", &["status"]);
-        sb.assert(
-            &log,
-            snapbox::file!["snapshots/layers_share_a_file_in_parts.txt"],
-        );
+        sb.assert(&log, snapbox::file!["snapshots/layers_share_a_file_in_parts.txt"]);
     }
 
     #[test]
@@ -1846,17 +1315,11 @@ mod tests {
         }
         log += &sb.devset("repo", &["apply", "--force"]);
         let settings = sb.read("repo/.vscode/settings.json");
-        assert!(
-            settings.contains("\"editor.formatOnSave\": true"),
-            "restored"
-        );
+        assert!(settings.contains("\"editor.formatOnSave\": true"), "restored");
         assert!(settings.contains("// ours"), "comments survive");
         write!(log, "--- .vscode/settings.json\n{settings}").unwrap();
         log += &sb.devset("repo", &["status", "--exit-code"]);
-        sb.assert(
-            &log,
-            snapbox::file!["snapshots/json_and_yaml_keys_keep_comments.txt"],
-        );
+        sb.assert(&log, snapbox::file!["snapshots/json_and_yaml_keys_keep_comments.txt"]);
     }
 
     #[test]
@@ -1872,26 +1335,16 @@ mod tests {
         let moved = "# >>> devset: rust >>>\n/target\n# <<< devset: rust <<<\n/deployments/local/*\n.env\n\n# >>> devset: node >>>\nnode_modules/\n# <<< devset: node <<<\n";
         sb.write("repo/.gitignore", moved);
         log += &sb.devset("repo", &["status", "--exit-code"]);
-        sb.entries(
-            "rust",
-            "rust",
-            &[(".gitignore", block, "/target\n**/*.rs.bk\n")],
-        );
+        sb.entries("rust", "rust", &[(".gitignore", block, "/target\n**/*.rs.bk\n")]);
         log += &sb.devset("repo", &["apply"]);
         assert_eq!(
             sb.read("repo/.gitignore"),
             moved.replace("/target\n", "/target\n**/*.rs.bk\n"),
             "a moved block is updated where it is"
         );
-        sb.write(
-            "repo/.gitignore",
-            &moved.replace("# <<< devset: node <<<\n", ""),
-        );
+        sb.write("repo/.gitignore", &moved.replace("# <<< devset: node <<<\n", ""));
         log += &sb.devset("repo", &["status"]);
-        sb.assert(
-            &log,
-            snapbox::file!["snapshots/blocks_are_marked_and_stay_where_moved.txt"],
-        );
+        sb.assert(&log, snapbox::file!["snapshots/blocks_are_marked_and_stay_where_moved.txt"]);
     }
 
     #[test]
@@ -1900,29 +1353,13 @@ mod tests {
         sb.entries(
             "p",
             "p",
-            &[(
-                "Cargo.toml",
-                "scope = \"block\"",
-                "[workspace]\nresolver = \"3\"\n",
-            )],
+            &[("Cargo.toml", "scope = \"block\"", "[workspace]\nresolver = \"3\"\n")],
         );
-        sb.entries(
-            "keys",
-            "keys",
-            &[("notes.txt", "scope = \"keys\"", "a = 1\n")],
-        );
-        sb.entries(
-            "json",
-            "json",
-            &[("package.json", "scope = \"block\"", "\"x\": 1\n")],
-        );
+        sb.entries("keys", "keys", &[("notes.txt", "scope = \"keys\"", "a = 1\n")]);
+        sb.entries("json", "json", &[("package.json", "scope = \"block\"", "\"x\": 1\n")]);
         sb.write("repo/Cargo.toml", "[workspace]\nmembers = []\n");
         let mut log = sb.devset("repo", &["init", "--path", "../p"]);
-        assert_eq!(
-            sb.read("repo/Cargo.toml"),
-            "[workspace]\nmembers = []\n",
-            "left as it was"
-        );
+        assert_eq!(sb.read("repo/Cargo.toml"), "[workspace]\nmembers = []\n", "left as it was");
         write!(
             log,
             "--- .devset/conflicts/Cargo.toml\n{}",
@@ -1933,9 +1370,6 @@ mod tests {
         log += &sb.devset("r3", &["init", "--path", "../json"]);
         sb.write("r4/Cargo.toml", "[workspace\n");
         log += &sb.devset("r4", &["init", "--path", "../p"]);
-        sb.assert(
-            &log,
-            snapbox::file!["snapshots/parts_keep_their_file_valid.txt"],
-        );
+        sb.assert(&log, snapbox::file!["snapshots/parts_keep_their_file_valid.txt"]);
     }
 }

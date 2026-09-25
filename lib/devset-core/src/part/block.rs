@@ -60,7 +60,7 @@ pub(crate) fn comment(path: &RelPath) -> Option<Comment> {
             "toml" | "yml" | "yaml" | "sh" | "bash" | "zsh" | "fish" | "py" | "rb" | "conf"
             | "cfg" | "ini" | "properties" | "tf" | "just" | "env" | "txt" | "gitignore" => {
                 Comment::Hash
-            }
+            },
             "jsonc" | "js" | "mjs" | "cjs" | "ts" | "jsx" | "tsx" | "rs" | "go" | "c" | "h"
             | "cc" | "cpp" | "hpp" | "java" | "kt" | "swift" | "scala" | "dart" | "zig"
             | "proto" => Comment::Slashes,
@@ -133,10 +133,9 @@ impl Markers {
         match (start, end) {
             (None, _) => Ok(None),
             (Some(open), None) => Err((open, "the block has no closing marker".to_owned())),
-            (Some(open), Some((lines, close))) => Ok(Some(Located {
-                whole: open.start..close,
-                lines,
-            })),
+            (Some(open), Some((lines, close))) => {
+                Ok(Some(Located { whole: open.start..close, lines }))
+            },
         }
     }
 
@@ -153,18 +152,11 @@ impl Markers {
         if after.trim().is_empty() {
             let kept = before.trim_end();
             let newline = if text.contains("\r\n") { "\r\n" } else { "\n" };
-            return Ok(if kept.is_empty() {
-                String::new()
-            } else {
-                format!("{kept}{newline}")
-            });
+            return Ok(if kept.is_empty() { String::new() } else { format!("{kept}{newline}") });
         }
         let blank = |s: &str| s.ends_with("\n\n") || s.ends_with("\r\n\r\n");
         let after = if blank(before) {
-            after
-                .strip_prefix("\r\n")
-                .or_else(|| after.strip_prefix('\n'))
-                .unwrap_or(after)
+            after.strip_prefix("\r\n").or_else(|| after.strip_prefix('\n')).unwrap_or(after)
         } else {
             after
         };
@@ -174,9 +166,7 @@ impl Markers {
     /// `text` with the block holding `content`: in place, or appended after a blank line; in
     /// the file's line endings.
     pub(crate) fn splice(
-        &self,
-        text: &str,
-        content: &str,
+        &self, text: &str, content: &str,
     ) -> Result<String, (Range<usize>, String)> {
         let newline = if text.contains("\r\n") { "\r\n" } else { "\n" };
         let mut body = content.replace("\r\n", "\n");
@@ -201,13 +191,7 @@ impl Markers {
         if !out.trim().is_empty() {
             out.push_str(newline);
         }
-        out.extend([
-            self.open.as_str(),
-            newline,
-            &body,
-            self.close.as_str(),
-            newline,
-        ]);
+        out.extend([self.open.as_str(), newline, &body, self.close.as_str(), newline]);
         Ok(out)
     }
 }
@@ -220,17 +204,13 @@ mod tests {
     #[test]
     fn blocks_are_found_written_and_moved() {
         let markers = Markers::new(Comment::Hash, "rust");
-        let first = markers
-            .splice("mine\n", "/target\n")
-            .expect("an empty file takes a block");
+        let first = markers.splice("mine\n", "/target\n").expect("an empty file takes a block");
         assert_eq!(
             first, "mine\n\n# >>> devset: rust >>>\n/target\n# <<< devset: rust <<<\n",
             "appended after a blank line"
         );
         let moved = "# >>> devset: rust >>>\n/target\n# <<< devset: rust <<<\nmine\n";
-        let updated = markers
-            .splice(moved, "/target\n/out\n")
-            .expect("a block in place");
+        let updated = markers.splice(moved, "/target\n/out\n").expect("a block in place");
         assert_eq!(
             updated, "# >>> devset: rust >>>\n/target\n/out\n# <<< devset: rust <<<\nmine\n",
             "a moved block is updated where it is"
@@ -248,19 +228,10 @@ mod tests {
         let of = |path: &str| comment(&RelPath::new(path).expect("a valid path"));
         assert_eq!(of(".gitignore"), Some(Comment::Hash), "by name");
         assert_eq!(of("docs/README.md"), Some(Comment::Angle), "by extension");
-        assert_eq!(
-            of(".vscode/settings.jsonc"),
-            Some(Comment::Slashes),
-            "JSONC has comments"
-        );
+        assert_eq!(of(".vscode/settings.jsonc"), Some(Comment::Slashes), "JSONC has comments");
         assert_eq!(of("package.json"), None, "strict JSON has none");
         let html = Markers::new(Comment::Angle, "badges");
-        let text = html
-            .splice("", "[badge]\n")
-            .expect("an empty file takes a block");
-        assert!(
-            text.starts_with("<!-- >>> devset: badges >>> -->\n"),
-            "HTML comments close"
-        );
+        let text = html.splice("", "[badge]\n").expect("an empty file takes a block");
+        assert!(text.starts_with("<!-- >>> devset: badges >>> -->\n"), "HTML comments close");
     }
 }

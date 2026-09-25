@@ -110,9 +110,7 @@ impl<'de> Deserialize<'de> for Requirement {
                         "a requirement table names a git source; a sibling is a relative path",
                     ));
                 }
-                Source::try_from(spec)
-                    .map(Requirement::Git)
-                    .map_err(de::Error::custom)
+                Source::try_from(spec).map(Requirement::Git).map_err(de::Error::custom)
             }
         }
 

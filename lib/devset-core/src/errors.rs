@@ -487,18 +487,10 @@ pub(crate) fn list<T: Display>(items: impl IntoIterator<Item = T>) -> String {
 
 /// Each layer and its scope: "`file` by base and `keys` by lints".
 fn scopes(layers: &[(String, Scope)]) -> String {
-    list(
-        layers
-            .iter()
-            .map(|(layer, scope)| format!("`{scope}` by {layer}")),
-    )
+    list(layers.iter().map(|(layer, scope)| format!("`{scope}` by {layer}")))
 }
 
 /// `n` and `noun`, pluralised.
 fn plural(n: usize, noun: &str) -> String {
-    if n == 1 {
-        format!("1 {noun}")
-    } else {
-        format!("{n} {noun}s")
-    }
+    if n == 1 { format!("1 {noun}") } else { format!("{n} {noun}s") }
 }

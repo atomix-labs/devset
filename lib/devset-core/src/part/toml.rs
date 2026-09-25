@@ -21,9 +21,8 @@ pub(super) fn semantic(text: &str) -> Result<Value, Failure> {
 /// The leaves a partial document defines, in its order: tables are containers; plain values,
 /// arrays and inline tables are leaves, and so is an array of tables, noted as one.
 pub(super) fn leaves(text: &str) -> Result<Written, Failure> {
-    let doc: DocumentMut = text
-        .parse()
-        .map_err(|e: toml_edit::TomlError| (e.span(), e.message().to_owned()))?;
+    let doc: DocumentMut =
+        text.parse().map_err(|e: toml_edit::TomlError| (e.span(), e.message().to_owned()))?;
     let values = semantic(text)?;
     let mut paths = Vec::new();
     let mut tables = BTreeSet::new();
@@ -32,19 +31,12 @@ pub(super) fn leaves(text: &str) -> Result<Written, Failure> {
         .into_iter()
         .filter_map(|key| Some((key.clone(), lookup(&values, &key)?.clone())))
         .collect();
-    Ok(Written {
-        leaves,
-        tables,
-        source: text.to_owned(),
-    })
+    Ok(Written { leaves, tables, source: text.to_owned() })
 }
 
 /// Every leaf path under `table`, and those that are arrays of tables.
 fn collect(
-    table: &dyn TableLike,
-    prefix: &mut Key,
-    into: &mut Vec<Key>,
-    tables: &mut BTreeSet<Key>,
+    table: &dyn TableLike, prefix: &mut Key, into: &mut Vec<Key>, tables: &mut BTreeSet<Key>,
 ) {
     for (key, item) in table.iter() {
         prefix.push(key.to_owned());
@@ -53,13 +45,13 @@ fn collect(
             // `a.b = 1` is a table written in dotted keys, not a value.
             Item::Value(toml_edit::Value::InlineTable(inner)) if inner.is_dotted() => {
                 collect(inner, prefix, into, tables);
-            }
+            },
             Item::ArrayOfTables(_) => {
                 tables.insert(prefix.clone());
                 into.push(prefix.clone());
-            }
+            },
             Item::Value(_) => into.push(prefix.clone()),
-            Item::None => {}
+            Item::None => {},
         }
         prefix.pop();
     }
@@ -68,15 +60,10 @@ fn collect(
 /// `text` with each edit made, in order; a key the payload writes as an array of tables is written
 /// as one, and a value the payload gives is written in the payload's layout.
 pub(super) fn apply(text: &str, edits: &[Edit<'_>], payload: &Written) -> Result<String, Failure> {
-    let mut doc: DocumentMut = text
-        .parse()
-        .map_err(|e: toml_edit::TomlError| (e.span(), e.message().to_owned()))?;
+    let mut doc: DocumentMut =
+        text.parse().map_err(|e: toml_edit::TomlError| (e.span(), e.message().to_owned()))?;
     // The payload as written, and its values; a payload that does not parse lends no layout.
-    let source = payload
-        .source
-        .parse::<DocumentMut>()
-        .ok()
-        .zip(semantic(&payload.source).ok());
+    let source = payload.source.parse::<DocumentMut>().ok().zip(semantic(&payload.source).ok());
     for &(key, value) in edits {
         match value {
             Some(value) => {
@@ -85,7 +72,7 @@ pub(super) fn apply(text: &str, edits: &[Edit<'_>], payload: &Written) -> Result
                     .filter(|(_, values)| lookup(values, key) == Some(value))
                     .and_then(|(written, _)| layout(written, key));
                 set(&mut doc, key, value, payload.tables.contains(key), styled)?;
-            }
+            },
             None => remove(doc.as_table_mut(), key),
         }
     }
@@ -94,8 +81,7 @@ pub(super) fn apply(text: &str, edits: &[Edit<'_>], payload: &Written) -> Result
 
 /// How `doc` writes the plain value at `key`: the key, with the space around it, and the value.
 fn layout<'a>(
-    doc: &'a DocumentMut,
-    key: &[String],
+    doc: &'a DocumentMut, key: &[String],
 ) -> Option<(&'a toml_edit::Key, &'a toml_edit::Value)> {
     let (leaf, parents) = key.split_last()?;
     let mut table: &dyn TableLike = doc.as_table();
@@ -115,10 +101,7 @@ fn layout<'a>(
 /// writing of the value, the value is written as the payload writes it, and a new key is spaced as
 /// the payload spaces it; a key the file holds keeps the file's spacing.
 fn set(
-    doc: &mut DocumentMut,
-    key: &[String],
-    value: &Value,
-    as_tables: bool,
+    doc: &mut DocumentMut, key: &[String], value: &Value, as_tables: bool,
     styled: Option<(&toml_edit::Key, &toml_edit::Value)>,
 ) -> Result<(), Failure> {
     let Some((leaf, parents)) = key.split_last() else {
@@ -135,10 +118,7 @@ fn set(
         standard &= item.is_table();
         table = item.as_table_like_mut().ok_or_else(|| {
             let parent = display(key.get(..=depth).unwrap_or(key));
-            (
-                None,
-                format!("{parent} is not a table, so {} cannot be set", display(key)),
-            )
+            (None, format!("{parent} is not a table, so {} cannot be set", display(key)))
         })?;
     }
     let failed = |why: String| (None, format!("{}: {why}", display(key)));
@@ -159,15 +139,15 @@ fn set(
         (Some(Item::Value(old)), Item::Value(mut new)) => {
             *new.decor_mut() = old.decor().clone();
             *old = new;
-        }
+        },
         (Some(item), new) => *item = new,
         (None, new) => match styled {
             Some((written, _)) => {
                 table.entry_format(written).or_insert(new);
-            }
+            },
             None => {
                 table.insert(leaf, new);
-            }
+            },
         },
     }
     Ok(())
@@ -181,9 +161,7 @@ fn tables(value: &Value) -> bool {
 
 /// Whether `value` is a datetime in `toml`'s JSON form.
 fn datetime(value: &Value) -> bool {
-    value
-        .as_object()
-        .is_some_and(|object| object.len() == 1 && object.contains_key(DATETIME))
+    value.as_object().is_some_and(|object| object.len() == 1 && object.contains_key(DATETIME))
 }
 
 /// Each object of `value` as a table of an array of tables.
@@ -191,11 +169,8 @@ fn array_of_tables(value: &Value) -> Result<ArrayOfTables, String> {
     let Value::Array(items) = value else {
         return Ok(ArrayOfTables::new());
     };
-    let tables: Result<Vec<Table>, String> = items
-        .iter()
-        .filter_map(Value::as_object)
-        .map(table_of)
-        .collect();
+    let tables: Result<Vec<Table>, String> =
+        items.iter().filter_map(Value::as_object).map(table_of).collect();
     Ok(tables?.into_iter().collect())
 }
 
@@ -250,7 +225,7 @@ fn toml_value(value: &Value) -> Result<toml_edit::Value, String> {
         Value::Array(items) => {
             let items: Result<Vec<_>, _> = items.iter().map(toml_value).collect();
             toml_edit::Value::Array(items?.into_iter().collect::<Array>())
-        }
+        },
         Value::Object(object) => {
             if let (Some(Value::String(datetime)), 1) = (object.get(DATETIME), object.len()) {
                 return datetime
@@ -263,6 +238,6 @@ fn toml_value(value: &Value) -> Result<toml_edit::Value, String> {
                 table.insert(k, toml_value(v)?);
             }
             toml_edit::Value::InlineTable(table)
-        }
+        },
     })
 }

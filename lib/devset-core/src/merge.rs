@@ -55,10 +55,7 @@ impl FromStr for Driver {
     type Err = MergeError;
 
     fn from_str(line: &str) -> Result<Self, MergeError> {
-        let invalid = |reason| MergeError::Driver {
-            line: line.to_owned(),
-            reason,
-        };
+        let invalid = |reason| MergeError::Driver { line: line.to_owned(), reason };
         let args = shlex::split(line).ok_or_else(|| invalid("unbalanced quotes"))?;
         if args.is_empty() {
             return Err(invalid("empty"));
@@ -74,40 +71,23 @@ impl FromStr for Driver {
         if !args.iter().any(|arg| arg.contains("%A")) {
             return Err(invalid("must name %A, where the merged result is left"));
         }
-        Ok(Self::Command {
-            line: line.to_owned(),
-            args,
-        })
+        Ok(Self::Command { line: line.to_owned(), args })
     }
 }
 
 impl Driver {
     /// Merges `ours` and `theirs` from `base` for `path`, running a command in `root`.
     pub(crate) fn merge(
-        &self,
-        root: &Utf8Path,
-        path: &RelPath,
-        base: &[u8],
-        ours: &[u8],
-        theirs: &[u8],
+        &self, root: &Utf8Path, path: &RelPath, base: &[u8], ours: &[u8], theirs: &[u8],
     ) -> Result<Merged> {
         let Self::Command { line, args } = self else {
             if [base, ours, theirs].into_iter().any(is_binary) {
                 let conflict = Some("binary: the sidecar holds the profile's version".to_owned());
-                return Ok(Merged {
-                    bytes: theirs.to_vec(),
-                    conflict,
-                });
+                return Ok(Merged { bytes: theirs.to_vec(), conflict });
             }
             return Ok(match diffy::merge_bytes(base, ours, theirs) {
-                Ok(bytes) => Merged {
-                    bytes,
-                    conflict: None,
-                },
-                Err(bytes) => Merged {
-                    bytes,
-                    conflict: Some("conflicting changes".to_owned()),
-                },
+                Ok(bytes) => Merged { bytes, conflict: None },
+                Err(bytes) => Merged { bytes, conflict: Some("conflicting changes".to_owned()) },
             });
         };
         // Each version under its real file name, so drivers can detect the language.
@@ -123,14 +103,10 @@ impl Driver {
         let expand =
             |arg: &String| expand(arg, [o.as_str(), a.as_str(), b.as_str(), path.as_str()]);
         let argv: Vec<String> = args.iter().map(expand).collect();
-        let (program, rest) = argv.split_first().ok_or_else(|| MergeError::Driver {
-            line: line.clone(),
-            reason: "empty",
-        })?;
-        let stopped = |reason| MergeError::Run {
-            program: program.clone(),
-            reason,
-        };
+        let (program, rest) = argv
+            .split_first()
+            .ok_or_else(|| MergeError::Driver { line: line.clone(), reason: "empty" })?;
+        let stopped = |reason| MergeError::Run { program: program.clone(), reason };
         let output = Command::new(program)
             .args(rest)
             .current_dir(root)
@@ -139,19 +115,14 @@ impl Driver {
             .output()
             .map_err(|e| {
                 if e.kind() == io::ErrorKind::NotFound {
-                    MergeError::NoDriver {
-                        program: program.clone(),
-                    }
+                    MergeError::NoDriver { program: program.clone() }
                 } else {
                     stopped(e.to_string())
                 }
             })?;
         let bytes = fs_err::read(&a)?;
         match output.status.code() {
-            Some(0) => Ok(Merged {
-                bytes,
-                conflict: None,
-            }),
+            Some(0) => Ok(Merged { bytes, conflict: None }),
             Some(code) => {
                 let stderr = String::from_utf8_lossy(&output.stderr);
                 let why = stderr.trim();
@@ -160,11 +131,8 @@ impl Driver {
                 } else {
                     why.to_owned()
                 };
-                Ok(Merged {
-                    bytes,
-                    conflict: Some(conflict),
-                })
-            }
+                Ok(Merged { bytes, conflict: Some(conflict) })
+            },
             None => Err(stopped("killed by a signal".to_owned()).into()),
         }
     }
@@ -185,7 +153,7 @@ fn expand(arg: &str, [o, a, b, p]: [&str; 4]) -> String {
             Some('B') => out.push_str(b),
             Some('P') => out.push_str(p),
             Some(other) => out.push(other),
-            None => {}
+            None => {},
         }
     }
     out
@@ -193,9 +161,7 @@ fn expand(arg: &str, [o, a, b, p]: [&str; 4]) -> String {
 
 /// Whether `bytes` still hold a conflict hunk.
 pub(crate) fn has_markers(bytes: &[u8]) -> bool {
-    bytes
-        .split(|&b| b == b'\n')
-        .any(|line| MARKERS.iter().any(|marker| line.starts_with(marker)))
+    bytes.split(|&b| b == b'\n').any(|line| MARKERS.iter().any(|marker| line.starts_with(marker)))
 }
 
 #[cfg(test)]
@@ -223,16 +189,8 @@ mod tests {
 
     #[test]
     fn expands_placeholders() {
-        assert_eq!(
-            expand("--base=%O", ["o", "a", "b", "p"]),
-            "--base=o",
-            "inside an argument"
-        );
-        assert_eq!(
-            expand("100%%", ["o", "a", "b", "p"]),
-            "100%",
-            "escaped percent"
-        );
+        assert_eq!(expand("--base=%O", ["o", "a", "b", "p"]), "--base=o", "inside an argument");
+        assert_eq!(expand("100%%", ["o", "a", "b", "p"]), "100%", "escaped percent");
     }
 
     #[test]
@@ -277,18 +235,12 @@ mod tests {
             (&b"b\n"[..], None),
             "exit 0: result read from %A"
         );
-        assert!(
-            run("false %A").conflict.is_some(),
-            "non-zero exit is a conflict"
-        );
+        assert!(run("false %A").conflict.is_some(), "non-zero exit is a conflict");
     }
 
     #[test]
     fn detects_markers() {
         assert!(has_markers(b"a\n<<<<<<< ours\nb\n"), "opening marker");
-        assert!(
-            !has_markers(b"Title\n=======\n"),
-            "a Markdown underline is not a marker"
-        );
+        assert!(!has_markers(b"Title\n=======\n"), "a Markdown underline is not a marker");
     }
 }

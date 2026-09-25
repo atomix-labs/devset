@@ -46,13 +46,7 @@ const GITATTRIBUTES: &str = "base/** -diff -text\n";
 ///   written.
 /// - [`Error::Io`](crate::Error::Io), a write fails; the next run repairs what it left.
 pub fn commit(plan: Plan, target: &Target) -> Result<Vec<Step>> {
-    let Plan {
-        resolved,
-        steps,
-        merged,
-        gone,
-        held,
-    } = plan;
+    let Plan { resolved, steps, merged, gone, held } = plan;
     let writes = Writes::decide(&resolved, &steps, &merged, &gone)?;
     let _guard = lock(target)?;
     writes.perform(target, &steps, held)?;
@@ -84,10 +78,7 @@ struct Writes<'a> {
 impl<'a> Writes<'a> {
     /// What committing `steps` writes.
     fn decide(
-        resolved: &'a Resolved,
-        steps: &'a [Step],
-        merged: &'a Tree,
-        gone: &'a BTreeSet<RelPath>,
+        resolved: &'a Resolved, steps: &'a [Step], merged: &'a Tree, gone: &'a BTreeSet<RelPath>,
     ) -> Result<Self> {
         let mut records = BTreeMap::new();
         let (mut files, mut blobs, mut sidecars) = (Vec::new(), Vec::new(), Vec::new());
@@ -96,7 +87,7 @@ impl<'a> Writes<'a> {
             let (entry, path) = (&step.entry, &step.entry.path);
             let scope = entry.scope();
             match (step.action, entry.want) {
-                (Action::Untrack | Action::Remove, _) => {}
+                (Action::Untrack | Action::Remove, _) => {},
                 (Action::Write | Action::Record | Action::Merge, Some(want)) => {
                     let payload = resolved.payload(entry)?;
                     // A written part is in its composed file, among the merged.
@@ -105,15 +96,8 @@ impl<'a> Writes<'a> {
                     }
                     blobs.push((want.fingerprint.exact, payload));
                     let (fingerprint, policy) = (want.fingerprint, want.policy);
-                    records.insert(
-                        entry.slot(),
-                        Record {
-                            scope,
-                            fingerprint,
-                            policy,
-                        },
-                    );
-                }
+                    records.insert(entry.slot(), Record { scope, fingerprint, policy });
+                },
                 (action, _) => {
                     if action == Action::Conflict {
                         conflicted.insert(path);
@@ -125,7 +109,7 @@ impl<'a> Writes<'a> {
                         policy: policy.unwrap_or_default(),
                     });
                     records.extend(record.map(|record| (entry.slot(), record)));
-                }
+                },
             }
         }
         for (path, bytes) in merged.iter() {
@@ -143,15 +127,8 @@ impl<'a> Writes<'a> {
         });
         let lock = to_toml(&Lock::new(locked.collect()))?;
         let answers = resolved.answers();
-        let answers = if answers.is_empty() {
-            None
-        } else {
-            Some(to_toml(answers)?)
-        };
-        let live = records
-            .values()
-            .map(|record| record.fingerprint.exact)
-            .collect();
+        let answers = if answers.is_empty() { None } else { Some(to_toml(answers)?) };
+        let live = records.values().map(|record| record.fingerprint.exact).collect();
         let state = to_toml(&State::new(records))?;
         let removals = gone.iter().collect();
         let executable = steps
@@ -159,17 +136,7 @@ impl<'a> Writes<'a> {
             .filter(|step| step.entry.want.is_some_and(|want| want.executable))
             .map(|step| &step.entry.path)
             .collect();
-        Ok(Self {
-            files,
-            removals,
-            executable,
-            blobs,
-            sidecars,
-            lock,
-            state,
-            answers,
-            live,
-        })
+        Ok(Self { files, removals, executable, blobs, sidecars, lock, state, answers, live })
     }
 
     /// Writes everything, `state.toml` last; only conflicts and the pending lock if `held`.
@@ -213,10 +180,7 @@ impl<'a> Writes<'a> {
 
         if unfinished {
             remove_if_present(&target.unfinished().join(PENDING))?;
-            for step in steps
-                .iter()
-                .filter(|s| s.entry.conflict && s.action != Action::Conflict)
-            {
+            for step in steps.iter().filter(|s| s.entry.conflict && s.action != Action::Conflict) {
                 remove_if_present(&target.sidecar(&step.entry.path))?;
             }
             Ok(())
@@ -232,10 +196,7 @@ impl<'a> Writes<'a> {
         for &(path, bytes) in &self.sidecars {
             undo.record(target, &Location::Sidecar(path.clone()), Some(bytes))?;
         }
-        for step in steps
-            .iter()
-            .filter(|s| s.entry.conflict && s.action != Action::Conflict)
-        {
+        for step in steps.iter().filter(|s| s.entry.conflict && s.action != Action::Conflict) {
             undo.record(target, &Location::Sidecar(step.entry.path.clone()), None)?;
         }
         let answers = self.answers.as_deref().map(str::as_bytes);
@@ -250,11 +211,7 @@ impl<'a> Writes<'a> {
             let config = Some(target.config_text().as_bytes());
             undo.record(target, &Location::Record(CONFIG), config)?;
             undo.record(target, &Location::Record(LOCK), Some(self.lock.as_bytes()))?;
-            undo.record(
-                target,
-                &Location::Record(STATE),
-                Some(self.state.as_bytes()),
-            )?;
+            undo.record(target, &Location::Record(STATE), Some(self.state.as_bytes()))?;
         }
         undo.save(target)
     }
@@ -268,10 +225,7 @@ pub(crate) fn prune(target: &Target, live: &HashSet<Digest>) -> Result<()> {
     }
     for blob in fs_err::read_dir(&base)? {
         let blob = blob?;
-        let digest = blob
-            .file_name()
-            .to_str()
-            .and_then(|name| name.parse::<Digest>().ok());
+        let digest = blob.file_name().to_str().and_then(|name| name.parse::<Digest>().ok());
         if digest.is_some_and(|digest| !live.contains(&digest)) {
             fs_err::remove_file(blob.path())?;
         }
@@ -285,7 +239,7 @@ pub(crate) fn lock(target: &Target) -> Result<fs_err::File> {
     fs_err::create_dir_all(dir.join(BASE))?;
     let guard = fs_err::File::create(dir.join(LOCKFILE))?;
     match guard.file().try_lock() {
-        Ok(()) => {}
+        Ok(()) => {},
         Err(TryLockError::WouldBlock) => return Err(TargetError::Busy.into()),
         Err(TryLockError::Error(e)) => return Err(e.into()),
     }
@@ -303,20 +257,14 @@ pub(crate) fn to_toml<T: Serialize + ?Sized>(value: &T) -> Result<String> {
 /// Replaces `path` with `bytes` atomically, creating parent directories: the bytes reach the disk
 /// in a file beside it, which takes its place in one rename. A file already there keeps its mode.
 pub(crate) fn write(path: &Utf8Path, bytes: &[u8]) -> Result<()> {
-    let dir = path
-        .parent()
-        .filter(|dir| !dir.as_str().is_empty())
-        .unwrap_or_else(|| Utf8Path::new("."));
+    let dir =
+        path.parent().filter(|dir| !dir.as_str().is_empty()).unwrap_or_else(|| Utf8Path::new("."));
     fs_err::create_dir_all(dir)?;
     let with_path = |e: io::Error| io::Error::new(e.kind(), format!("{path}: {e}"));
-    let kept = fs_err::metadata(path)
-        .ok()
-        .map(|metadata| metadata.permissions());
+    let kept = fs_err::metadata(path).ok().map(|metadata| metadata.permissions());
     let mut file = new_file(dir).map_err(with_path)?;
     if let Some(permissions) = kept {
-        file.as_file()
-            .set_permissions(permissions)
-            .map_err(with_path)?;
+        file.as_file().set_permissions(permissions).map_err(with_path)?;
     }
     file.write_all(bytes).map_err(with_path)?;
     file.as_file().sync_all().map_err(with_path)?;
@@ -329,9 +277,7 @@ pub(crate) fn write(path: &Utf8Path, bytes: &[u8]) -> Result<()> {
 fn new_file(dir: &Utf8Path) -> io::Result<camino_tempfile::NamedUtf8TempFile> {
     use std::fs::Permissions;
     use std::os::unix::fs::PermissionsExt as _;
-    Builder::new()
-        .permissions(Permissions::from_mode(0o666))
-        .tempfile_in(dir)
+    Builder::new().permissions(Permissions::from_mode(0o666)).tempfile_in(dir)
 }
 
 /// A temporary file in `dir`.
@@ -357,10 +303,7 @@ fn sync_dir(_: &Utf8Path) -> Result<()> {
 fn make_executable(path: &Utf8Path) -> Result<()> {
     use std::fs::Permissions;
     use std::os::unix::fs::PermissionsExt as _;
-    Ok(fs_err::set_permissions(
-        path,
-        Permissions::from_mode(0o755),
-    )?)
+    Ok(fs_err::set_permissions(path, Permissions::from_mode(0o755))?)
 }
 
 /// Files have no mode here.
@@ -371,11 +314,7 @@ fn make_executable(_: &Utf8Path) -> Result<()> {
 
 /// [`write`](write()), unless `path` already holds `bytes`.
 fn write_if_changed(path: &Utf8Path, bytes: &[u8]) -> Result<()> {
-    if read_optional(path)?.as_deref() == Some(bytes) {
-        Ok(())
-    } else {
-        write(path, bytes)
-    }
+    if read_optional(path)?.as_deref() == Some(bytes) { Ok(()) } else { write(path, bytes) }
 }
 
 /// Removes the file at `path` under `root`, then each directory it leaves empty, up to `root`.
@@ -395,11 +334,8 @@ fn remove_with_empty_parents(root: &Utf8Path, path: &RelPath) -> Result<()> {
 
 /// Removes the file or directory tree at `path`, if there is one.
 pub(crate) fn remove_if_present(path: &Utf8Path) -> Result<()> {
-    let removed = if path.is_dir() {
-        fs_err::remove_dir_all(path)
-    } else {
-        fs_err::remove_file(path)
-    };
+    let removed =
+        if path.is_dir() { fs_err::remove_dir_all(path) } else { fs_err::remove_file(path) };
     match removed {
         Err(e) if e.kind() != io::ErrorKind::NotFound => Err(e.into()),
         Ok(()) | Err(_) => Ok(()),
@@ -416,11 +352,7 @@ mod tests {
         let path = dir.path().join("a/b.txt");
         write(&path, b"one").expect("writes a new file, and its directory");
         write(&path, b"two").expect("replaces it");
-        assert_eq!(
-            fs_err::read(&path).expect("reads it"),
-            b"two",
-            "the new bytes"
-        );
+        assert_eq!(fs_err::read(&path).expect("reads it"), b"two", "the new bytes");
         let names: Vec<_> = fs_err::read_dir(dir.path().join("a"))
             .expect("lists the directory")
             .map(|entry| entry.expect("an entry").file_name())
@@ -437,18 +369,9 @@ mod tests {
         let dir = camino_tempfile::tempdir().expect("a directory");
         let path = dir.path().join("run.sh");
         write(&path, b"one").expect("writes a new file");
-        let mode = |path| {
-            fs_err::metadata(path)
-                .expect("its metadata")
-                .permissions()
-                .mode()
-                & 0o777
-        };
-        assert_eq!(
-            mode(&path) & 0o600,
-            0o600,
-            "a new file is its owner's to read and write"
-        );
+        let mode =
+            |path| fs_err::metadata(path).expect("its metadata").permissions().mode() & 0o777;
+        assert_eq!(mode(&path) & 0o600, 0o600, "a new file is its owner's to read and write");
         fs_err::set_permissions(&path, Permissions::from_mode(0o751)).expect("sets a mode");
         write(&path, b"two").expect("replaces it");
         assert_eq!(mode(&path), 0o751, "a replaced file keeps its mode");

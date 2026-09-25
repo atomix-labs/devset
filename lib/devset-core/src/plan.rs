@@ -75,7 +75,7 @@ impl Entry {
                 } else {
                     Action::Keep
                 }
-            }
+            },
             // Already the profile's content, perhaps reformatted: never rewritten.
             (Some(found), record) if found.same_content(&incoming) => {
                 if record == Some(incoming) {
@@ -83,7 +83,7 @@ impl Entry {
                 } else {
                     Action::Record
                 }
-            }
+            },
             // Present but never recorded: adopted, so the profile becomes its base.
             (Some(_), None) => {
                 if restore {
@@ -91,15 +91,11 @@ impl Entry {
                 } else {
                     Action::Record
                 }
-            }
+            },
             // Untouched since recorded, and the profile has moved on.
             (Some(found), Some(record)) if found.same_content(&record) => {
-                if want.policy == Policy::Once {
-                    Action::Keep
-                } else {
-                    Action::Write
-                }
-            }
+                if want.policy == Policy::Once { Action::Keep } else { Action::Write }
+            },
             (Some(_), Some(record)) => {
                 if restore {
                     Action::Write
@@ -108,7 +104,7 @@ impl Entry {
                 } else {
                     Action::Keep
                 }
-            }
+            },
         }
     }
 }
@@ -190,18 +186,15 @@ impl Plan {
 ///   lies under one the file holds as a value.
 pub fn plan(survey: Survey, mode: Mode, target: &Target) -> Result<Plan> {
     let Survey { resolved, entries } = survey;
-    let mut unresolved: Vec<RelPath> = entries
-        .iter()
-        .filter(|e| e.conflict)
-        .map(|e| e.path.clone())
-        .collect();
+    let mut unresolved: Vec<RelPath> =
+        entries.iter().filter(|e| e.conflict).map(|e| e.path.clone()).collect();
     unresolved.dedup();
     match (mode, unresolved.is_empty()) {
         (Mode::Continue, true) => return Err(MergeError::NothingToContinue.into()),
         (Mode::Apply | Mode::Force, false) => {
             return Err(MergeError::Unresolved { paths: unresolved }.into());
-        }
-        _ => {}
+        },
+        _ => {},
     }
     let mut planner = Planner {
         resolved: &resolved,
@@ -223,13 +216,7 @@ pub fn plan(survey: Survey, mode: Mode, target: &Target) -> Result<Plan> {
     let Planner { merged, gone, .. } = planner;
     let conflicted = steps.iter().any(|step| step.action == Action::Conflict);
     let held = conflicted && resolved.settings().on_conflict == OnConflict::ApplyNone;
-    Ok(Plan {
-        resolved,
-        steps,
-        merged,
-        gone,
-        held,
-    })
+    Ok(Plan { resolved, steps, merged, gone, held })
 }
 
 /// Plans a file at a time, gathering the bytes merges and parts write.
@@ -261,12 +248,7 @@ struct Decision<'a> {
 impl Decision<'_> {
     /// A decision with no clash.
     const fn of(action: Action, content: Option<Vec<u8>>, note: Option<String>) -> Self {
-        Self {
-            action,
-            content,
-            note,
-            clash: None,
-        }
+        Self { action, content, note, clash: None }
     }
 }
 
@@ -291,19 +273,13 @@ impl<'a> Planner<'a> {
         let mut steps = Vec::with_capacity(entries.len());
         let mut parts = Vec::new();
         // A layer that owns the whole file decides all of it: a dropped part there is left.
-        let whole = entries
-            .iter()
-            .any(|entry| entry.part.is_none() && entry.want.is_some());
+        let whole = entries.iter().any(|entry| entry.part.is_none() && entry.want.is_some());
         for entry in entries {
             match (&entry.part, entry.want) {
                 (None, _) => steps.push(self.whole(entry)?),
                 (Some(_), None) if whole => {
-                    steps.push(Step {
-                        entry,
-                        action: Action::Untrack,
-                        note: None,
-                    });
-                }
+                    steps.push(Step { entry, action: Action::Untrack, note: None });
+                },
                 (Some(_), _) => parts.push(entry),
             }
         }
@@ -330,35 +306,20 @@ impl<'a> Planner<'a> {
                         .map(|why| format!("merged, but invalid: {why}"))
                 });
                 self.merged.put(entry.path.clone(), &bytes);
-                (
-                    if conflict.is_some() {
-                        Action::Conflict
-                    } else {
-                        Action::Merge
-                    },
-                    conflict,
-                )
-            }
+                (if conflict.is_some() { Action::Conflict } else { Action::Merge }, conflict)
+            },
             (Action::Remove, ..) => {
                 self.gone.insert(entry.path.clone());
                 (Action::Remove, None)
-            }
+            },
             (action, ..) => (action, None),
         };
-        Ok(Step {
-            entry,
-            action,
-            note,
-        })
+        Ok(Step { entry, action, note })
     }
 
     /// Merges `ours` and `theirs` from `base` for `path` with the configured driver.
     fn merge(
-        &self,
-        path: &RelPath,
-        base: Option<&[u8]>,
-        ours: &[u8],
-        theirs: &[u8],
+        &self, path: &RelPath, base: Option<&[u8]>, ours: &[u8], theirs: &[u8],
     ) -> Result<Merged> {
         let driver = &self.resolved.settings().driver;
         let root = self.target.root();
@@ -398,46 +359,25 @@ impl<'a> Planner<'a> {
         for entry in entries {
             let Some(portion) = resolved.portion(&entry) else {
                 let taken = self.take_out(&mut file, &entry, &claimed, label)?;
-                let action = if taken.is_some() {
-                    Action::Remove
-                } else {
-                    Action::Untrack
-                };
+                let action = if taken.is_some() { Action::Remove } else { Action::Untrack };
                 removed.extend(taken.map(|(shape, keys)| (steps.len(), shape, keys)));
-                steps.push(Step {
-                    entry,
-                    action,
-                    note: None,
-                });
+                steps.push(Step { entry, action, note: None });
                 continue;
             };
-            let Decision {
-                action,
-                content,
-                note,
-                clash,
-            } = self.decide(&entry, portion, &disk)?;
+            let Decision { action, content, note, clash } = self.decide(&entry, portion, &disk)?;
             clashes.extend(clash);
             if let Some(content) = content {
                 file = portion.splice(&file, &content, &entry.keys, label)?;
                 written.push((steps.len(), &portion.shape, content));
             }
-            steps.push(Step {
-                entry,
-                action,
-                note,
-            });
+            steps.push(Step { entry, action, note });
         }
         if written.is_empty() && removed.is_empty() {
             return Ok(steps);
         }
         // Markers never parse: a conflicted file is checked once resolved, by `--continue`.
         let marked = steps.iter().any(|step| step.action == Action::Conflict);
-        let trouble = if marked {
-            None
-        } else {
-            check(&file, &steps, &written, &removed, label)?
-        };
+        let trouble = if marked { None } else { check(&file, &steps, &written, &removed, label)? };
         let conflicted = marked || trouble.is_some();
         if !conflicted {
             // A file that held nothing but the parts removed from it goes with them.
@@ -481,37 +421,20 @@ impl<'a> Planner<'a> {
                 let note = format!("both changed {}", keys(&merged.conflicts));
                 let at = |side: &Leaves| {
                     let conflicts = &merged.conflicts;
-                    side.iter()
-                        .filter(|(k, _)| conflicts.contains(*k))
-                        .map(clone)
-                        .collect()
+                    side.iter().filter(|(k, _)| conflicts.contains(*k)).map(clone).collect()
                 };
                 let (base, theirs) = (at(&base), at(&theirs));
-                let clash = Clash {
-                    portion,
-                    keys: merged.conflicts,
-                    base,
-                    theirs,
-                };
-                Decision {
-                    action: Action::Conflict,
-                    content,
-                    note: Some(note),
-                    clash: Some(clash),
-                }
-            }
+                let clash = Clash { portion, keys: merged.conflicts, base, theirs };
+                Decision { action: Action::Conflict, content, note: Some(note), clash: Some(clash) }
+            },
             (Action::Merge, Some(record), Shape::Block(_)) => {
                 let base = self.target.base(&record)?;
                 let ours = shape.view(disk, &entry.keys, label)?.unwrap_or_default();
                 let Merged { bytes, conflict } =
                     self.merge(&entry.path, base.as_deref(), &ours, theirs)?;
-                let action = if conflict.is_some() {
-                    Action::Conflict
-                } else {
-                    Action::Merge
-                };
+                let action = if conflict.is_some() { Action::Conflict } else { Action::Merge };
                 Decision::of(action, Some(bytes), conflict)
-            }
+            },
             // Adopted leaf by leaf: a key the file holds keeps its value, one it lacks is
             // written, as a whole file already there is kept and one missing is written.
             (Action::Record, None, Shape::Keys(_)) => {
@@ -524,7 +447,7 @@ impl<'a> Planner<'a> {
                 } else {
                     Decision::of(Action::Merge, Some(encode(&filled)), None)
                 }
-            }
+            },
             (action, ..) => Decision::of(action, None, None),
         })
     }
@@ -533,11 +456,7 @@ impl<'a> Planner<'a> {
     /// recorded it; a key a part still provided covers stays. The part's shape and the keys it
     /// took, or `None` when it stays, untracked.
     fn take_out(
-        &self,
-        file: &mut Vec<u8>,
-        entry: &Entry,
-        claimed: &[Key],
-        label: &str,
+        &self, file: &mut Vec<u8>, entry: &Entry, claimed: &[Key], label: &str,
     ) -> Result<Option<(Shape, BTreeSet<Key>)>> {
         if entry.action(self.mode) != Action::Remove {
             return Ok(None);
@@ -560,17 +479,11 @@ impl<'a> Planner<'a> {
         let label = path.as_str();
         let (mut base, mut theirs) = (file.to_vec(), file.to_vec());
         for clash in clashes {
-            base = clash
-                .portion
-                .splice(&base, &encode(&clash.base), &clash.keys, label)?;
-            theirs = clash
-                .portion
-                .splice(&theirs, &encode(&clash.theirs), &clash.keys, label)?;
+            base = clash.portion.splice(&base, &encode(&clash.base), &clash.keys, label)?;
+            theirs = clash.portion.splice(&theirs, &encode(&clash.theirs), &clash.keys, label)?;
         }
         let root = self.target.root();
-        Ok(Driver::Builtin
-            .merge(root, path, &base, file, &theirs)?
-            .bytes)
+        Ok(Driver::Builtin.merge(root, path, &base, file, &theirs)?.bytes)
     }
 
     /// Installs the resolution of a file that waits in `.devset/conflicts/`.
@@ -578,10 +491,7 @@ impl<'a> Planner<'a> {
     /// The whole file is the resolution, so a part the update changed is recorded from the
     /// profile; one it left alone keeps its record.
     fn resolution(&mut self, entries: Vec<Entry>) -> Result<Vec<Step>> {
-        let path = entries
-            .iter()
-            .find(|entry| entry.want.is_some())
-            .map(|e| e.path.clone());
+        let path = entries.iter().find(|entry| entry.want.is_some()).map(|e| e.path.clone());
         if let Some(path) = path {
             let bytes = fs_err::read(self.target.sidecar(&path))?;
             if has_markers(&bytes) {
@@ -590,10 +500,7 @@ impl<'a> Planner<'a> {
             for want in entries.iter().filter_map(|entry| entry.want) {
                 want.validate
                     .check(&bytes)
-                    .map_err(|reason| MergeError::Invalid {
-                        path: path.clone(),
-                        reason,
-                    })?;
+                    .map_err(|reason| MergeError::Invalid { path: path.clone(), reason })?;
             }
             self.merged.put(path, &bytes);
         }
@@ -607,11 +514,7 @@ impl<'a> Planner<'a> {
                     action => action,
                 },
             };
-            Step {
-                entry,
-                action,
-                note: None,
-            }
+            Step { entry, action, note: None }
         };
         Ok(entries.into_iter().map(step).collect())
     }
@@ -620,17 +523,11 @@ impl<'a> Planner<'a> {
 /// Why the composed `file` cannot be written: it does not pass a part's check, a part reads back
 /// other than as `written`, or one `removed` is still there.
 fn check(
-    file: &[u8],
-    steps: &[Step],
-    written: &[(usize, &Shape, Vec<u8>)],
-    removed: &[(usize, Shape, BTreeSet<Key>)],
-    label: &str,
+    file: &[u8], steps: &[Step], written: &[(usize, &Shape, Vec<u8>)],
+    removed: &[(usize, Shape, BTreeSet<Key>)], label: &str,
 ) -> Result<Option<String>> {
-    let mut formats: Vec<Format> = steps
-        .iter()
-        .filter_map(|s| s.entry.want)
-        .map(|w| w.validate)
-        .collect();
+    let mut formats: Vec<Format> =
+        steps.iter().filter_map(|s| s.entry.want).map(|w| w.validate).collect();
     formats.dedup();
     for format in formats {
         if let Err(why) = format.check(file) {
@@ -641,9 +538,7 @@ fn check(
         let Some(step) = steps.get(*index) else {
             continue;
         };
-        let back = shape
-            .view(file, &step.entry.keys, label)?
-            .unwrap_or_default();
+        let back = shape.view(file, &step.entry.keys, label)?.unwrap_or_default();
         if !Fingerprint::of(&back).same_content(&Fingerprint::of(content)) {
             return Ok(Some("it reads back other than devset wrote it".to_owned()));
         }
@@ -665,10 +560,7 @@ fn clone((key, value): (&Key, &Value)) -> (Key, Value) {
 /// `keys` as people write them, the first few by name.
 fn keys(keys: &BTreeSet<Key>) -> String {
     const NAMED: usize = 3;
-    let named = keys
-        .iter()
-        .take(NAMED)
-        .map(|key| format!("`{}`", display(key)));
+    let named = keys.iter().take(NAMED).map(|key| format!("`{}`", display(key)));
     let rest = keys.len().saturating_sub(NAMED);
     list(named.chain((rest > 0).then(|| format!("{rest} more"))))
 }
@@ -763,10 +655,7 @@ mod tests {
             (Once,  Some("p"),  Some("p"),  Untrack), // the target's since written
         ];
         for (policy, found, record, action) in table {
-            let entry = Entry {
-                want: None,
-                ..entry(policy, found, record)
-            };
+            let entry = Entry { want: None, ..entry(policy, found, record) };
             let case = format!("{policy:?} found={found:?} record={record:?}");
             assert_eq!(entry.action(Mode::Apply), action, "apply: {case}");
             assert_eq!(entry.action(Mode::Force), action, "force: {case}");

@@ -63,19 +63,16 @@ impl Format {
                     };
                     e.span().map_or_else(|| e.message().to_owned(), at)
                 })
-            }
-            Self::Yaml => serde_saphyr::from_multiple::<IgnoredAny>(text()?)
-                .map(drop)
-                .map_err(|e| yaml(&e)),
+            },
+            Self::Yaml => {
+                serde_saphyr::from_multiple::<IgnoredAny>(text()?).map(drop).map_err(|e| yaml(&e))
+            },
             Self::Json => {
                 let text = text()?;
                 let parsed = parse_to_ast(text, &CollectOptions::default(), &jsonc())
                     .map_err(|e| e.to_string())?;
-                parsed
-                    .value
-                    .as_ref()
-                    .map_or(Ok(()), |value| unique_keys(value, text))
-            }
+                parsed.value.as_ref().map_or(Ok(()), |value| unique_keys(value, text))
+            },
         }
     }
 }
@@ -97,25 +94,16 @@ pub(crate) const fn jsonc() -> ParseOptions {
 fn yaml(error: &serde_saphyr::Error) -> String {
     let error = error.without_snippet();
     if let serde_saphyr::Error::DuplicateMappingKey { key, location } = error {
-        let key = key
-            .as_deref()
-            .map_or_else(String::new, |key| format!(" `{key}`"));
+        let key = key.as_deref().map_or_else(String::new, |key| format!(" `{key}`"));
         return format!("duplicate key{key} at line {}", location.line());
     }
     let message = error.to_string();
-    message
-        .strip_prefix("error: ")
-        .unwrap_or(&message)
-        .to_owned()
+    message.strip_prefix("error: ").unwrap_or(&message).to_owned()
 }
 
 /// The 1-based line of byte `offset` in `text`.
 fn line_at(text: &str, offset: usize) -> usize {
-    text.get(..offset)
-        .unwrap_or(text)
-        .matches('\n')
-        .count()
-        .saturating_add(1)
+    text.get(..offset).unwrap_or(text).matches('\n').count().saturating_add(1)
 }
 
 /// The first duplicate key in `value`, parsed from `text`, at any depth.
@@ -132,11 +120,10 @@ fn unique_keys(value: &Value<'_>, text: &str) -> Result<(), String> {
                 unique_keys(&property.value, text)?;
             }
             Ok(())
-        }
-        Value::Array(array) => array
-            .elements
-            .iter()
-            .try_for_each(|element| unique_keys(element, text)),
+        },
+        Value::Array(array) => {
+            array.elements.iter().try_for_each(|element| unique_keys(element, text))
+        },
         Value::StringLit(_)
         | Value::NumberLit(_)
         | Value::BooleanLit(_)
@@ -196,17 +183,9 @@ mod tests {
                 r#"{"o": {"b": 1, "b": 2}}"#,
             ),
             (Format::Json, "[1, 2]", r#"[{"a": 1, "a": 2}]"#),
-            (
-                Format::Yaml,
-                "a: 1\nt:\n  b: 2\n",
-                "name: app\ntimeout: 30\nport: 80\ntimeout: 60\n",
-            ),
+            (Format::Yaml, "a: 1\nt:\n  b: 2\n", "name: app\ntimeout: 30\nport: 80\ntimeout: 60\n"),
         ] {
-            assert_eq!(
-                format.check(valid.as_bytes()),
-                Ok(()),
-                "{format:?} valid: {valid:?}"
-            );
+            assert_eq!(format.check(valid.as_bytes()), Ok(()), "{format:?} valid: {valid:?}");
             assert!(
                 format.check(duplicated.as_bytes()).is_err(),
                 "{format:?} duplicate: {duplicated:?}"
@@ -216,26 +195,14 @@ mod tests {
             Format::Json.check(b"{'single': 1}").is_err(),
             "only comments and trailing commas are loosened"
         );
-        assert_eq!(
-            Format::None.check(b"\0 anything"),
-            Ok(()),
-            "none checks nothing"
-        );
+        assert_eq!(Format::None.check(b"\0 anything"), Ok(()), "none checks nothing");
         let located = [
-            (
-                Format::Json,
-                &b"{\"a\": 1,\n \"a\": 2}"[..],
-                "duplicate key `a` at line 2",
-            ),
+            (Format::Json, &b"{\"a\": 1,\n \"a\": 2}"[..], "duplicate key `a` at line 2"),
             (Format::Toml, b"a = 1\n\na = 2\n", "duplicate key at line 3"),
             (Format::Yaml, b"a: 1\na: 2\n", "duplicate key `a` at line 2"),
         ];
         for (format, bytes, want) in located {
-            assert_eq!(
-                format.check(bytes),
-                Err(want.into()),
-                "{format:?} names the line"
-            );
+            assert_eq!(format.check(bytes), Err(want.into()), "{format:?} names the line");
         }
     }
 }

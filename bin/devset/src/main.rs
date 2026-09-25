@@ -11,11 +11,7 @@
 //! devset update --continue
 //! ```
 
-#![feature(
-    non_exhaustive_omitted_patterns_lint,
-    normalize_lexically,
-    strict_provenance_lints
-)]
+#![feature(non_exhaustive_omitted_patterns_lint, normalize_lexically, strict_provenance_lints)]
 
 extern crate alloc;
 
@@ -208,20 +204,8 @@ struct SourceArgs {
 impl SourceArgs {
     /// The source these arguments name, as `[[layers]]` would.
     fn spec(self) -> SourceSpec {
-        let Self {
-            git,
-            tag,
-            branch,
-            rev,
-            path,
-        } = self;
-        SourceSpec {
-            git,
-            tag,
-            branch,
-            rev,
-            path,
-        }
+        let Self { git, tag, branch, rev, path } = self;
+        SourceSpec { git, tag, branch, rev, path }
     }
 }
 
@@ -278,27 +262,14 @@ fn run(shell: &Shell, command: Command) -> Result<ExitCode, Error> {
     let cwd = Utf8PathBuf::try_from(env::current_dir()?).map_err(io::Error::other)?;
     // Built for the commands that resolve layers only: nothing else needs a home directory.
     let cache = || -> Result<Cache, Error> {
-        Ok(Cache::user()?
-            .prompting(shell.interactive())
-            .on_fetch(shell.fetches()))
+        Ok(Cache::user()?.prompting(shell.interactive()).on_fetch(shell.fetches()))
     };
     match command {
-        Command::Init {
-            source,
-            answers,
-            dry_run,
-        } => {
+        Command::Init { source, answers, dry_run } => {
             let mut target = Target::open_or_new(&cwd)?;
             target.add_layer(Source::try_from(source.spec())?)?;
-            apply(
-                shell,
-                &mut target,
-                &cache()?,
-                (Refresh::None, Mode::Apply),
-                answers,
-                dry_run,
-            )
-        }
+            apply(shell, &mut target, &cache()?, (Refresh::None, Mode::Apply), answers, dry_run)
+        },
         Command::Remove { layer, dry_run } => {
             let mut target = Target::find(&cwd)?;
             let cache = cache()?;
@@ -311,62 +282,31 @@ fn run(shell: &Shell, command: Command) -> Result<ExitCode, Error> {
                 Answers::default(),
                 dry_run,
             )
-        }
+        },
         Command::Diff { paths } => {
             let target = Target::find(&cwd)?;
             let survey = survey(resolve(&target, &cache()?, Refresh::None)?, &target)?;
             let paths = managed(&survey, &target, &cwd, &paths)?;
             report::diff(&survey, &target, &paths)?;
             Ok(ExitCode::SUCCESS)
-        }
-        Command::Status {
-            exit_code,
-            json,
-            verbose,
-        } => status(shell, &cwd, &cache()?, exit_code, json, verbose),
-        Command::Apply {
-            force,
-            answers,
-            dry_run,
-        } => {
+        },
+        Command::Status { exit_code, json, verbose } => {
+            status(shell, &cwd, &cache()?, exit_code, json, verbose)
+        },
+        Command::Apply { force, answers, dry_run } => {
             let mode = if force { Mode::Force } else { Mode::Apply };
             let target = &mut Target::find(&cwd)?;
-            apply(
-                shell,
-                target,
-                &cache()?,
-                (Refresh::None, mode),
-                answers,
-                dry_run,
-            )
-        }
-        Command::Update {
-            abort: true,
-            force,
-            dry_run,
-            ..
-        } => abort(shell, &cwd, force, dry_run),
-        Command::Update {
-            layer,
-            resume,
-            answers,
-            dry_run,
-            ..
-        } => {
+            apply(shell, target, &cache()?, (Refresh::None, mode), answers, dry_run)
+        },
+        Command::Update { abort: true, force, dry_run, .. } => abort(shell, &cwd, force, dry_run),
+        Command::Update { layer, resume, answers, dry_run, .. } => {
             let how = match (resume, layer.as_deref()) {
                 (true, _) => (Refresh::None, Mode::Continue),
                 (false, Some(name)) => (Refresh::Layer(name), Mode::Apply),
                 (false, None) => (Refresh::All, Mode::Apply),
             };
-            apply(
-                shell,
-                &mut Target::find(&cwd)?,
-                &cache()?,
-                how,
-                answers,
-                dry_run,
-            )
-        }
+            apply(shell, &mut Target::find(&cwd)?, &cache()?, how, answers, dry_run)
+        },
         Command::Schema { file } => schema(file),
         Command::Completions { shell } => completions(shell),
     }
@@ -375,23 +315,14 @@ fn run(shell: &Shell, command: Command) -> Result<ExitCode, Error> {
 /// Reports where the target stands; with `exit_code`, fails when `apply --force` would write or
 /// an update is unfinished.
 fn status(
-    shell: &Shell,
-    cwd: &Utf8Path,
-    cache: &Cache,
-    exit_code: bool,
-    json: bool,
-    verbose: bool,
+    shell: &Shell, cwd: &Utf8Path, cache: &Cache, exit_code: bool, json: bool, verbose: bool,
 ) -> Result<ExitCode, Error> {
     let target = Target::find(cwd)?;
     let survey = survey(resolve(&target, cache, Refresh::None)?, &target)?;
     report::status(shell, &survey, json, verbose)?;
     github::status(&survey, &target)?;
     let failed = exit_code && (survey.drifted() || survey.unfinished());
-    Ok(if failed {
-        ExitCode::FAILURE
-    } else {
-        ExitCode::SUCCESS
-    })
+    Ok(if failed { ExitCode::FAILURE } else { ExitCode::SUCCESS })
 }
 
 /// Takes back an unfinished update, or with `dry_run` says what that would restore.
@@ -432,17 +363,9 @@ fn completions(shell: clap_complete::Shell) -> Result<ExitCode, Error> {
 ///
 /// Written by the commit that follows, unless `dry_run`.
 fn remove(
-    shell: &Shell,
-    target: &mut Target,
-    cache: &Cache,
-    name: &str,
-    dry_run: bool,
+    shell: &Shell, target: &mut Target, cache: &Cache, name: &str, dry_run: bool,
 ) -> Result<(), Error> {
-    let (verb, what) = if dry_run {
-        ("Would", "remove ")
-    } else {
-        ("Removing", "")
-    };
+    let (verb, what) = if dry_run { ("Would", "remove ") } else { ("Removing", "") };
     // A layer never applied is not in the lock by name: read the layers to find it.
     let source = if let Some(source) = target.layer(name) {
         source.clone()
@@ -450,31 +373,16 @@ fn remove(
         let resolved = resolve(target, cache, Refresh::None)?;
         let layers = resolved.layers();
         let named = layers.iter().find(|layer| layer.meta().name == name);
-        named
-            .map(|layer| layer.source().clone())
-            .ok_or_else(|| TargetError::NoSuchLayer {
-                name: name.to_owned(),
-                layers: layers
-                    .iter()
-                    .map(|layer| layer.meta().name.clone())
-                    .collect(),
-            })?
+        named.map(|layer| layer.source().clone()).ok_or_else(|| TargetError::NoSuchLayer {
+            name: name.to_owned(),
+            layers: layers.iter().map(|layer| layer.meta().name.clone()).collect(),
+        })?
     };
     if !target.config().layers.contains(&source) {
         let resolved = resolve(target, cache, Refresh::None)?;
-        let by = resolved
-            .layers()
-            .iter()
-            .find(|layer| layer.meta().name == name);
-        let by = by
-            .and_then(|layer| layer.required_by())
-            .unwrap_or_default()
-            .to_owned();
-        return Err(TargetError::Required {
-            name: name.to_owned(),
-            by,
-        }
-        .into());
+        let by = resolved.layers().iter().find(|layer| layer.meta().name == name);
+        let by = by.and_then(|layer| layer.required_by()).unwrap_or_default().to_owned();
+        return Err(TargetError::Required { name: name.to_owned(), by }.into());
     }
     target.remove_layer(&source, name)?;
     shell.status(verb, GOOD, format_args!("{what}layer {name}  {source}"))?;
@@ -486,26 +394,16 @@ fn remove(
             return Ok(());
         };
         target.remove_override(&path)?;
-        shell.status(
-            verb,
-            GOOD,
-            format_args!("{what}override [files.\"{path}\"]"),
-        )?;
+        shell.status(verb, GOOD, format_args!("{what}override [files.\"{path}\"]"))?;
     }
 }
 
 /// `paths`, given relative to `cwd`, as the managed paths of `target` they name.
 fn managed(
-    survey: &Survey,
-    target: &Target,
-    cwd: &Utf8Path,
-    paths: &[Utf8PathBuf],
+    survey: &Survey, target: &Target, cwd: &Utf8Path, paths: &[Utf8PathBuf],
 ) -> Result<Vec<RelPath>, Error> {
-    let mut managed: Vec<RelPath> = survey
-        .entries()
-        .iter()
-        .map(|entry| entry.path.clone())
-        .collect();
+    let mut managed: Vec<RelPath> =
+        survey.entries().iter().map(|entry| entry.path.clone()).collect();
     managed.dedup();
     paths
         .iter()
@@ -513,18 +411,12 @@ fn managed(
             // `..` resolved by name alone, as a shell resolves `cd ../x`.
             let full = cwd.join(given).as_std_path().normalize_lexically().ok();
             let full = full.and_then(|full| Utf8PathBuf::from_path_buf(full).ok());
-            let inside = full
-                .as_deref()
-                .and_then(|full| full.strip_prefix(target.root()).ok());
+            let inside = full.as_deref().and_then(|full| full.strip_prefix(target.root()).ok());
             let path = inside.and_then(|relative| RelPath::new(relative.as_str()).ok());
             path.filter(|path| managed.contains(path)).ok_or_else(|| {
                 // Named from the target root, as `status` names managed files.
                 let path = inside.map_or_else(|| given.to_string(), ToString::to_string);
-                TargetError::NotManaged {
-                    path,
-                    managed: managed.clone(),
-                }
-                .into()
+                TargetError::NotManaged { path, managed: managed.clone() }.into()
             })
         })
         .collect()
@@ -532,36 +424,20 @@ fn managed(
 
 /// Plans `target` and commits, unless `dry_run`; exit 1 when a file conflicts.
 fn apply(
-    shell: &Shell,
-    target: &mut Target,
-    cache: &Cache,
-    (refresh, mode): (Refresh<'_>, Mode),
-    answers: Answers,
-    dry_run: bool,
+    shell: &Shell, target: &mut Target, cache: &Cache, (refresh, mode): (Refresh<'_>, Mode),
+    answers: Answers, dry_run: bool,
 ) -> Result<ExitCode, Error> {
     let answered = target.answers().clone();
     let resolved = ask::resolved(shell, target, cache, refresh, answers.vars)?;
-    let dropped: Vec<VarName> = answered
-        .into_keys()
-        .filter(|name| !resolved.answers().contains_key(name))
-        .collect();
+    let dropped: Vec<VarName> =
+        answered.into_keys().filter(|name| !resolved.answers().contains_key(name)).collect();
     let plan = plan(survey(resolved, target)?, mode, target)?;
-    let (wrote, suggestions) = (
-        Wrote::of(dry_run, plan.held()),
-        plan.resolved().suggestions().to_vec(),
-    );
-    let steps = if dry_run {
-        plan.steps().to_vec()
-    } else {
-        commit(plan, target)?
-    };
+    let (wrote, suggestions) =
+        (Wrote::of(dry_run, plan.held()), plan.resolved().suggestions().to_vec());
+    let steps = if dry_run { plan.steps().to_vec() } else { commit(plan, target)? };
     let conflicts = report::applied(shell, &steps, wrote)?;
     github::conflicts(&steps, target, wrote)?;
     report::suggestions(shell, &suggestions)?;
     report::dropped(shell, &dropped, dry_run)?;
-    Ok(if conflicts {
-        ExitCode::FAILURE
-    } else {
-        ExitCode::SUCCESS
-    })
+    Ok(if conflicts { ExitCode::FAILURE } else { ExitCode::SUCCESS })
 }

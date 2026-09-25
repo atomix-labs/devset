@@ -92,10 +92,7 @@ impl RelPath {
 
 /// NFC, lowercase, HFS+ ignorables removed.
 fn fold(s: &str) -> String {
-    s.nfc()
-        .flat_map(char::to_lowercase)
-        .filter(|c| !IGNORABLE.contains(c))
-        .collect()
+    s.nfc().flat_map(char::to_lowercase).filter(|c| !IGNORABLE.contains(c)).collect()
 }
 
 /// The first rule `path` breaks.
@@ -113,10 +110,7 @@ fn check(path: &str) -> Result<(), &'static str> {
         if part.ends_with(['.', ' ']) {
             return Err("component ends in `.` or a space");
         }
-        if part
-            .chars()
-            .any(|c| c.is_control() || UNPORTABLE.contains(&c))
-        {
+        if part.chars().any(|c| c.is_control() || UNPORTABLE.contains(&c)) {
             return Err("unportable character");
         }
         if RESERVED.contains(&fold(part).as_str()) {
@@ -143,13 +137,7 @@ mod tests {
 
     #[test]
     fn accepts() {
-        for path in [
-            "a",
-            ".github/workflows/ci.yml",
-            ".gitignore",
-            "a.b/c-d_e",
-            "devset/x",
-        ] {
+        for path in ["a", ".github/workflows/ci.yml", ".gitignore", "a.b/c-d_e", "devset/x"] {
             assert!(RelPath::new(path).is_ok(), "{path} should be accepted");
         }
     }
@@ -183,10 +171,6 @@ mod tests {
     fn fold_collides_case_and_normalization() {
         let fold = |s: &str| RelPath::new(s).map(|p| p.fold()).ok();
         assert_eq!(fold("README.md"), fold("readme.md"), "case must fold");
-        assert_eq!(
-            fold("caf\u{E9}"),
-            fold("cafe\u{301}"),
-            "NFC and NFD must fold together"
-        );
+        assert_eq!(fold("caf\u{E9}"), fold("cafe\u{301}"), "NFC and NFD must fold together");
     }
 }

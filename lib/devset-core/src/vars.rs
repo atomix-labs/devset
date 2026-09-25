@@ -74,15 +74,9 @@ impl TryFrom<String> for VarName {
 
     fn try_from(name: String) -> Result<Self, VarError> {
         let mut chars = name.chars();
-        let valid = chars
-            .next()
-            .is_some_and(|c| c.is_ascii_alphabetic() || c == '_')
+        let valid = chars.next().is_some_and(|c| c.is_ascii_alphabetic() || c == '_')
             && chars.all(|c| c.is_ascii_alphanumeric() || c == '_');
-        if valid {
-            Ok(Self(name.into_boxed_str()))
-        } else {
-            Err(VarError::Name { name })
-        }
+        if valid { Ok(Self(name.into_boxed_str())) } else { Err(VarError::Name { name }) }
     }
 }
 
@@ -126,11 +120,7 @@ pub(crate) fn answers(layers: &[Layer], target: &Target) -> Result<BTreeMap<VarN
     }
     if let Some(name) = target.given().find(|name| !declared.contains_key(name)) {
         let declared = declared.keys().map(|&name| name.clone()).collect();
-        return Err(VarError::Unknown {
-            name: name.clone(),
-            declared,
-        }
-        .into());
+        return Err(VarError::Unknown { name: name.clone(), declared }.into());
     }
     let mut answers = BTreeMap::new();
     let mut questions = Vec::new();
@@ -138,7 +128,7 @@ pub(crate) fn answers(layers: &[Layer], target: &Target) -> Result<BTreeMap<VarN
         match target.answers().get(name) {
             Some(answer) => {
                 answers.insert(name.clone(), answer.clone());
-            }
+            },
             None => questions.push(Question {
                 name: name.clone(),
                 prompt: prompt.map_or_else(|| name.to_string(), str::to_owned),
@@ -149,11 +139,7 @@ pub(crate) fn answers(layers: &[Layer], target: &Target) -> Result<BTreeMap<VarN
             }),
         }
     }
-    if questions.is_empty() {
-        Ok(answers)
-    } else {
-        Err(VarError::Unanswered { questions }.into())
-    }
+    if questions.is_empty() { Ok(answers) } else { Err(VarError::Unanswered { questions }.into()) }
 }
 
 /// `layers` with every template rendered with `answers`.
@@ -163,8 +149,7 @@ pub(crate) fn answers(layers: &[Layer], target: &Target) -> Result<BTreeMap<VarN
 /// - [`VarError::Template`], a template is not UTF-8.
 /// - [`Error::Parse`](crate::Error::Parse), a template does not parse or render, pointing at where.
 pub(crate) fn render(
-    mut layers: Vec<Layer>,
-    answers: &BTreeMap<VarName, String>,
+    mut layers: Vec<Layer>, answers: &BTreeMap<VarName, String>,
 ) -> Result<Vec<Layer>> {
     let mut env = Environment::new();
     env.set_undefined_behavior(UndefinedBehavior::Strict);
@@ -191,16 +176,10 @@ pub(crate) fn render(
                     || e.kind().to_string(),
                     |detail| format!("{}: {detail}", e.kind()),
                 );
-                ParseError {
-                    file: file.clone(),
-                    text: source.to_owned(),
-                    span: e.range(),
-                    message,
-                }
+                ParseError { file: file.clone(), text: source.to_owned(), span: e.range(), message }
             };
-            let template = env
-                .template_from_named_str(path.as_str(), source)
-                .map_err(|e| failed(&e))?;
+            let template =
+                env.template_from_named_str(path.as_str(), source).map_err(|e| failed(&e))?;
             let undeclared = template
                 .undeclared_variables(false)
                 .into_iter()
@@ -210,12 +189,7 @@ pub(crate) fn render(
                 .min();
             if let Some(name) = undeclared {
                 let declared = answers.keys().cloned().collect();
-                return Err(VarError::Undeclared {
-                    path: path.clone(),
-                    name,
-                    declared,
-                }
-                .into());
+                return Err(VarError::Undeclared { path: path.clone(), name, declared }.into());
             }
             let text = template.render(answers).map_err(|e| failed(&e))?;
             rendered.put(path.clone(), text.as_bytes());
@@ -232,16 +206,10 @@ mod tests {
     #[test]
     fn names_are_identifiers() {
         for name in ["author", "_x", "target_cpu2"] {
-            assert!(
-                VarName::try_from(name.to_owned()).is_ok(),
-                "{name} is valid"
-            );
+            assert!(VarName::try_from(name.to_owned()).is_ok(), "{name} is valid");
         }
         for name in ["", "2x", "a-b", "a.b", "é"] {
-            assert!(
-                VarName::try_from(name.to_owned()).is_err(),
-                "{name:?} is invalid"
-            );
+            assert!(VarName::try_from(name.to_owned()).is_err(), "{name:?} is invalid");
         }
     }
 }

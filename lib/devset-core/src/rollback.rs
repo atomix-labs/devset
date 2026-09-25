@@ -52,10 +52,7 @@ impl Location {
         if let Some(path) = inner.strip_prefix("conflicts/") {
             return RelPath::new(path).ok().map(Self::Sidecar);
         }
-        RECORDS
-            .into_iter()
-            .find(|&name| name == inner)
-            .map(Self::Record)
+        RECORDS.into_iter().find(|&name| name == inner).map(Self::Record)
     }
 }
 
@@ -92,10 +89,7 @@ impl Undo {
     ///
     /// The first time, saves what it holds now.
     pub(crate) fn record(
-        &mut self,
-        target: &Target,
-        location: &Location,
-        bytes: Option<&[u8]>,
+        &mut self, target: &Target, location: &Location, bytes: Option<&[u8]>,
     ) -> Result<()> {
         let after = bytes.map(Digest::of);
         let key = location.to_string();
@@ -112,10 +106,7 @@ impl Undo {
             return Ok(());
         }
         if let (Some(current), Some(digest)) = (&current, before) {
-            let blob = target
-                .unfinished()
-                .join(UNDO_BLOBS)
-                .join(digest.to_string());
+            let blob = target.unfinished().join(UNDO_BLOBS).join(digest.to_string());
             if !blob.is_file() {
                 write(&blob, current)?;
             }
@@ -131,9 +122,7 @@ impl Undo {
 
     /// Each change, by where it is.
     fn changes(&self) -> impl Iterator<Item = (Location, Change)> + '_ {
-        self.files
-            .iter()
-            .filter_map(|(key, &change)| Some((Location::parse(key)?, change)))
+        self.files.iter().filter_map(|(key, &change)| Some((Location::parse(key)?, change)))
     }
 }
 
@@ -175,9 +164,7 @@ impl Rollback {
         let undo = Undo::load(target)?;
         let (mut reverts, mut changed) = (Vec::new(), Vec::new());
         for (location, change) in undo.changes() {
-            let now = read_optional(&location.under(target))?
-                .as_deref()
-                .map(Digest::of);
+            let now = read_optional(&location.under(target))?.as_deref().map(Digest::of);
             // Already as before: never written, or restored by an interrupted rollback.
             if now == change.before {
                 continue;
@@ -192,11 +179,7 @@ impl Rollback {
                 });
             }
         }
-        Ok(Self {
-            undo,
-            reverts,
-            changed,
-        })
+        Ok(Self { undo, reverts, changed })
     }
 
     /// What taking the update back does to target files, in path order.
@@ -225,10 +208,7 @@ impl Rollback {
     ///   it stays restored.
     pub fn apply(self, target: &Target, force: bool) -> Result<Vec<Revert>> {
         if !force && !self.changed.is_empty() {
-            return Err(MergeError::ChangedSince {
-                paths: self.changed,
-            }
-            .into());
+            return Err(MergeError::ChangedSince { paths: self.changed }.into());
         }
         let _guard = lock(target)?;
         let mut changes: Vec<(Location, Change)> = self.undo.changes().collect();
@@ -246,11 +226,9 @@ impl Rollback {
                 Some(digest) => {
                     let saved = read_optional(&blobs.join(digest.to_string()))?
                         .filter(|bytes| Digest::of(bytes) == digest)
-                        .ok_or_else(|| MergeError::CorruptUndo {
-                            path: location.to_string(),
-                        })?;
+                        .ok_or_else(|| MergeError::CorruptUndo { path: location.to_string() })?;
                     write(&file, &saved)?;
-                }
+                },
             }
         }
         let state: State = read_toml(&target.dir(), STATE)?.unwrap_or_default();
@@ -269,22 +247,12 @@ mod tests {
     #[test]
     fn locations_round_trip_through_their_keys() {
         let path = || RelPath::new(".github/ci.yml").expect("a valid path");
-        for location in [
-            Location::File(path()),
-            Location::Sidecar(path()),
-            Location::Record("lock.toml"),
-        ] {
-            assert_eq!(
-                Location::parse(&location.to_string()),
-                Some(location),
-                "as written"
-            );
+        for location in
+            [Location::File(path()), Location::Sidecar(path()), Location::Record("lock.toml")]
+        {
+            assert_eq!(Location::parse(&location.to_string()), Some(location), "as written");
         }
-        for key in [
-            ".devset/base/x",
-            ".devset/conflicts/.devset/undo.toml",
-            "../escape",
-        ] {
+        for key in [".devset/base/x", ".devset/conflicts/.devset/undo.toml", "../escape"] {
             assert_eq!(Location::parse(key), None, "{key} names no location");
         }
     }

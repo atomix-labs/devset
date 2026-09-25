@@ -82,13 +82,7 @@ impl TryFrom<SourceSpec> for Source {
     type Error = SourceError;
 
     fn try_from(spec: SourceSpec) -> Result<Self, SourceError> {
-        let SourceSpec {
-            git,
-            tag,
-            branch,
-            rev,
-            path,
-        } = spec;
+        let SourceSpec { git, tag, branch, rev, path } = spec;
         let Some(url) = git else {
             if tag.is_some() || branch.is_some() || rev.is_some() {
                 return Err(SourceError::RefWithoutGit);
@@ -107,10 +101,7 @@ impl TryFrom<SourceSpec> for Source {
             (None, None, Some(rev)) => GitRef::Rev(Oid::try_from(rev)?),
             _ => return Err(SourceError::TwoRefs),
         };
-        let path = path
-            .filter(|p| !p.is_empty())
-            .map(RelPath::try_from)
-            .transpose()?;
+        let path = path.filter(|p| !p.is_empty()).map(RelPath::try_from).transpose()?;
         Ok(Self::Git { url, at, path })
     }
 }
@@ -120,38 +111,26 @@ fn dir(path: &str) -> Option<Utf8PathBuf> {
     if path.is_empty() {
         return None;
     }
-    let dir: Utf8PathBuf = Utf8Path::new(path)
-        .components()
-        .filter(|c| *c != Utf8Component::CurDir)
-        .collect();
-    Some(if dir.as_str().is_empty() {
-        Utf8PathBuf::from(".")
-    } else {
-        dir
-    })
+    let dir: Utf8PathBuf =
+        Utf8Path::new(path).components().filter(|c| *c != Utf8Component::CurDir).collect();
+    Some(if dir.as_str().is_empty() { Utf8PathBuf::from(".") } else { dir })
 }
 
 impl From<Source> for SourceSpec {
     fn from(source: Source) -> Self {
         match source {
-            Source::Dir(path) => Self {
-                path: Some(path.into_string()),
-                ..Self::default()
-            },
+            Source::Dir(path) => Self { path: Some(path.into_string()), ..Self::default() },
             Source::Git { url, at, path } => {
-                let mut spec = Self {
-                    git: Some(url),
-                    path: path.map(String::from),
-                    ..Self::default()
-                };
+                let mut spec =
+                    Self { git: Some(url), path: path.map(String::from), ..Self::default() };
                 match at {
-                    GitRef::Head => {}
+                    GitRef::Head => {},
                     GitRef::Branch(branch) => spec.branch = Some(branch),
                     GitRef::Tag(tag) => spec.tag = Some(tag),
                     GitRef::Rev(rev) => spec.rev = Some(rev.into()),
                 }
                 spec
-            }
+            },
         }
     }
 }
@@ -172,11 +151,7 @@ impl Source {
         match (self, other) {
             (
                 Self::Git { url, at, path },
-                Self::Git {
-                    url: other_url,
-                    at: other_at,
-                    path: other_path,
-                },
+                Self::Git { url: other_url, at: other_at, path: other_path },
             ) => url == other_url && path == other_path && at != other_at,
             (Self::Dir(_) | Self::Git { .. }, Self::Dir(_) | Self::Git { .. }) => false,
         }
@@ -190,14 +165,13 @@ impl fmt::Display for Source {
             Self::Git { url, at, path } => {
                 f.write_str(url)?;
                 match at {
-                    GitRef::Head => {}
+                    GitRef::Head => {},
                     GitRef::Branch(branch) => write!(f, " branch {branch}")?,
                     GitRef::Tag(tag) => write!(f, " tag {tag}")?,
                     GitRef::Rev(rev) => write!(f, " rev {rev}")?,
                 }
-                path.as_ref()
-                    .map_or(Ok(()), |path| write!(f, " path {path}"))
-            }
+                path.as_ref().map_or(Ok(()), |path| write!(f, " path {path}"))
+            },
         }
     }
 }
@@ -271,12 +245,7 @@ impl Cache {
     /// A cache in `dir`.
     #[must_use]
     pub fn at(dir: Utf8PathBuf) -> Self {
-        Self {
-            dir,
-            hook: None,
-            refs: Arc::new(Mutex::new(HashMap::new())),
-            prompts: false,
-        }
+        Self { dir, hook: None, refs: Arc::new(Mutex::new(HashMap::new())), prompts: false }
     }
 
     /// This cache, calling `hook` around every remote access so a caller can show progress.
@@ -344,7 +313,7 @@ impl Source {
             Self::Git { url, at, path } => {
                 git::Commit::open(&locate(url, root), url, at, path.as_ref(), pin, cache)
                     .map(Reader::Git)
-            }
+            },
         }
     }
 }
@@ -354,14 +323,8 @@ impl Source {
 /// Git's rule: `host:path` is scp-like only when the colon precedes any slash.
 fn locate<'a>(url: &'a str, root: &Utf8Path) -> Cow<'a, str> {
     let remote = url.contains("://")
-        || url
-            .find(':')
-            .is_some_and(|colon| url.find('/').is_none_or(|slash| colon < slash));
-    if remote {
-        Cow::Borrowed(url)
-    } else {
-        Cow::Owned(root.join(url).into_string())
-    }
+        || url.find(':').is_some_and(|colon| url.find('/').is_none_or(|slash| colon < slash));
+    if remote { Cow::Borrowed(url) } else { Cow::Owned(root.join(url).into_string()) }
 }
 
 impl Reader {
@@ -433,14 +396,11 @@ fn read_dir(dir: &Utf8Path, paths: &[RelPath]) -> Result<Tree> {
                     fs_err::File::open(&file)?.read_to_end(buf)?;
                     Ok(())
                 })?;
-            }
+            },
             Ok(_) => {
-                return Err(SourceError::NotAFile {
-                    file: file.into_string(),
-                }
-                .into());
-            }
-            Err(e) if e.kind() == io::ErrorKind::NotFound => {}
+                return Err(SourceError::NotAFile { file: file.into_string() }.into());
+            },
+            Err(e) if e.kind() == io::ErrorKind::NotFound => {},
             Err(e) => return Err(e.into()),
         }
     }
@@ -459,18 +419,10 @@ mod tests {
 
     #[test]
     fn valid() {
-        assert_eq!(
-            parse(r#"path = "../p""#),
-            Ok(Source::Dir("../p".into())),
-            "local directory"
-        );
+        assert_eq!(parse(r#"path = "../p""#), Ok(Source::Dir("../p".into())), "local directory");
         for (written, dir) in [("./../p/", "../p"), ("./p", "p"), (".", "."), ("./", ".")] {
             let toml = format!("path = \"{written}\"");
-            assert_eq!(
-                parse(&toml),
-                Ok(Source::Dir(dir.into())),
-                "{written:?} has one spelling"
-            );
+            assert_eq!(parse(&toml), Ok(Source::Dir(dir.into())), "{written:?} has one spelling");
         }
         let Ok(Source::Git { url, at, path }) = parse(
             r#"git = "https://h/r"
@@ -485,10 +437,8 @@ path = "rust""#,
             "fields"
         );
         let rev = "A".repeat(40);
-        let Ok(Source::Git {
-            at: GitRef::Rev(oid),
-            ..
-        }) = parse(&format!("git = \"u\"\nrev = \"{rev}\""))
+        let Ok(Source::Git { at: GitRef::Rev(oid), .. }) =
+            parse(&format!("git = \"u\"\nrev = \"{rev}\""))
         else {
             panic!("rev should parse");
         };
@@ -537,10 +487,6 @@ bogus = 1"#,
     fn round_trips() {
         let toml = "git = \"https://h/r\"\nbranch = \"main\"\npath = \"a/b\"\n";
         let source = parse(toml).unwrap();
-        assert_eq!(
-            toml::to_string(&source).unwrap(),
-            toml,
-            "serialized as written"
-        );
+        assert_eq!(toml::to_string(&source).unwrap(), toml, "serialized as written");
     }
 }

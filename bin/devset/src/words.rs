@@ -4,11 +4,7 @@ use core::fmt::Display;
 
 /// `n` and `noun`, pluralised.
 pub(crate) fn count(n: usize, noun: &str) -> String {
-    if n == 1 {
-        format!("1 {noun}")
-    } else {
-        format!("{n} {noun}s")
-    }
+    if n == 1 { format!("1 {noun}") } else { format!("{n} {noun}s") }
 }
 
 /// `items`, comma-separated, with `and` before the last.
@@ -25,10 +21,7 @@ pub(crate) fn nearest<T: AsRef<str>>(needle: impl AsRef<str>, candidates: &[T]) 
     candidates
         .iter()
         .map(|candidate| {
-            (
-                strsim::jaro_winkler(needle.as_ref(), candidate.as_ref()),
-                candidate.as_ref(),
-            )
+            (strsim::jaro_winkler(needle.as_ref(), candidate.as_ref()), candidate.as_ref())
         })
         .filter(|&(score, _)| score > 0.8)
         .max_by(|a, b| a.0.total_cmp(&b.0))

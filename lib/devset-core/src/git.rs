@@ -64,22 +64,11 @@ impl Commit {
     ///
     /// `shown` is the URL as configured, for progress and messages.
     pub(crate) fn open(
-        url: &str,
-        shown: &str,
-        at: &GitRef,
-        dir: Option<&RelPath>,
-        pin: Option<&Oid>,
+        url: &str, shown: &str, at: &GitRef, dir: Option<&RelPath>, pin: Option<&Oid>,
         cache: &Cache,
     ) -> Result<Self> {
-        let remote = Remote {
-            url,
-            shown,
-            prompts: cache.prompts(),
-        };
-        let repo = cache
-            .path()
-            .join("git")
-            .join(Digest::of(url.as_bytes()).to_string());
+        let remote = Remote { url, shown, prompts: cache.prompts() };
+        let repo = cache.path().join("git").join(Digest::of(url.as_bytes()).to_string());
         if !repo.join("HEAD").is_file() {
             fs_err::create_dir_all(&repo)?;
             git(Some(&repo), &["init", "--bare", "-q"], None)?;
@@ -102,7 +91,7 @@ impl Commit {
                     cache.remember(url, &wanted(at), &rev);
                     rev
                 }
-            }
+            },
         };
         if !has(&repo, &rev)? {
             contact();
@@ -112,12 +101,7 @@ impl Commit {
             cache.notify(Fetch::Done(shown));
         }
         let listing = git(Some(&repo), &["ls-tree", "-r", "-z", rev.as_str()], None)?;
-        Ok(Self {
-            repo,
-            rev,
-            dir: dir.cloned(),
-            files: parse_listing(&listing),
-        })
+        Ok(Self { repo, rev, dir: dir.cloned(), files: parse_listing(&listing) })
     }
 
     /// The commit.
@@ -147,14 +131,14 @@ impl Commit {
         for path in paths {
             let key = format!("{prefix}{path}");
             match self.files.get(&key) {
-                None => {}
+                None => {},
                 Some(blob) if blob.regular => wanted.push((path, blob.id.as_str())),
                 Some(_) => {
                     return Err(SourceError::NotAFile {
                         file: format!("{key} @{}", self.rev.short()),
                     }
                     .into());
-                }
+                },
             }
         }
         let mut tree = Tree::default();
@@ -168,14 +152,8 @@ impl Commit {
             .stdout(Stdio::piped())
             .spawn()
             .map_err(spawn_error)?;
-        let mut stdin = child
-            .stdin
-            .take()
-            .ok_or_else(|| io::Error::other("git: no stdin"))?;
-        let stdout = child
-            .stdout
-            .take()
-            .ok_or_else(|| io::Error::other("git: no stdout"))?;
+        let mut stdin = child.stdin.take().ok_or_else(|| io::Error::other("git: no stdin"))?;
+        let stdout = child.stdout.take().ok_or_else(|| io::Error::other("git: no stdout"))?;
         let mut stdout = BufReader::new(stdout);
         let mut header = String::new();
         for (path, id) in wanted {
@@ -198,11 +176,7 @@ impl Commit {
         let status = child.wait()?;
         if !status.success() {
             let stderr = status.to_string();
-            return Err(SourceError::Git {
-                command: "cat-file".to_owned(),
-                stderr,
-            }
-            .into());
+            return Err(SourceError::Git { command: "cat-file".to_owned(), stderr }.into());
         }
         Ok(tree)
     }
@@ -223,13 +197,7 @@ fn parse_listing(raw: &[u8]) -> BTreeMap<String, Blob> {
             let mut meta = meta.split(' ');
             let (mode, kind, id) = (meta.next()?, meta.next()?, meta.next()?);
             let regular = kind == "blob" && matches!(mode, "100644" | "100755");
-            Some((
-                path.to_owned(),
-                Blob {
-                    id: id.to_owned(),
-                    regular,
-                },
-            ))
+            Some((path.to_owned(), Blob { id: id.to_owned(), regular }))
         })
         .collect()
 }
@@ -254,11 +222,7 @@ fn resolve(remote: Remote<'_>, at: &GitRef) -> Result<Oid> {
     };
     let name = wanted(at);
     let peeled = format!("{name}^{{}}");
-    let listing = git(
-        None,
-        &["ls-remote", "--", remote.url, &name, &peeled],
-        Some(remote),
-    )?;
+    let listing = git(None, &["ls-remote", "--", remote.url, &name, &peeled], Some(remote))?;
     let listing = String::from_utf8_lossy(&listing);
     let mut found = None;
     for (id, listed) in listing.lines().filter_map(|line| line.split_once('\t')) {
@@ -270,10 +234,7 @@ fn resolve(remote: Remote<'_>, at: &GitRef) -> Result<Oid> {
             found = Some(id);
         }
     }
-    let id = found.ok_or_else(|| SourceError::NoRef {
-        url: remote.shown.to_owned(),
-        reference,
-    })?;
+    let id = found.ok_or_else(|| SourceError::NoRef { url: remote.shown.to_owned(), reference })?;
     Oid::try_from(id.to_owned()).map_err(Error::from)
 }
 
@@ -292,25 +253,14 @@ fn has(repo: &Utf8Path, rev: &Oid) -> Result<bool> {
 ///
 /// Kept under `refs/devset/`, so git's garbage collection leaves it for offline runs.
 fn fetch(repo: &Utf8Path, remote: Remote<'_>, at: &GitRef, rev: &Oid) -> Result<()> {
-    let args = [
-        "fetch",
-        "-q",
-        "--depth",
-        "1",
-        "--no-tags",
-        "--",
-        remote.url,
-        rev.as_str(),
-    ];
+    let args = ["fetch", "-q", "--depth", "1", "--no-tags", "--", remote.url, rev.as_str()];
     if let Err(refused) = git(Some(repo), &args, Some(remote)) {
         if let (GitRef::Rev(_), Error::Source(SourceError::Git { stderr, .. })) = (at, &refused)
             && NO_COMMIT.iter().any(|said| stderr.contains(said))
         {
-            return Err(SourceError::NoCommit {
-                url: remote.shown.to_owned(),
-                rev: rev.clone(),
-            }
-            .into());
+            return Err(
+                SourceError::NoCommit { url: remote.shown.to_owned(), rev: rev.clone() }.into()
+            );
         }
         if matches!(at, GitRef::Rev(_)) {
             return Err(refused);
@@ -336,9 +286,7 @@ fn command(repo: Option<&Utf8Path>, args: &[&str], prompts: bool) -> Command {
         command.arg("-C").arg(repo);
     }
     if !prompts {
-        command
-            .env("GIT_TERMINAL_PROMPT", "0")
-            .env("GCM_INTERACTIVE", "never");
+        command.env("GIT_TERMINAL_PROMPT", "0").env("GCM_INTERACTIVE", "never");
     }
     command.args(args);
     command
@@ -347,39 +295,24 @@ fn command(repo: Option<&Utf8Path>, args: &[&str], prompts: bool) -> Command {
 /// Runs `git`, returning its output; a failure reaching `remote` says which remote.
 fn git(repo: Option<&Utf8Path>, args: &[&str], remote: Option<Remote<'_>>) -> Result<Vec<u8>> {
     let prompts = remote.is_some_and(|remote| remote.prompts);
-    let output = command(repo, args, prompts)
-        .stdin(Stdio::null())
-        .output()
-        .map_err(spawn_error)?;
+    let output = command(repo, args, prompts).stdin(Stdio::null()).output().map_err(spawn_error)?;
     if output.status.success() {
         return Ok(output.stdout);
     }
     let stderr = String::from_utf8_lossy(&output.stderr);
     let stderr: Vec<&str> = stderr
         .lines()
-        .map(|line| {
-            line.trim()
-                .trim_start_matches("fatal: ")
-                .trim_start_matches("error: ")
-        })
+        .map(|line| line.trim().trim_start_matches("fatal: ").trim_start_matches("error: "))
         .filter(|line| !line.is_empty())
         .collect();
     let subcommand = args.first().copied().unwrap_or_default();
     let Some(remote) = remote else {
-        return Err(SourceError::Git {
-            command: subcommand.to_owned(),
-            stderr: stderr.join("\n"),
-        }
-        .into());
+        return Err(
+            SourceError::Git { command: subcommand.to_owned(), stderr: stderr.join("\n") }.into()
+        );
     };
-    if stderr
-        .iter()
-        .any(|line| NO_CREDENTIALS.iter().any(|said| line.contains(said)))
-    {
-        return Err(SourceError::Credentials {
-            url: remote.shown.to_owned(),
-        }
-        .into());
+    if stderr.iter().any(|line| NO_CREDENTIALS.iter().any(|said| line.contains(said))) {
+        return Err(SourceError::Credentials { url: remote.shown.to_owned() }.into());
     }
     let command = format!("{subcommand} {}", remote.shown);
     let stderr = stderr.join("\n").replace(remote.url, remote.shown);
@@ -388,9 +321,5 @@ fn git(repo: Option<&Utf8Path>, args: &[&str], remote: Option<Remote<'_>>) -> Re
 
 /// A failure to start `git`.
 fn spawn_error(error: io::Error) -> Error {
-    if error.kind() == io::ErrorKind::NotFound {
-        SourceError::NoGit.into()
-    } else {
-        error.into()
-    }
+    if error.kind() == io::ErrorKind::NotFound { SourceError::NoGit.into() } else { error.into() }
 }

@@ -119,9 +119,7 @@ impl Target {
     /// - [`TargetError::NotFound`], no ancestor holds one.
     /// - [`Error::Parse`](crate::Error::Parse), one of its files does not parse.
     pub fn find(dir: &Utf8Path) -> Result<Self> {
-        let root = enclosing(dir).ok_or_else(|| TargetError::NotFound {
-            dir: dir.to_owned(),
-        })?;
+        let root = enclosing(dir).ok_or_else(|| TargetError::NotFound { dir: dir.to_owned() })?;
         Self::load(root)
     }
 
@@ -133,11 +131,9 @@ impl Target {
     pub fn open_or_new(root: &Utf8Path) -> Result<Self> {
         match enclosing(root) {
             Some(found) if found == root => Self::load(root),
-            Some(outer) => Err(TargetError::Nested {
-                dir: root.to_owned(),
-                root: outer.to_owned(),
-            }
-            .into()),
+            Some(outer) => {
+                Err(TargetError::Nested { dir: root.to_owned(), root: outer.to_owned() }.into())
+            },
             None => Ok(Self {
                 root: root.to_owned(),
                 config: Config::default(),
@@ -172,19 +168,12 @@ impl Target {
     /// - [`Error::Io`](crate::Error::Io), the layer cannot be written as TOML.
     pub fn add_layer(&mut self, source: Source) -> Result<()> {
         if self.config.layers.contains(&source) {
-            return Err(TargetError::DuplicateLayer {
-                layer: source.to_string(),
-            }
-            .into());
+            return Err(TargetError::DuplicateLayer { layer: source.to_string() }.into());
         }
-        let table = ser::to_document(&SourceSpec::from(source))
-            .map_err(io::Error::other)?
-            .into_table();
+        let table =
+            ser::to_document(&SourceSpec::from(source)).map_err(io::Error::other)?.into_table();
         self.edit(|doc| {
-            match doc
-                .entry("layers")
-                .or_insert_with(|| Item::ArrayOfTables(ArrayOfTables::new()))
-            {
+            match doc.entry("layers").or_insert_with(|| Item::ArrayOfTables(ArrayOfTables::new())) {
                 Item::ArrayOfTables(layers) => layers.push(table),
                 Item::Value(Value::Array(layers)) => layers.push(table.into_inline_table()),
                 Item::None | Item::Value(_) | Item::Table(_) => return false,
@@ -197,14 +186,8 @@ impl Target {
     #[must_use]
     pub fn layer(&self, name: &str) -> Option<&Source> {
         let lock = self.pending.as_ref().unwrap_or(&self.lock);
-        let locked = lock
-            .layers
-            .iter()
-            .find(|locked| locked.name.as_deref() == Some(name))?;
-        self.config
-            .layers
-            .iter()
-            .find(|source| **source == locked.source)
+        let locked = lock.layers.iter().find(|locked| locked.name.as_deref() == Some(name))?;
+        self.config.layers.iter().find(|source| **source == locked.source)
     }
 
     /// Removes the layer at `source`; written by the next [`commit`](crate::commit()).
@@ -222,10 +205,10 @@ impl Target {
             match doc.get_mut("layers") {
                 Some(Item::ArrayOfTables(layers)) if index < layers.len() => {
                     layers.remove(index);
-                }
+                },
                 Some(Item::Value(Value::Array(layers))) if index < layers.len() => {
                     layers.remove(index);
-                }
+                },
                 Some(_) | None => return false,
             }
             if let Some(files) = doc.get_mut("files").and_then(Item::as_table_like_mut) {
@@ -354,9 +337,7 @@ impl Target {
         let config_text = String::from_utf8(config_raw).map_err(io::Error::other)?;
         let state_raw = read_optional(&dir.join(STATE))?;
         let state_digest = state_raw.as_deref().map(Digest::of);
-        let state = state_raw
-            .map(|raw| from_toml(&raw, &label(STATE)))
-            .transpose()?;
+        let state = state_raw.map(|raw| from_toml(&raw, &label(STATE))).transpose()?;
         Ok(Self {
             root: root.to_owned(),
             config,
@@ -411,10 +392,7 @@ pub(crate) struct Locked {
 impl Lock {
     /// A lock of `layers`, in order.
     pub(crate) const fn new(layers: Vec<Locked>) -> Self {
-        Self {
-            version: V1,
-            layers,
-        }
+        Self { version: V1, layers }
     }
 }
 
@@ -475,36 +453,16 @@ impl State {
     /// A state recording `records`.
     pub(crate) fn new(records: BTreeMap<Slot, Record>) -> Self {
         let mut state = Self::default();
-        for (
-            Slot { path, part },
-            Record {
-                scope,
-                fingerprint,
-                policy,
-            },
-        ) in records
-        {
+        for (Slot { path, part }, Record { scope, fingerprint, policy }) in records {
             let Fingerprint { exact, canonical } = fingerprint;
             match part {
                 None => {
-                    state.files.insert(
-                        path,
-                        FileRecord {
-                            exact,
-                            canonical,
-                            policy,
-                        },
-                    );
-                }
+                    state.files.insert(path, FileRecord { exact, canonical, policy });
+                },
                 Some(owner) => {
-                    let record = PartRecord {
-                        scope,
-                        exact,
-                        canonical,
-                        policy,
-                    };
+                    let record = PartRecord { scope, exact, canonical, policy };
                     state.parts.entry(path).or_default().insert(owner, record);
-                }
+                },
             }
         }
         state
@@ -513,41 +471,15 @@ impl State {
     /// Every record, whole files first.
     fn records(&self) -> impl Iterator<Item = (Slot, Record)> {
         let files = self.files.iter().map(|(path, record)| {
-            let FileRecord {
-                exact,
-                canonical,
-                policy,
-            } = *record;
+            let FileRecord { exact, canonical, policy } = *record;
             let fingerprint = Fingerprint { exact, canonical };
-            (
-                Slot::whole(path.clone()),
-                Record {
-                    scope: Scope::File,
-                    fingerprint,
-                    policy,
-                },
-            )
+            (Slot::whole(path.clone()), Record { scope: Scope::File, fingerprint, policy })
         });
         let parts = self.parts.iter().flat_map(|(path, parts)| {
             parts.iter().map(|(owner, record)| {
-                let slot = Slot {
-                    path: path.clone(),
-                    part: Some(owner.clone()),
-                };
-                let PartRecord {
-                    scope,
-                    exact,
-                    canonical,
-                    policy,
-                } = *record;
-                (
-                    slot,
-                    Record {
-                        scope,
-                        fingerprint: Fingerprint { exact, canonical },
-                        policy,
-                    },
-                )
+                let slot = Slot { path: path.clone(), part: Some(owner.clone()) };
+                let PartRecord { scope, exact, canonical, policy } = *record;
+                (slot, Record { scope, fingerprint: Fingerprint { exact, canonical }, policy })
             })
         });
         files.chain(parts)
@@ -573,9 +505,7 @@ impl<'de> Deserialize<'de> for V1 {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         match u8::deserialize(deserializer)? {
             1 => Ok(Self),
-            other => Err(de::Error::custom(format_args!(
-                "unsupported format version {other}"
-            ))),
+            other => Err(de::Error::custom(format_args!("unsupported format version {other}"))),
         }
     }
 }
@@ -594,9 +524,7 @@ pub(crate) fn from_toml<T: DeserializeOwned>(bytes: &[u8], file: &str) -> Result
 
 /// `name` in the `.devset/` at `dir`, parsed; `None` if it does not exist.
 pub(crate) fn read_toml<T: DeserializeOwned>(dir: &Utf8Path, name: &str) -> Result<Option<T>> {
-    read_optional(&dir.join(name))?
-        .map(|raw| from_toml(&raw, &label(name)))
-        .transpose()
+    read_optional(&dir.join(name))?.map(|raw| from_toml(&raw, &label(name))).transpose()
 }
 
 /// The contents of `path`, or `None` if it does not exist.

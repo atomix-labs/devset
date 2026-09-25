@@ -41,11 +41,7 @@ pub(crate) fn status(survey: &Survey, target: &Target) -> io::Result<()> {
         return Ok(());
     }
     let mut rows = Vec::new();
-    let apply = if survey.unfinished() {
-        "`devset update --continue`"
-    } else {
-        "`devset apply`"
-    };
+    let apply = if survey.unfinished() { "`devset update --continue`" } else { "`devset apply`" };
     for entry in survey.entries() {
         let path = &entry.path;
         let (level, next) = match Standing::of(entry) {
@@ -55,25 +51,18 @@ pub(crate) fn status(survey: &Survey, target: &Target) -> io::Result<()> {
             ),
             Standing::Drifted(change) => {
                 ("error", format!("`devset apply --force` would {change} it"))
-            }
+            },
             Standing::Pending(change) => ("warning", format!("{apply} would {change} it")),
             Standing::Local | Standing::InSync => continue,
         };
         let state = State::of(entry);
-        annotate(
-            level,
-            &file(target, path),
-            &format!("{entry} is {state}; {next}"),
-        )?;
+        annotate(level, &file(target, path), &format!("{entry} is {state}; {next}"))?;
         rows.push(format!("| `{entry}` | {state} | {next} |"));
     }
     let summary = if rows.is_empty() {
         format!("### devset\n\n{}\n", in_sync(files(survey)))
     } else {
-        format!(
-            "### devset\n\n| File | State | Next |\n| --- | --- | --- |\n{}\n",
-            rows.join("\n")
-        )
+        format!("### devset\n\n| File | State | Next |\n| --- | --- | --- |\n{}\n", rows.join("\n"))
     };
     summarize(&summary)
 }
@@ -91,7 +80,7 @@ pub(crate) fn conflicts(steps: &[Step], target: &Target, wrote: Wrote) -> io::Re
                 Wrote::Nothing { .. } => format!("{entry} would conflict: {why}"),
                 Wrote::All | Wrote::Conflicts => {
                     format!("{entry} conflicted: {why}; resolve .devset/conflicts/{path}")
-                }
+                },
             };
             annotate("error", &file(target, path), &message)?;
         }

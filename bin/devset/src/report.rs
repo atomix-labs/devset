@@ -115,11 +115,7 @@ impl Standing {
             return Self::Conflict;
         }
         let change = |mode| Change::of(entry, entry.action(mode));
-        match (
-            change(devset_core::Mode::Apply),
-            change(devset_core::Mode::Force),
-            entry.drift(),
-        ) {
+        match (change(devset_core::Mode::Apply), change(devset_core::Mode::Force), entry.drift()) {
             (Some(change), ..) => Self::Pending(change),
             (None, Some(change), _) => Self::Drifted(change),
             (None, None, Some(Drift::Edited | Drift::Missing)) => Self::Local,
@@ -280,22 +276,13 @@ pub(crate) fn rollback(shell: &Shell, rollback: &Rollback) -> io::Result<()> {
         shell.status("Would", GOOD, format_args!("{verb} {path}"))?;
     }
     let summary = reverted(rollback.reverts(), ("to restore", "to remove"));
-    shell.status(
-        "Finished",
-        GOOD,
-        format!("dry run: {summary}, nothing written"),
-    )?;
+    shell.status("Finished", GOOD, format!("dry run: {summary}, nothing written"))?;
     if rollback.changed().is_empty() {
         return Ok(());
     }
-    let text = format!(
-        "this discards changes made since the update to {}",
-        list(rollback.changed())
-    );
-    shell.note(
-        &text,
-        Some("`devset update --abort` refuses them; add `--force` to discard them"),
-    )
+    let text =
+        format!("this discards changes made since the update to {}", list(rollback.changed()));
+    shell.note(&text, Some("`devset update --abort` refuses them; add `--force` to discard them"))
 }
 
 /// Prints what taking an update back did.
@@ -318,10 +305,7 @@ const fn revert_parts(revert: &Revert) -> (&'static str, &'static str, &RelPath)
 
 /// How many files `reverts` restores and removes, with `words` for each.
 fn reverted(reverts: &[Revert], (restore, remove): (&str, &str)) -> String {
-    let restored = reverts
-        .iter()
-        .filter(|r| matches!(r, Revert::Restore(_)))
-        .count();
+    let restored = reverts.iter().filter(|r| matches!(r, Revert::Restore(_))).count();
     let removed = reverts.len().saturating_sub(restored);
     match (restored, removed) {
         (0, 0) => "no file to take back".to_owned(),
@@ -345,10 +329,7 @@ pub(crate) fn diff(survey: &Survey, target: &Target, paths: &[RelPath]) -> Resul
             continue;
         }
         let Some(want) = entry.want else { continue };
-        if entry
-            .found
-            .is_some_and(|found| found.same_content(&want.fingerprint))
-        {
+        if entry.found.is_some_and(|found| found.same_content(&want.fingerprint)) {
             continue;
         }
         let Some(profile) = survey.wanted(entry, target)? else {
@@ -395,34 +376,21 @@ pub(crate) fn dropped(shell: &Shell, dropped: &[VarName], dry_run: bool) -> io::
     }
     let names: Vec<String> = dropped.iter().map(|name| format!("`{name}`")).collect();
     let verb = if dry_run { "would drop" } else { "dropped" };
-    let answers = if dropped.len() == 1 {
-        "the answer"
-    } else {
-        "the answers"
-    };
-    let text = format!(
-        "{verb} {answers} to {}, which no layer declares now",
-        list(&names)
-    );
+    let answers = if dropped.len() == 1 { "the answer" } else { "the answers" };
+    let text = format!("{verb} {answers} to {}, which no layer declares now", list(&names));
     shell.note(&text, None)
 }
 
 /// Tells the user about merge drivers a layer suggests and the target has not configured.
 pub(crate) fn suggestions(shell: &Shell, suggestions: &[Suggestion]) -> io::Result<()> {
     for Suggestion { layer, driver } in suggestions {
-        let merge = MergeSpec {
-            driver: Some(driver.clone()),
-            ..MergeSpec::default()
-        };
+        let merge = MergeSpec { driver: Some(driver.clone()), ..MergeSpec::default() };
         let snippet =
             toml::to_string(&BTreeMap::from([("merge", merge)])).map_err(io::Error::other)?;
         let text = format!(
             "profile {layer} suggests a merge driver; devset never runs a program a profile names"
         );
-        let help = format!(
-            "to use it, add to .devset/config.toml:{}",
-            indent(snippet.trim_end())
-        );
+        let help = format!("to use it, add to .devset/config.toml:{}", indent(snippet.trim_end()));
         shell.note(&text, Some(&help))?;
     }
     Ok(())
@@ -448,14 +416,10 @@ const SECTIONS: [Section; 5] = [
         "Drifted — once the update is finished, `devset apply --force` restores:",
         |s| matches!(s, Standing::Drifted(_)),
     ),
-    (
-        "Pending — `devset apply` will:",
-        "Pending — `devset update --continue` will:",
-        |s| matches!(s, Standing::Pending(_)),
-    ),
-    ("Local changes, kept:", "Local changes, kept:", |s| {
-        s == Standing::Local
+    ("Pending — `devset apply` will:", "Pending — `devset update --continue` will:", |s| {
+        matches!(s, Standing::Pending(_))
     }),
+    ("Local changes, kept:", "Local changes, kept:", |s| s == Standing::Local),
     ("In sync:", "In sync:", |s| s == Standing::InSync),
 ];
 
@@ -474,11 +438,8 @@ pub(crate) fn status(shell: &Shell, survey: &Survey, json: bool, verbose: bool) 
             writeln!(out, "  {name} = {answer:?}")?;
         }
     }
-    let rows: Vec<(&Entry, Standing)> = survey
-        .entries()
-        .iter()
-        .map(|e| (e, Standing::of(e)))
-        .collect();
+    let rows: Vec<(&Entry, Standing)> =
+        survey.entries().iter().map(|e| (e, Standing::of(e))).collect();
     let listed = |standing: Standing| verbose || standing != Standing::InSync;
     let width = rows
         .iter()
@@ -489,15 +450,8 @@ pub(crate) fn status(shell: &Shell, survey: &Survey, json: bool, verbose: bool) 
     let layered = resolved.layers().len() > 1;
     let unfinished = survey.unfinished();
     for (heading, while_unfinished, belongs) in SECTIONS {
-        let heading = if unfinished {
-            while_unfinished
-        } else {
-            heading
-        };
-        let members: Vec<_> = rows
-            .iter()
-            .filter(|(_, s)| belongs(*s) && listed(*s))
-            .collect();
+        let heading = if unfinished { while_unfinished } else { heading };
+        let members: Vec<_> = rows.iter().filter(|(_, s)| belongs(*s) && listed(*s)).collect();
         if members.is_empty() {
             continue;
         }
@@ -507,9 +461,7 @@ pub(crate) fn status(shell: &Shell, survey: &Survey, json: bool, verbose: bool) 
             let (style, path, name) = (state.style(), entry.path.as_str(), entry.to_string());
             // As strings, since a derived `Display` ignores the width the columns need.
             let state = state.to_string();
-            let policy = entry
-                .want
-                .map_or_else(String::new, |want| want.policy.to_string());
+            let policy = entry.want.map_or_else(String::new, |want| want.policy.to_string());
             let action = match standing {
                 Standing::Pending(change) | Standing::Drifted(change) => format!("  {change}"),
                 Standing::Conflict => format!("  → .devset/conflicts/{path}"),
@@ -622,7 +574,7 @@ impl fmt::Display for Heading<'_> {
             write!(f, "  {WARN}(required by {by}){WARN:#}")?;
         }
         match layer.applied() {
-            Applied::Current => {}
+            Applied::Current => {},
             Applied::Changed => write!(f, "  {WARN}(changed since it was applied){WARN:#}")?,
             Applied::Never => write!(f, "  {WARN}(not applied yet){WARN:#}")?,
         }
@@ -746,10 +698,7 @@ impl<'a> StatusJson<'a> {
             suggestions: resolved
                 .suggestions()
                 .iter()
-                .map(|s| SuggestionJson {
-                    layer: &s.layer,
-                    driver: s.driver.to_string(),
-                })
+                .map(|s| SuggestionJson { layer: &s.layer, driver: s.driver.to_string() })
                 .collect(),
             drifted: survey.drifted(),
             unfinished: survey.unfinished(),

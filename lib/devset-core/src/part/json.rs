@@ -15,10 +15,7 @@ pub(super) fn semantic(text: &str) -> Result<Value, Failure> {
     match value {
         None => Ok(Value::Object(serde_json::Map::new())),
         Some(value @ Value::Object(_)) => Ok(value),
-        Some(_) => Err((
-            None,
-            "the document is not an object, so it has no keys".to_owned(),
-        )),
+        Some(_) => Err((None, "the document is not an object, so it has no keys".to_owned())),
     }
 }
 
@@ -41,14 +38,13 @@ fn set(object: &CstObject, key: &[String], value: &Value) {
     let Some((leaf, parents)) = key.split_last() else {
         return;
     };
-    let parent = parents.iter().fold(object.clone(), |object, segment| {
-        object.object_value_or_set(segment)
-    });
+    let parent =
+        parents.iter().fold(object.clone(), |object, segment| object.object_value_or_set(segment));
     match parent.get(leaf) {
         Some(property) => property.set_value(input(value)),
         None => {
             parent.append(leaf, input(value));
-        }
+        },
     }
 }
 
@@ -83,6 +79,6 @@ fn input(value: &Value) -> CstInputValue {
         Value::Array(items) => CstInputValue::Array(items.iter().map(input).collect()),
         Value::Object(object) => {
             CstInputValue::Object(object.iter().map(|(k, v)| (k.clone(), input(v))).collect())
-        }
+        },
     }
 }

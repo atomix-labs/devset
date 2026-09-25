@@ -12,10 +12,7 @@ use crate::shell::Shell;
 
 /// Resolves `target` with `given` answered, asking for any other variable its layers declare.
 pub(crate) fn resolved(
-    shell: &Shell,
-    target: &mut Target,
-    cache: &Cache,
-    refresh: Refresh<'_>,
+    shell: &Shell, target: &mut Target, cache: &Cache, refresh: Refresh<'_>,
     given: Vec<(VarName, String)>,
 ) -> Result<Resolved, Error> {
     for (name, value) in given {
@@ -40,22 +37,14 @@ pub(crate) fn resolved(
 /// nothing is answered then.
 fn answer(shell: &Shell, target: &mut Target, questions: Vec<Question>) -> Result<(), Error> {
     if !shell.interactive() {
-        let missing: Vec<Question> = questions
-            .iter()
-            .filter(|q| q.default.is_none())
-            .cloned()
-            .collect();
+        let missing: Vec<Question> =
+            questions.iter().filter(|q| q.default.is_none()).cloned().collect();
         if !missing.is_empty() {
             return Err(VarError::Unanswered { questions: missing }.into());
         }
     }
     let theme = ColorfulTheme::default();
-    for Question {
-        name,
-        prompt,
-        default,
-    } in questions
-    {
+    for Question { name, prompt, default } in questions {
         let answer = match default {
             _ if shell.interactive() => {
                 let input = Input::<String>::with_theme(&theme).with_prompt(prompt);
@@ -64,15 +53,12 @@ fn answer(shell: &Shell, target: &mut Target, questions: Vec<Question>) -> Resul
                     None => input,
                 };
                 input.interact_text().map_err(io::Error::other)?
-            }
+            },
             Some(default) => {
                 let text = format!("answered {name} = \"{default}\", the default");
-                shell.note(
-                    &text,
-                    Some(&format!("pass `--var {name}=…` to choose another")),
-                )?;
+                shell.note(&text, Some(&format!("pass `--var {name}=…` to choose another")))?;
                 default
-            }
+            },
             None => continue,
         };
         target.answer(name, answer);

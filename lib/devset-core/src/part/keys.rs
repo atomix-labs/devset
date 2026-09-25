@@ -26,11 +26,7 @@ pub(crate) struct Written {
 /// `leaves` as content: one line per leaf, sorted, each its key and its value as canonical JSON.
 pub(crate) fn encode(leaves: &Leaves) -> Vec<u8> {
     let line = |(key, value): (&Key, &Value)| {
-        format!(
-            "{}\t{}\n",
-            serde_json::to_string(key).unwrap_or_default(),
-            canonical(value)
-        )
+        format!("{}\t{}\n", serde_json::to_string(key).unwrap_or_default(), canonical(value))
     };
     leaves.iter().map(line).collect::<String>().into_bytes()
 }
@@ -42,10 +38,7 @@ pub(crate) fn decode(content: &[u8]) -> Option<Leaves> {
         .lines()
         .map(|line| {
             let (key, value) = line.split_once('\t')?;
-            Some((
-                serde_json::from_str(key).ok()?,
-                serde_json::from_str(value).ok()?,
-            ))
+            Some((serde_json::from_str(key).ok()?, serde_json::from_str(value).ok()?))
         })
         .collect()
 }
@@ -66,35 +59,26 @@ pub(crate) fn walk(value: &Value, prefix: &mut Key, into: &mut Vec<(Key, Value)>
                 walk(value, prefix, into);
                 prefix.pop();
             }
-        }
+        },
         Value::Null | Value::Bool(_) | Value::Number(_) | Value::String(_) | Value::Array(_) => {
             into.push((prefix.clone(), value.clone()));
-        }
+        },
     }
 }
 
 /// The value at `key` in `value`, if every step on the way is an object.
 pub(crate) fn lookup<'a>(value: &'a Value, key: &[String]) -> Option<&'a Value> {
-    key.iter()
-        .try_fold(value, |node, segment| node.as_object()?.get(segment))
+    key.iter().try_fold(value, |node, segment| node.as_object()?.get(segment))
 }
 
 /// `key` as people write it: dotted, with a segment that needs it quoted.
 pub(crate) fn display(key: &[String]) -> String {
     let plain = |s: &str| {
-        !s.is_empty()
-            && s.chars()
-                .all(|c| c.is_ascii_alphanumeric() || c == '_' || c == '-')
+        !s.is_empty() && s.chars().all(|c| c.is_ascii_alphanumeric() || c == '_' || c == '-')
     };
     let segments: Vec<String> = key
         .iter()
-        .map(|s| {
-            if plain(s) {
-                s.clone()
-            } else {
-                Value::String(s.clone()).to_string()
-            }
-        })
+        .map(|s| if plain(s) { s.clone() } else { Value::String(s.clone()).to_string() })
         .collect();
     segments.join(".")
 }
@@ -150,14 +134,8 @@ mod tests {
 
     #[test]
     fn content_round_trips_whatever_the_key_order() {
-        let a = leaves(&[
-            (&["a", "b"], json!({ "y": 1, "x": [1, 2] })),
-            (&["c"], json!("d")),
-        ]);
-        let b = leaves(&[
-            (&["c"], json!("d")),
-            (&["a", "b"], json!({ "x": [1, 2], "y": 1 })),
-        ]);
+        let a = leaves(&[(&["a", "b"], json!({ "y": 1, "x": [1, 2] })), (&["c"], json!("d"))]);
+        let b = leaves(&[(&["c"], json!("d")), (&["a", "b"], json!({ "x": [1, 2], "y": 1 }))]);
         assert_eq!(encode(&a), encode(&b), "equal leaves encode equally");
         assert_eq!(decode(&encode(&a)), Some(a), "and decode to themselves");
     }
@@ -190,37 +168,20 @@ mod tests {
             (&["c"], json!(2)),
             (&["new"], json!(1)),
         ]);
-        assert_eq!(
-            merged.leaves, want,
-            "ours, theirs, a conflict kept as ours, a drop and an add"
-        );
-        assert_eq!(
-            merged.conflicts.len(),
-            1,
-            "only the leaf both changed conflicts"
-        );
+        assert_eq!(merged.leaves, want, "ours, theirs, a conflict kept as ours, a drop and an add");
+        assert_eq!(merged.conflicts.len(), 1, "only the leaf both changed conflicts");
     }
 
     #[test]
     fn keys_display_and_overlap() {
         let key = |parts: &[&str]| parts.iter().map(|s| (*s).to_owned()).collect::<Vec<_>>();
-        assert_eq!(
-            display(&key(&["workspace", "lints"])),
-            "workspace.lints",
-            "plain"
-        );
+        assert_eq!(display(&key(&["workspace", "lints"])), "workspace.lints", "plain");
         assert_eq!(
             display(&key(&["[rust]", "editor.tabSize"])),
             r#""[rust]"."editor.tabSize""#,
             "quoted"
         );
-        assert!(
-            overlap(&key(&["a", "b"]), &key(&["a"])),
-            "a key under another overlaps it"
-        );
-        assert!(
-            !overlap(&key(&["a", "b"]), &key(&["a", "c"])),
-            "siblings do not"
-        );
+        assert!(overlap(&key(&["a", "b"]), &key(&["a"])), "a key under another overlaps it");
+        assert!(!overlap(&key(&["a", "b"]), &key(&["a", "c"])), "siblings do not");
     }
 }

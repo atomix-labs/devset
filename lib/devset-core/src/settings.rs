@@ -62,13 +62,10 @@ impl Settings {
             Some(value) => value,
             None => {
                 agreed(layers, "merge.on-conflict", |merge| merge.on_conflict)?.unwrap_or_default()
-            }
+            },
         };
         let driver = target.driver.clone().unwrap_or_default();
-        Ok(Self {
-            on_conflict,
-            driver,
-        })
+        Ok(Self { on_conflict, driver })
     }
 
     /// The drivers `layers` suggest, while `target` configures none.
@@ -80,10 +77,7 @@ impl Settings {
             .iter()
             .filter_map(|layer| {
                 let driver = layer.merge().driver.clone()?;
-                Some(Suggestion {
-                    layer: layer.meta().name.clone(),
-                    driver,
-                })
+                Some(Suggestion { layer: layer.meta().name.clone(), driver })
             })
             .collect()
     }
@@ -91,9 +85,7 @@ impl Settings {
 
 /// The value every layer that sets `key` agrees on.
 fn agreed<T: Copy + PartialEq>(
-    layers: &[Layer],
-    key: &'static str,
-    get: fn(&MergeSpec) -> Option<T>,
+    layers: &[Layer], key: &'static str, get: fn(&MergeSpec) -> Option<T>,
 ) -> Result<Option<T>> {
     let mut agreed: Option<(T, &Layer)> = None;
     for layer in layers {
@@ -103,14 +95,9 @@ fn agreed<T: Copy + PartialEq>(
         match agreed {
             Some((first, by)) if first != value => {
                 let (first, second) = (by.meta().name.clone(), layer.meta().name.clone());
-                return Err(ProfileError::Setting {
-                    key: key.to_owned(),
-                    first,
-                    second,
-                }
-                .into());
-            }
-            Some(_) => {}
+                return Err(ProfileError::Setting { key: key.to_owned(), first, second }.into());
+            },
+            Some(_) => {},
             None => agreed = Some((value, layer)),
         }
     }

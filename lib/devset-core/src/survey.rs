@@ -84,10 +84,7 @@ impl Entry {
 
     /// Where it lives.
     pub(crate) fn slot(&self) -> Slot {
-        Slot {
-            path: self.path.clone(),
-            part: self.part.as_ref().map(|part| part.owner.clone()),
-        }
+        Slot { path: self.path.clone(), part: self.part.as_ref().map(|part| part.owner.clone()) }
     }
 
     /// How the file compares with its record; `None` when there is no record.
@@ -156,20 +153,13 @@ impl Survey {
             return Ok(Some(payload.to_vec()));
         };
         let file = read(target, &entry.path)?.unwrap_or_default();
-        Ok(Some(portion.splice(
-            &file,
-            payload,
-            &entry.keys,
-            entry.path.as_str(),
-        )?))
+        Ok(Some(portion.splice(&file, payload, &entry.keys, entry.path.as_str())?))
     }
 
     /// Whether `apply --force` would write a file: the drift gate.
     #[must_use]
     pub fn drifted(&self) -> bool {
-        self.entries
-            .iter()
-            .any(|entry| entry.action(Mode::Force).writes())
+        self.entries.iter().any(|entry| entry.action(Mode::Force).writes())
     }
 }
 
@@ -193,10 +183,7 @@ pub fn survey(resolved: Resolved, target: &Target) -> Result<Survey> {
                 executable: provided.executable,
                 fingerprint: Fingerprint::of(bytes),
             };
-            let scope = provided
-                .portion
-                .as_ref()
-                .map_or(Scope::File, |portion| portion.scope);
+            let scope = provided.portion.as_ref().map_or(Scope::File, |portion| portion.scope);
             (slot, (scope, want, bytes))
         })
         .collect();
@@ -206,12 +193,7 @@ pub fn survey(resolved: Resolved, target: &Target) -> Result<Survey> {
         let now = wanted.map_or(record.scope, |(now, ..)| now);
         // A part the profile now owns in another scope has other content: its record is no base.
         let record = (now == record.scope).then_some(record);
-        entries.push(entry(
-            slot,
-            now,
-            wanted.map(|(_, want, bytes)| (want, bytes)),
-            record,
-        ));
+        entries.push(entry(slot, now, wanted.map(|(_, want, bytes)| (want, bytes)), record));
     }
     for (slot, (scope, want, bytes)) in wants {
         entries.push(entry(slot.clone(), scope, Some((want, bytes)), None));
@@ -253,15 +235,9 @@ pub fn survey(resolved: Resolved, target: &Target) -> Result<Survey> {
 /// not tell, as for a block in a comment syntax the profile chose.
 pub(crate) fn released(target: &Target, entry: &Entry) -> Option<Shape> {
     let part = entry.part.as_ref()?;
-    let format = target
-        .config()
-        .files
-        .get(&entry.path)
-        .and_then(|over| over.validate);
+    let format = target.config().files.get(&entry.path).and_then(|over| over.validate);
     let format = format.unwrap_or_else(|| Format::of(&entry.path));
-    Shape::of(part.scope, &entry.path, format, None, &part.owner)
-        .ok()
-        .flatten()
+    Shape::of(part.scope, &entry.path, format, None, &part.owner).ok().flatten()
 }
 
 /// The entry at `slot`, in `scope`, before the disk is read.
@@ -269,12 +245,9 @@ fn entry(slot: Slot, scope: Scope, want: Option<(Want, &[u8])>, record: Option<R
     let Slot { path, part } = slot;
     let part = part.map(|owner| Part { owner, scope });
     let keys = match (&part, want) {
-        (
-            Some(Part {
-                scope: Scope::Keys, ..
-            }),
-            Some((_, content)),
-        ) => decode(content).map(|leaves| leaves.into_keys().collect()),
+        (Some(Part { scope: Scope::Keys, .. }), Some((_, content))) => {
+            decode(content).map(|leaves| leaves.into_keys().collect())
+        },
         _ => None,
     };
     Entry {
@@ -302,12 +275,8 @@ fn read(target: &Target, path: &RelPath) -> Result<Option<Vec<u8>>> {
             } else {
                 "a special file"
             };
-            Err(TargetError::NotAFile {
-                path: path.clone(),
-                kind,
-            }
-            .into())
-        }
+            Err(TargetError::NotAFile { path: path.clone(), kind }.into())
+        },
         Err(e) if e.kind() == io::ErrorKind::NotFound => Ok(None),
         Err(e) => Err(e.into()),
     }

@@ -37,20 +37,13 @@ impl Shell {
 
     /// A status line, `verb` in `style` and then `message`, unless quiet.
     pub(crate) fn status(&self, verb: &str, style: Style, message: impl Display) -> io::Result<()> {
-        if self.quiet {
-            Ok(())
-        } else {
-            self.always(verb, style, message)
-        }
+        if self.quiet { Ok(()) } else { self.always(verb, style, message) }
     }
 
     /// A status line even when quiet: for what needs attention.
     #[expect(clippy::unused_self, reason = "all output goes through the shell")]
     pub(crate) fn always(&self, verb: &str, style: Style, message: impl Display) -> io::Result<()> {
-        writeln!(
-            anstream::stdout(),
-            "{style}{verb:>VERB$}{style:#} {message}"
-        )
+        writeln!(anstream::stdout(), "{style}{verb:>VERB$}{style:#} {message}")
     }
 
     /// A `note:` on stderr, with a `help:` if given, unless quiet.
@@ -78,9 +71,7 @@ impl Shell {
             let snippet = Snippet::source(parse.text.as_str())
                 .path(parse.file.as_str())
                 .annotation(AnnotationKind::Primary.span(span));
-            let report = Level::ERROR
-                .primary_title(parse.message.as_str())
-                .element(snippet);
+            let report = Level::ERROR.primary_title(parse.message.as_str()).element(snippet);
             return writeln!(anstream::stderr(), "{}", renderer.render(&[report]));
         }
         let message = error.to_string();
@@ -102,11 +93,7 @@ impl Shell {
         move |event| {
             if let (false, Fetch::Start(url)) = (quiet, event) {
                 // Progress only: a failed write here leaves the fetch, and its result, unchanged.
-                drop(writeln!(
-                    anstream::stderr(),
-                    "{GOOD}{:>VERB$}{GOOD:#} {url}",
-                    "Fetching"
-                ));
+                drop(writeln!(anstream::stderr(), "{GOOD}{:>VERB$}{GOOD:#} {url}", "Fetching"));
             }
         }
     }
