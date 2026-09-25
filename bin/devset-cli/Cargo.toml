@@ -7,6 +7,8 @@ rust-version.workspace = true
 license.workspace      = true
 authors.workspace      = true
 repository.workspace   = true
+homepage.workspace     = true
+documentation          = "https://atomix-labs.github.io/devset/"
 readme                 = "../../README.md"
 keywords.workspace     = true
 categories.workspace   = true
@@ -14,6 +16,11 @@ categories.workspace   = true
 [[bin]]
 name = "devset"
 path = "src/main.rs"
+
+[package.metadata.binstall]
+pkg-url = "{ repo }/releases/download/v{ version }/devset-{ version }-{ target }{ archive-suffix }"
+bin-dir = "devset{ binary-ext }"
+pkg-fmt = "txz"
 
 [features]
 default = []
