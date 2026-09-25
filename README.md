@@ -12,7 +12,7 @@ content it legitimately needs.
 From a checkout; `rustup` installs the pinned toolchain on first use:
 
 ```sh
-cargo install --path bin/devset
+cargo install --path bin/devset-cli
 ```
 
 The build runs on any machine of its architecture: `.cargo/config.toml` sets the

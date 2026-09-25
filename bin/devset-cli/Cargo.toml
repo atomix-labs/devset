@@ -1,5 +1,5 @@
 [package]
-name                   = "devset"
+name                   = "devset-cli"
 description            = "apply versioned file bundles to a directory, and update them without losing local edits."
 version.workspace      = true
 edition.workspace      = true
@@ -7,9 +7,13 @@ rust-version.workspace = true
 license.workspace      = true
 authors.workspace      = true
 repository.workspace   = true
-readme.workspace       = true
+readme                 = "../../README.md"
 keywords.workspace     = true
 categories.workspace   = true
+
+[[bin]]
+name = "devset"
+path = "src/main.rs"
 
 [features]
 default = []
