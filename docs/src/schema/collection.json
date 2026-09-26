@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CollectionFile",
+  "description": "`collection.toml`: what a source says of itself.",
+  "type": "object",
+  "properties": { "collection": { "description": "The `[collection]` table.", "$ref": "#/$defs/CollectionMeta" } },
+  "additionalProperties": false,
+  "required": ["collection"],
+  "$defs": {
+    "CollectionMeta": {
+      "description": "The `[collection]` table.",
+      "type": "object",
+      "properties": {
+        "name": { "description": "The name a target gives the source unless it chooses another.", "type": "string" },
+        "description": { "description": "One line for humans.", "type": ["string", "null"], "default": null }
+      },
+      "additionalProperties": false,
+      "required": ["name"]
+    }
+  }
+}

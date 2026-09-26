@@ -1,8 +1,10 @@
 # Profiles
 
-A profile is a directory: `profile.toml` at its root, and `files/`, which
-mirrors the target. This chapter covers what `profile.toml` declares and how
-devset treats each file; the [schema](schemas.md) lists every field.
+A profile is a directory in a source: `profile.toml` at its root, and `files/`,
+which mirrors the target. This chapter covers what `profile.toml` declares and
+how devset treats each file; the [schema](schemas.md) lists every field, and
+[Designing Profiles](designing.md) says how to cut a concern into profiles,
+features and variables.
 
 ```text
 rust/
@@ -19,7 +21,7 @@ rust/
 name        = "rust"
 version     = "1.4.0"
 description = "Formatting, lints and CI for a Rust repository"
-devset      = ">=0.1"
+devset      = ">=0.2"
 
 [files."rustfmt.toml"]
 [files.".github/workflows/ci.yml"]
@@ -30,26 +32,36 @@ policy = "merge"
 
 ## The Profile Table
 
-| Field         | Meaning                                                                       |
-| ------------- | ----------------------------------------------------------------------------- |
-| `name`        | Required. Names the profile in output, in collisions, and to `update`.        |
-| `version`     | For people; a git layer is pinned by its commit, not by this.                 |
-| `description` | One line, for people.                                                         |
-| `devset`      | The devset versions the profile works with, as `>=0.1`; any other is refused. |
-| `requires`    | Profiles this one builds on: [Composing Profiles](composing.md).              |
+| Field         | Meaning                                                                             |
+| ------------- | ----------------------------------------------------------------------------------- |
+| `name`        | Required. Names the profile: in its source, among a target's layers, and in output. |
+| `version`     | For people; a git source is pinned by its commit, not by this.                      |
+| `description` | One line, for people; `devset list` shows it.                                       |
+| `devset`      | The devset versions the profile works with, as `>=0.2`; any other is refused.       |
+
+Beside `[profile]`, a manifest may declare `[requires]` and `[features]`
+([Composing Profiles](composing.md)), `[vars]` ([Templates](templates.md)),
+`[scaffolds]` ([Gates and Scaffolds](gates.md)), and `[merge]`
+([Settings](settings.md)).
 
 ## Files
 
 `[files."<path>"]` declares that devset manages `files/<path>`, at `<path>` in
 the target. A file under `files/` that no entry declares is not applied, and an
-entry whose file is missing is an error. An entry's fields:
+entry whose file is missing is an error. A path may use variables, as `"{{
+book_dir }}/book.toml"`: its payload is under `files/` as written, and the
+target's answer decides where it goes ([Templates](templates.md)). An entry's
+fields:
 
 | Field        | Meaning                                                           | Chapter                             |
 | ------------ | ----------------------------------------------------------------- | ----------------------------------- |
 | `policy`     | How local edits are treated: `owned`, `merge` or `once`.          | below                               |
 | `scope`      | How much of the file the profile owns: `file`, `keys` or `block`. | [Parts of a File](parts.md)         |
 | `comment`    | The comment syntax of a block's markers.                          | [Parts of a File](parts.md)         |
-| `template`   | Render the file with the target's answers.                        | [Templates](templates.md)           |
+| `starter`    | For a part, the file the target's starts from when it is absent.  | [Parts of a File](parts.md)         |
+| `template`   | Render the file with the answers and the graph.                   | [Templates](templates.md)           |
+| `when`       | When the entry applies: features, profiles, variables, paths.     | [Gates and Scaffolds](gates.md)     |
+| `scaffold`   | The scaffold group the file is a starter of.                      | [Gates and Scaffolds](gates.md)     |
 | `executable` | Write the file with mode 755.                                     | below                               |
 | `validate`   | How a merged file is checked: `toml`, `json`, `yaml` or `none`.   | [Updating and Merging](updating.md) |
 
@@ -73,9 +85,9 @@ What `devset apply` does with each file, by what is on disk:
 | `missing`: deleted                     | respect the deletion; `status` reports it                 | restore it      |
 
 `--force` touches `owned` files only. A `once` file is written only when it is
-absent and was never written; after that it is the target's. A `merge` file is
-kept like an `owned` one, except that when the profile's version changes, an
-update merges the two.
+absent and was never written; after that it is the target's. A file of a
+[scaffold](gates.md#scaffolds) is `once`. A `merge` file is kept like an `owned`
+one, except that when the profile's version changes, an update merges the two.
 
 **Adoption** is what makes a first `init` into an existing repository safe:
 devset records the profile's version as the file's base and keeps the file, so

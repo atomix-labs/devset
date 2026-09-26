@@ -1,11 +1,11 @@
-# `devset init`
+# `devset add`
 
-<!-- reference: written by `just fix-docs` from `devset init --help` -->
+<!-- reference: written by `just fix-docs` from `devset add --help` -->
 
 ```text
-Start a target in the current directory, with a first layer if given
+Add a profile as a layer, and apply it
 
-Usage: devset init [OPTIONS] [LAYER]
+Usage: devset add [OPTIONS] <LAYER|--git <GIT>|--path <PATH>>
 
 Arguments:
   [LAYER]  The profile, `source/profile`; with --git or --path, `profile` alone names it in the
@@ -37,7 +37,8 @@ Global Options:
       --no-color  Never colour output
 
 Examples:
-  devset init
-  devset init atxp/rust --git https://github.com/atomix-labs/atxp --tag v0.4.0 --features docs
-  devset init --path ../profiles/base
+  devset add atxp/mdbook                    from a source the target names
+  devset add atxp/mdbook --features katex   with features beside the defaults
+  devset add house/deploy --git git@github.com:acme/profiles --branch main
+  devset add --path ../profiles/base        a source holding one profile
 ```

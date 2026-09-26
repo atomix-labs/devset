@@ -3,12 +3,12 @@
 <!-- reference: written by `just fix-docs` from `devset update --help` -->
 
 ```text
-Move layers to what their refs name now, merging local edits
+Move sources to what their refs name now, merging local edits
 
-Usage: devset update [OPTIONS] [LAYER]
+Usage: devset update [OPTIONS] [NAME]
 
 Arguments:
-  [LAYER]  Only the layer whose profile has this name
+  [NAME]  Only the source with this name, or the source of the layer with this name
 
 Options:
       --continue  Install the conflicts resolved in .devset/conflicts/
@@ -26,8 +26,8 @@ Global Options:
       --no-color  Never colour output
 
 Examples:
-  devset update              every layer
-  devset update rust         one layer, by its profile name
+  devset update              every source
+  devset update atxp         one source, or the source of one layer
   devset update --continue   after resolving .devset/conflicts/
   devset update --abort      take back an update that conflicted
 ```

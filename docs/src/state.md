@@ -4,17 +4,22 @@ Everything devset keeps about a target is in its `.devset/` directory. Commit
 it: it is what lets a teammate, or CI, see exactly what you see, and what makes
 `devset status` work on a fresh clone.
 
-| Path             | Holds                                                        | In git  |
-| ---------------- | ------------------------------------------------------------ | ------- |
-| `config.toml`    | The layers, `[merge]` settings, and file overrides: yours    | commit  |
-| `lock.toml`      | Each layer's commit and content digest                       | commit  |
-| `answers.toml`   | The answers to the profiles' variables                       | commit  |
-| `state.toml`     | What devset last wrote, per file and part: two digests each  | commit  |
-| `base/`          | The bytes devset last wrote, one blob per content digest     | commit  |
-| `.gitignore`     | devset's own ignore rules                                    | commit  |
-| `.gitattributes` | Keeps `base/` out of diffs and line-ending conversion        | commit  |
-| `conflicts/`     | An unfinished update: its sidecars, and what to take it back | ignored |
-| `.lock`          | Held while devset writes, so two runs never interleave       | ignored |
+| Path             | Holds                                                                                                               | In git  |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------- | ------- |
+| `config.toml`    | The sources, the layers, `[merge]` settings, and file overrides: yours                                              | commit  |
+| `lock.toml`      | Each source's commit; each layer's digest, and its features and who turned them on                                  | commit  |
+| `answers.toml`   | The answers to the profiles' variables                                                                              | commit  |
+| `state.toml`     | What devset last wrote, per file and part: two digests each; each scaffold's decision, and where it wrote its files | commit  |
+| `base/`          | The bytes devset last wrote, one blob per content digest                                                            | commit  |
+| `.gitignore`     | devset's own ignore rules                                                                                           | commit  |
+| `.gitattributes` | Keeps `base/` out of diffs and line-ending conversion                                                               | commit  |
+| `conflicts/`     | An unfinished update: its sidecars, and what to take it back                                                        | ignored |
+| `.lock`          | Held while devset writes, so two runs never interleave                                                              | ignored |
+
+The lock and the state are version 2. devset 0.2 reads a version 1 state as it
+is, and resolves a version 1 lock anew; a version 1 `config.toml`, whose layers
+name locations, is refused with the way to write it as sources and names.
+BREAKING-CHANGES.md, in devset's repository, has the steps.
 
 ## The Base
 

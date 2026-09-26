@@ -8,12 +8,17 @@ Apply versioned file bundles to a directory, and update them without losing loca
 Usage: devset [OPTIONS] <COMMAND>
 
 Commands:
-  init         Add a profile as a layer, and apply it
+  new          Start a target in a new directory, or a profile or a collection to author
+  init         Start a target in the current directory, with a first layer if given
+  add          Add a profile as a layer, and apply it
   remove       Remove a layer: its unchanged files go, and edited ones stay, untracked
   status       Show where every managed file stands against the profile
   diff         Show, line by line, how files differ from the profile
   apply        Apply the pinned profile without destroying local edits
-  update       Move layers to what their refs name now, merging local edits
+  update       Move sources to what their refs name now, merging local edits
+  features     Show each layer's features: which are on, and who turned them on
+  explain      Show why a file is managed as it is: each layer that lists it, and its gates
+  list         List the profiles a source holds, with their features
   schema       Print the JSON Schema of a devset file, for editor completion
   completions  Print a shell completion script
   help         Print this message or the help of the given subcommand(s)
@@ -28,7 +33,8 @@ Global Options:
       --no-color  Never colour output
 
 Examples:
-  devset init --git https://github.com/acme/profiles --tag v1.4.0 --path rust
+  devset new hello atxp/rust --git https://github.com/atomix-labs/atxp --tag v0.4.0
+  devset add atxp/mdbook --features katex
   devset status
   devset update
 

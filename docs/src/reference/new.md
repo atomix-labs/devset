@@ -1,18 +1,21 @@
-# `devset init`
+# `devset new`
 
-<!-- reference: written by `just fix-docs` from `devset init --help` -->
+<!-- reference: written by `just fix-docs` from `devset new --help` -->
 
 ```text
-Start a target in the current directory, with a first layer if given
+Start a target in a new directory, or a profile or a collection to author
 
-Usage: devset init [OPTIONS] [LAYER]
+Usage: devset new [OPTIONS] <DIR> [LAYER]
 
 Arguments:
+  <DIR>    The directory to create it in
   [LAYER]  The profile, `source/profile`; with --git or --path, `profile` alone names it in the
            source they name
 
 Options:
-  -h, --help  Print help
+      --profile     Create a profile to author, not a target
+      --collection  Create a collection of profiles to publish, not a target
+  -h, --help        Print help
 
 Source:
       --git <GIT>        Git repository URL
@@ -37,7 +40,8 @@ Global Options:
       --no-color  Never colour output
 
 Examples:
-  devset init
-  devset init atxp/rust --git https://github.com/atomix-labs/atxp --tag v0.4.0 --features docs
-  devset init --path ../profiles/base
+  devset new hello                    a target: hello/.devset/config.toml, to add layers to
+  devset new hello atxp/rust --git https://github.com/atomix-labs/atxp --tag v0.4.0
+  devset new --profile my-lint        a profile: profile.toml, files/ and a README
+  devset new --collection acme        a source of profiles: collection.toml and profiles/
 ```

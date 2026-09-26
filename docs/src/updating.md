@@ -6,17 +6,18 @@ two conflict, and what becomes of a file no layer provides any more.
 
 ## Taking a Change
 
-`.devset/lock.toml` pins each git layer to the commit its tag, branch or rev
-named when it was applied. `apply`, on any machine, uses that commit; only an
-update moves it:
+`.devset/lock.toml` pins each git source to the commit its tag, branch or rev
+named when it was applied, so every profile of a source is at one commit.
+`apply`, on any machine, uses that commit; only an update moves it:
 
 ```sh
-devset update          # every layer, to what its ref names now
-devset update rust     # one layer, by its profile's name
+devset update          # every source, to what its ref names now
+devset update atxp     # one source, by its name
+devset update rust     # the source of one layer, by its profile's name
 ```
 
-Changing a layer's `tag` in `.devset/config.toml` and running `devset apply`
-does the same for that layer: a lock entry that no longer matches its layer is
+Changing a source's `tag` in `.devset/config.toml` and running `devset apply`
+does the same for that source: a lock entry that no longer matches its source is
 resolved again.
 
 A local directory has no history to pin, so it is read as it is now, by `apply`
@@ -116,9 +117,10 @@ so nothing you did since is lost; `--abort --force` discards those changes too.
 
 ## Files No Layer Provides
 
-A file no layer provides any more, because a profile dropped it or a layer was
-removed, is **dropped**, and `status` says so. The next `apply` takes it away
-only if it is as devset wrote it:
+A file no layer provides any more, because a profile dropped it, a layer was
+removed, or its [gate](gates.md#when-a-gate-turns-off) turned off, is
+**dropped**, and `status` says so, with the condition that decided when a gate
+did. The next `apply` takes it away only if it is as devset wrote it:
 
 | The dropped file     | `apply`                                     |
 | -------------------- | ------------------------------------------- |

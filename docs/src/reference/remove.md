@@ -20,6 +20,6 @@ Global Options:
       --no-color  Never colour output
 
 Examples:
-  devset remove base             by its profile name
-  devset remove base --dry-run   what would change
+  devset remove mdbook             by its profile's name
+  devset remove mdbook --dry-run   what would change
 ```

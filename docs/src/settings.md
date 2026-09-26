@@ -32,11 +32,11 @@ error: p and q set merge.on-conflict differently
 The target's `[merge]` overrides every layer's, and its `[files."<path>"]`
 tables override the layers' entries for that path:
 
-| Field      | Overrides                                                          |
-| ---------- | ------------------------------------------------------------------ |
-| `policy`   | The file's policy: `owned`, `merge` or `once`.                     |
-| `validate` | How a merged result is checked: `toml`, `json`, `yaml` or `none`.  |
-| `from`     | The layer that provides the file, when several do: a layer's name. |
+| Field      | Overrides                                                                                             |
+| ---------- | ----------------------------------------------------------------------------------------------------- |
+| `policy`   | The file's policy: `owned`, `merge` or `once`.                                                        |
+| `validate` | How a merged result is checked: `toml`, `json`, `yaml` or `none`.                                     |
+| `from`     | The layer that provides the file, or starts it beside every part, when several would: a layer's name. |
 
 An override of a path no layer provides is an error, so a stale one never
 lingers; `devset remove` takes out the overrides of the layer it removes.

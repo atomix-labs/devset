@@ -5,48 +5,76 @@ how devset treats an edit to a file it manages.
 
 ## Install
 
-Every release has a static binary for Linux, on x86-64 and Arm, and one for
-macOS on Apple silicon. With [mise](https://mise.jdx.dev):
+On Linux, on x86-64 or Arm, and on macOS on Apple silicon:
 
 ```sh
-mise use -g github:atomix-labs/devset
+curl --proto '=https' --tlsv1.2 -fsSL https://atomix-labs.github.io/devset/install.sh | sh
 ```
 
-With [cargo-binstall](https://github.com/cargo-bins/cargo-binstall), which takes
-the same archive:
+The script downloads the latest release's static binary for the machine, checks
+it against the release's checksum, and, when the GitHub CLI is installed, its
+build attestation; then it puts `devset` in `~/.local/bin`. It edits no shell
+file, and says so when that directory is not on your `PATH`. Its options:
+
+| Option               | Does                                                                  |
+| -------------------- | --------------------------------------------------------------------- |
+| `-v <version>`       | Installs that release, as `0.2.0`, rather than the latest.            |
+| `-b <dir>`           | Installs into `<dir>`, rather than `$XDG_BIN_HOME` or `~/.local/bin`. |
+| `--uninstall`        | Removes the binary it would install.                                  |
+| `DEVSET_VERSION`     | The environment's way to say `-v`.                                    |
+| `DEVSET_INSTALL_DIR` | The environment's way to say `-b`.                                    |
+| `DEVSET_NO_ATTEST=1` | Skips the attestation check.                                          |
+
+Pass options after `sh -s --`:
 
 ```sh
-cargo binstall devset-cli
+curl --proto '=https' --tlsv1.2 -fsSL https://atomix-labs.github.io/devset/install.sh | sh -s -- -v 0.2.0 -b /usr/local/bin
+```
+
+The same binaries, other ways:
+
+```sh
+mise use -g github:atomix-labs/devset    # with mise
+cargo binstall devset-cli                # with cargo-binstall
+cargo install --locked devset-cli        # from source, with Rust 1.98 or later
 ```
 
 Or download the archive for your machine from the
 [releases](https://github.com/atomix-labs/devset/releases), check it against the
-`.sha256` beside it, and put `devset` on your `PATH`.
+`.sha256` beside it, and put `devset` on your `PATH`. The package is
+`devset-cli`; the binary it installs is `devset`.
 
-From source, with Rust 1.98 or later, from
-[crates.io](https://crates.io/crates/devset-cli):
+A source in a git repository needs `git` on your `PATH`; a local one needs
+nothing else.
 
-```sh
-cargo install --locked devset-cli
+## A First Target
+
+A target is a directory devset manages. `devset new` starts one in a new
+directory, `devset init` in the one you are in:
+
+```console
+$ devset new hello
+     Created hello/.devset/config.toml
+help: add a layer: `devset add <source>/<profile> --git <url>`, or `--path <dir>`
 ```
 
-The package is `devset-cli`; the binary it installs is `devset`.
-
-A profile in a git repository needs `git` on your `PATH`; a profile in a local
-directory needs nothing else.
+`.devset/config.toml` starts as a commented skeleton: where profiles come from,
+and which to apply. Neither command runs git or needs a source; a target with no
+layer is a target all the same.
 
 ## A First Profile
 
 A profile is a directory holding `profile.toml`, which lists the files it
-manages, and `files/`, which holds them as the target should have them. Make one
-beside a repository:
+manages, and `files/`, which holds them as the target should have them. Profiles
+live in a source, a directory of them; make one beside a repository:
 
 ```text
-profiles/base/
-  profile.toml
-  files/
-    .editorconfig
-    rustfmt.toml
+profiles/
+  base/
+    profile.toml
+    files/
+      .editorconfig
+      rustfmt.toml
 ```
 
 ```toml
@@ -60,18 +88,28 @@ name = "base"
 policy = "merge"
 ```
 
-Then, in the repository, add it as a layer:
+`devset new --profile <dir>` writes a profile's skeleton, its manifest a
+commented tour of what it can say. Then, in the repository, add it as a layer,
+naming the source `house`:
 
 ```console
-$ devset init --path ../profiles/base
+$ devset add house/base --path ../profiles
      Created .editorconfig
      Created rustfmt.toml
     Finished 2 changes
 ```
 
-devset wrote both files, and recorded what it wrote in `.devset/`. Commit
-`.devset/` with the files: it is what lets a teammate, or CI, see the same
-thing.
+devset named the source in `.devset/config.toml`, applied `house/base`, and
+recorded what it wrote in `.devset/`. Commit `.devset/` with the files: it is
+what lets a teammate, or CI, see the same thing.
+
+```toml
+[sources]
+house = { path = "../profiles" }
+
+[[layers]]
+profile = "house/base"
+```
 
 ## Where Things Stand
 
@@ -80,7 +118,7 @@ would change it:
 
 ```console
 $ devset status
-base  ../profiles/base
+house/base
 
 All 2 files match the profile.
 ```
@@ -89,7 +127,7 @@ Edit both files, and ask again:
 
 ```console
 $ devset status
-base  ../profiles/base
+house/base
 
 Drifted — `devset apply --force` restores:
     edited     .editorconfig  owned  restore
@@ -108,20 +146,23 @@ A file whose only change is whitespace at the end of its lines or of the file,
 its line endings or a BOM is `cosmetic`, not edited: an editor that trims
 whitespace or converts line endings never makes drift.
 
-## A Profile in Git
+## A Source in Git
 
 A team keeps its profiles in a git repository, and a target pins a tag of it:
 
 ```sh
-devset init --git https://github.com/acme/profiles --tag v1.4.0 --path rust
+devset add acme/rust --git https://github.com/acme/profiles --tag v1.4.0 --features docs
+devset add acme/book                       # the source is named now: a name is enough
 ```
 
 `.devset/lock.toml` records the commit the tag named. Every later `apply`, on
 any machine, uses that commit; `devset update` moves to what the tag, or a
-branch, names now, and merges your edits with what changed.
+branch, names now, and merges your edits with what changed. `devset list acme`
+shows every profile the source holds, and its features.
 
 ## Next
 
 - [Profiles](profiles.md) says what a profile can declare.
+- [Composing Profiles](composing.md) covers sources, requirements and features.
 - [Updating and Merging](updating.md) says what happens when a profile changes.
 - [In CI](ci.md) makes drift fail a build.

@@ -3,15 +3,16 @@
 devset publishes a JSON Schema for each file people write, so an editor can
 complete and check them:
 
-| File                  | Schema                                       |
-| --------------------- | -------------------------------------------- |
-| `profile.toml`        | [`schema/profile.json`](schema/profile.json) |
-| `.devset/config.toml` | [`schema/config.json`](schema/config.json)   |
+| File                  | Schema                                             |
+| --------------------- | -------------------------------------------------- |
+| `profile.toml`        | [`schema/profile.json`](schema/profile.json)       |
+| `.devset/config.toml` | [`schema/config.json`](schema/config.json)         |
+| `collection.toml`     | [`schema/collection.json`](schema/collection.json) |
 
-Both are served beside this manual, at
-`https://atomix-labs.github.io/devset/schema/profile.json` and
-`https://atomix-labs.github.io/devset/schema/config.json`, and `devset schema
-profile` and `devset schema config` print the ones a build of devset knows.
+Each is served beside this manual, at
+`https://atomix-labs.github.io/devset/schema/<name>.json`, and `devset schema
+profile`, `devset schema config` and `devset schema collection` print the ones a
+build of devset knows.
 
 ## In an Editor
 

@@ -46,7 +46,7 @@ write, and adds a table of them to the job's summary page:
 
 ## Credentials
 
-A git layer's repository is fetched with the job's own `git`, so its credential
+A git source's repository is fetched with the job's own `git`, so its credential
 helpers, SSH keys and `insteadOf` rules apply as they do to any `git fetch`.
 devset never lets git prompt where there is no terminal to answer, so a private
 repository needs a credential helper or an SSH key set up before devset runs.
@@ -55,15 +55,15 @@ repository needs a credential helper or an SSH key set up before devset runs.
 
 `devset status --json` prints the survey for scripts:
 
-| Field         | Holds                                                                                                                                                    |
-| ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `layers`      | Each layer, in order: `name`, `version`, `source`, `rev`, `digest`, and `applied`, one of `current`, `changed` and `never`                               |
-| `files`       | Each managed file or part: `path`, `scope`, `part`, `layer`, `policy`, `state`, and what `apply` and `apply --force` would do to it, `apply` and `force` |
-| `settings`    | `on-conflict`, and the merge `driver`: `builtin`, or its command line                                                                                    |
-| `answers`     | Every variable's answer                                                                                                                                  |
-| `suggestions` | Merge drivers a layer suggests that the target has not set                                                                                               |
-| `drifted`     | Whether `apply --force` would write a file                                                                                                               |
-| `unfinished`  | Whether an update is unfinished                                                                                                                          |
+| Field         | Holds                                                                                                                                                                                           |
+| ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `layers`      | Each layer, in order: `name`, `profile` as `source/name`, `features`, `configured`, `required_by`, `version`, `source`, `rev`, `digest`, and `applied`, one of `current`, `changed` and `never` |
+| `files`       | Each managed file or part: `path`, `scope`, `part`, `layer`, `policy`, `state`, what `apply` and `apply --force` would do to it, `apply` and `force`, and `gate`, why its gate released it      |
+| `settings`    | `on-conflict`, and the merge `driver`: `builtin`, or its command line                                                                                                                           |
+| `answers`     | Every variable's answer                                                                                                                                                                         |
+| `suggestions` | Merge drivers a layer suggests that the target has not set                                                                                                                                      |
+| `drifted`     | Whether `apply --force` would write a file                                                                                                                                                      |
+| `unfinished`  | Whether an update is unfinished                                                                                                                                                                 |
 
 A file's `state` is one of `unchanged`, `cosmetic`, `edited`, `missing`, `new`,
 `untracked`, `dropped` and `conflict`. What `apply` would do is one of `create`,

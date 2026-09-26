@@ -74,3 +74,29 @@ Several layers may own parts of one file, in one scope, so long as no two own
 the same key. With every part written, the file must still parse, with no
 duplicate keys; if it does not, the change waits as a conflict, and the file is
 left as it was.
+
+## Starters
+
+A part of a file the target does not have yet starts it. With nothing else, the
+file holds the part alone; a **starter** gives it the rest, once:
+
+- **A whole `once` file** of another layer, or a
+  [scaffold](gates.md#scaffolds)'s file, on the same path starts the file, and
+  every layer's part is spliced into it in the same run. One profile scaffolds
+  `Cargo.toml`, others add their lint tables and release profile to it, and the
+  file is written once, whole.
+- **A part's own starter**, `starter` on its entry, names a file under `files/`
+  the target's file starts from when it is absent:
+
+  ```toml
+  [files."docs/book.toml"]
+  scope   = "keys"
+  starter = "book.starter.toml"   # files/book.starter.toml: the rest of a new book.toml
+  ```
+
+When the file is there, the parts go into it as it is, and no starter is used. A
+starter is `once`: the target's as soon as it is written, so what the parts
+change in it is never an edit, and a starter written again, by `--rescaffold`,
+takes every part with it. A file has one starter: two, whole or a part's own,
+collide, and `from` names the layer whose starter it is, every layer's part
+staying.

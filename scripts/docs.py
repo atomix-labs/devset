@@ -18,7 +18,7 @@ SRC = Path("docs/src")
 REFERENCE = SRC / "reference"
 SCHEMA = SRC / "schema"
 SUMMARY = SRC / "SUMMARY.md"
-SCHEMAS = ("profile", "config")
+SCHEMAS = ("profile", "config", "collection")
 # Marks a reference page as written here; a page without it is written by hand.
 MARKER = "<!-- reference: written by `just fix-docs`"
 # devset's own help lists its commands under this heading, two spaces in, up to a blank line.

@@ -12,8 +12,9 @@ Arguments:
           Which file
 
           Possible values:
-          - profile: A profile's `profile.toml`
-          - config:  A target's `.devset/config.toml`
+          - profile:    A profile's `profile.toml`
+          - config:     A target's `.devset/config.toml`
+          - collection: A source's `collection.toml`
 
 Options:
   -h, --help

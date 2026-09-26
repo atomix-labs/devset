@@ -4,11 +4,26 @@
   "description": "`profile.toml`.",
   "type": "object",
   "properties": {
-    "profile": { "description": "Identity and requirements.", "$ref": "#/$defs/Meta" },
+    "profile": { "description": "Identity.", "$ref": "#/$defs/Meta" },
+    "requires": {
+      "description": "Profiles this one builds on, by name: each a layer before it.",
+      "type": "object",
+      "additionalProperties": { "$ref": "#/$defs/RequirementSpec" }
+    },
+    "features": { "description": "What a target or a requirer may turn on.", "$ref": "#/$defs/Features" },
+    "vars": {
+      "description": "Variables templates and paths use; the target answers them.",
+      "type": "object",
+      "additionalProperties": { "$ref": "#/$defs/VarSpec" }
+    },
     "merge": { "description": "Merge defaults.", "$ref": "#/$defs/MergeSpec", "default": {} },
-    "vars": { "description": "Variables templates use; the target answers them.", "type": "object", "additionalProperties": { "$ref": "#/$defs/VarSpec" } },
+    "scaffolds": {
+      "description": "Groups of starter files, each written once, when none of its sentinels is there.",
+      "type": "object",
+      "additionalProperties": { "$ref": "#/$defs/ScaffoldSpec" }
+    },
     "files": {
-      "description": "Managed files, by path in the target and under `files/`.",
+      "description": "Managed files, by path in the target, as found under `files/`; a path may use variables.",
       "type": "object",
       "additionalProperties": { "$ref": "#/$defs/FileSpec" }
     }
@@ -20,35 +35,45 @@
       "description": "The `[profile]` table.",
       "type": "object",
       "properties": {
-        "name": { "description": "Names the profile in output, in collisions, and to `update`.", "type": "string" },
-        "version": { "description": "For humans; a git layer is pinned by commit.", "type": ["string", "null"], "default": null },
+        "name": { "description": "Names the profile: in its source, among the layers, in output, and in `from`.", "type": "string" },
+        "version": { "description": "For humans; a git source is pinned by commit.", "type": ["string", "null"], "default": null },
         "description": { "description": "One line for humans.", "type": ["string", "null"], "default": null },
-        "devset": { "description": "The devset versions the profile works with.", "type": ["string", "null"], "default": null },
-        "requires": {
-          "description": "Profiles this one builds on, each a layer of its own before it.",
-          "type": "array",
-          "items": { "$ref": "#/$defs/Requirement" }
-        }
+        "devset": { "description": "The devset versions the profile works with.", "type": ["string", "null"], "default": null }
       },
       "additionalProperties": false,
       "required": ["name"]
     },
-    "Requirement": {
-      "description": "A profile another profile builds on.\n\nA string is a sibling: a path relative to the requiring profile, inside its source and at its\nrevision. A table is a git source, written as a `[[layers]]` entry is.",
-      "anyOf": [
-        { "description": "A profile beside this one, by relative path.", "type": "string" },
-        { "description": "A profile in a git repository, at its own ref.", "$ref": "#/$defs/SourceSpec" }
-      ]
-    },
-    "SourceSpec": {
-      "description": "A source as written in `config.toml`: Cargo's git-dependency fields.",
+    "RequirementSpec": {
+      "description": "A requirement as written.",
       "type": "object",
       "properties": {
-        "git": { "description": "Repository URL.", "type": ["string", "null"] },
-        "tag": { "description": "Tag to use; only with `git`.", "type": ["string", "null"] },
-        "branch": { "description": "Branch to use; only with `git`.", "type": ["string", "null"] },
-        "rev": { "description": "Full commit id to use; only with `git`.", "type": ["string", "null"] },
-        "path": { "description": "The profile's directory: relative to the target, or within the repository with `git`.", "type": ["string", "null"] }
+        "features": {
+          "description": "Its features to turn on.",
+          "type": "array",
+          "items": { "description": "A feature of a profile; never `default`, which names the list of features on by default.", "type": "string" },
+          "default": []
+        },
+        "default-features": { "description": "Whether its default features are on; `true` unless set.", "type": "boolean", "default": true },
+        "optional": { "description": "Whether it applies only when a feature activates it.", "type": "boolean", "default": false },
+        "git": { "description": "The repository of another source.", "type": ["string", "null"], "default": null },
+        "tag": { "description": "Its tag; only with `git`.", "type": ["string", "null"], "default": null },
+        "branch": { "description": "Its branch; only with `git`.", "type": ["string", "null"], "default": null },
+        "rev": { "description": "Its commit; only with `git`.", "type": ["string", "null"], "default": null },
+        "path": { "description": "The directory in the repository its profiles are in; only with `git`.", "type": ["string", "null"], "default": null }
+      },
+      "additionalProperties": false
+    },
+    "Features": {
+      "description": "The `[features]` table: `default`, and every feature with what it turns on.",
+      "type": "object",
+      "additionalProperties": { "type": "array", "items": { "type": "string" } }
+    },
+    "VarSpec": {
+      "description": "A `[vars.name]` entry.",
+      "type": "object",
+      "properties": {
+        "prompt": { "description": "What to ask; the name if unset.", "type": ["string", "null"], "default": null },
+        "default": { "description": "The answer offered.", "type": ["string", "null"], "default": null }
       },
       "additionalProperties": false
     },
@@ -71,21 +96,27 @@
         { "description": "Write nothing but the conflicts until every one is resolved.", "type": "string", "const": "apply-none" }
       ]
     },
-    "VarSpec": {
-      "description": "A `[vars.name]` entry.",
+    "ScaffoldSpec": {
+      "description": "A `[scaffolds.name]` entry: a group of starter files, written together once.",
       "type": "object",
       "properties": {
-        "prompt": { "description": "What to ask; the name if unset.", "type": ["string", "null"], "default": null },
-        "default": { "description": "The answer offered.", "type": ["string", "null"], "default": null }
+        "unless": {
+          "description": "Paths or globs of which any, there before the run, means the target has its own: the group\nis not written. A string or a list; none writes the group when the profile is first\napplied.",
+          "$ref": "#/$defs/Patterns"
+        }
       },
       "additionalProperties": false
+    },
+    "Patterns": {
+      "description": "Paths or globs in the target: a string, or a list of them.",
+      "anyOf": [{ "description": "One.", "type": "string" }, { "description": "Several.", "type": "array", "items": { "type": "string" } }]
     },
     "FileSpec": {
       "description": "A profile's `[files.\"path\"]` entry.",
       "type": "object",
       "properties": {
         "policy": {
-          "description": "How devset manages the file; `owned` unless set.",
+          "description": "How devset manages the file; `owned` unless set, and `once` in a scaffold.",
           "anyOf": [{ "$ref": "#/$defs/Policy" }, { "type": "null" }],
           "default": null
         },
@@ -94,7 +125,11 @@
           "anyOf": [{ "$ref": "#/$defs/Format" }, { "type": "null" }],
           "default": null
         },
-        "template": { "description": "Whether the file is a template, rendered with the target's answers.", "type": "boolean", "default": false },
+        "template": {
+          "description": "Whether the file is a template, rendered with the answers and the `devset` object.",
+          "type": "boolean",
+          "default": false
+        },
         "scope": {
           "description": "How much of the file devset owns: all of it, the keys the payload defines, or a block.",
           "$ref": "#/$defs/Scope",
@@ -109,7 +144,14 @@
           "description": "Whether devset writes the file executable, mode 755, as a script it ships must be.",
           "type": "boolean",
           "default": false
-        }
+        },
+        "scaffold": { "description": "The scaffold group the file belongs to, written with it.", "type": ["string", "null"], "default": null },
+        "starter": {
+          "description": "For a part, a file under `files/` the target's file starts from when it is absent.",
+          "type": ["string", "null"],
+          "default": null
+        },
+        "when": { "description": "When the entry applies; always, unless set.", "$ref": "#/$defs/When" }
       },
       "additionalProperties": false
     },
@@ -149,6 +191,37 @@
         { "description": "`/* */`: CSS.", "type": "string", "const": "/*" },
         { "description": "`<!-- -->`: Markdown, HTML, XML.", "type": "string", "const": "<!--" }
       ]
+    },
+    "When": {
+      "description": "When an entry applies: every condition holds.",
+      "type": "object",
+      "properties": {
+        "features": {
+          "description": "Features of this profile that are on.",
+          "type": "array",
+          "items": { "description": "A feature of a profile; never `default`, which names the list of features on by default.", "type": "string" },
+          "default": []
+        },
+        "profiles": {
+          "description": "Profiles active in the target.",
+          "type": "array",
+          "items": { "description": "A profile's name, unique in its source and among a target's layers.", "type": "string" },
+          "default": []
+        },
+        "vars": {
+          "description": "Variables of this profile, each answered with one of its values.",
+          "type": "object",
+          "additionalProperties": { "type": "array", "items": { "type": "string" } },
+          "default": {}
+        },
+        "exists": {
+          "description": "Paths or globs that will exist when the run finishes, whole files or parts; may use\nvariables.",
+          "type": "array",
+          "items": { "type": "string" },
+          "default": []
+        }
+      },
+      "additionalProperties": false
     }
   }
 }
