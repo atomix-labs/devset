@@ -17,7 +17,9 @@ A vulnerability is reported privately, as [SECURITY.md](SECURITY.md) says.
 ## A Checkout
 
 devset applies the `rust` bundle of [atxp](https://github.com/atomix-labs/atxp)
-to itself, so its tools, checks and CI are atxp's, pinned in `.devset/`.
+to itself, with the features and the profiles beside it that
+`.devset/config.toml` names, so its tools, checks and CI are atxp's, pinned in
+`.devset/`.
 
 ```sh
 ./setup.sh      # the tools the lock pins, then the pinned nightly toolchain
@@ -26,7 +28,8 @@ just fix        # every fix
 ```
 
 Development runs on the nightly that `rust-toolchain.toml` pins; every crate
-also builds on the `rust-version` it declares, which `just check-msrv` checks.
+also builds on the `rust-version` it declares, which `just check-rust-msrv`
+checks.
 
 ## Pull Requests
 
@@ -122,5 +125,5 @@ Every document here, the manual included, keeps these rules.
 - A long document collects its link targets at the bottom.
 - A generated region is marked by a comment that names what writes it.
 
-The manual is an mdBook in `docs/`; `just check-mdbook` builds it, and `just
-check-lychee` checks every link in every document.
+The manual is an mdBook in `docs/`; `just check-mdbook` builds it and checks the
+links of the built book, and `just check-lychee` checks every other document's.
