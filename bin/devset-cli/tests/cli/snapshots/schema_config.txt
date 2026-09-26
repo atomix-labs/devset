@@ -2,14 +2,22 @@ $ devset schema config
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Config",
-  "description": "`.devset/config.toml`: the layers, and the target's word on every setting they carry.",
+  "description": "`.devset/config.toml`: the sources, the layers, and the target's word on every setting they/ncarry.",
   "type": "object",
   "properties": {
+    "sources": {
+      "description": "Where profiles come from, each named once.",
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/SourceSpec"
+      },
+      "default": {}
+    },
     "layers": {
       "description": "Profiles to apply, in order.",
       "type": "array",
       "items": {
-        "$ref": "#/$defs/SourceSpec"
+        "$ref": "#/$defs/LayerSpec"
       },
       "default": []
     },
@@ -69,6 +77,37 @@ $ devset schema config
         }
       },
       "additionalProperties": false
+    },
+    "LayerSpec": {
+      "description": "A `[[layers]]` entry: a profile, and the features the target turns on.",
+      "type": "object",
+      "properties": {
+        "profile": {
+          "description": "The profile, `source/name`.",
+          "$ref": "#/$defs/ProfileRef"
+        },
+        "features": {
+          "description": "Its features to turn on, beside its default ones.",
+          "type": "array",
+          "items": {
+            "description": "A feature of a profile; never `default`, which names the list of features on by default.",
+            "type": "string"
+          }
+        },
+        "default-features": {
+          "description": "Whether its default features are on; unless a profile that requires it turns them on.",
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "profile"
+      ]
+    },
+    "ProfileRef": {
+      "description": "A profile in a named source: `source/profile`.",
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*/[A-Za-z0-9][A-Za-z0-9_-]*$"
     },
     "MergeSpec": {
       "description": "A `[merge]` table: defaults in `profile.toml`, decisions in `.devset/config.toml`.",

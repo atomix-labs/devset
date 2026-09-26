@@ -1,0 +1,54 @@
+$ devset init p/rust --path ../p
+     Created Cargo.toml
+     Created Cargo.toml [keys: lints]
+     Created Cargo.toml [keys: release]
+    Finished 3 changes
+note: answered project = "hello", the default
+  |
+  = help: pass `--var project=…` to choose another
+[exit 0]
+--- Cargo.toml
+[workspace]
+members = ["crates/*"]
+
+[workspace.package]
+name = "hello"
+
+[workspace.lints.rust]
+unsafe_code = "deny"
+
+[profile.release]
+lto = "fat"
+$ devset status -v
+p/lints 1.0.0  (required by rust)
+p/release 1.0.0  (required by rust)
+p/workspace 1.0.0  (required by rust)
+p/rust 1.0.0
+  merge driver: builtin
+  project = "hello"
+
+In sync:
+    unchanged  Cargo.toml                  once   (workspace)
+    unchanged  Cargo.toml [keys: lints]    owned
+    unchanged  Cargo.toml [keys: release]  owned
+
+1 file matches the profile.
+[exit 0]
+$ devset init p/rust --path ../p
+     Adopted Cargo.toml
+     Created Cargo.toml [keys: lints]
+     Created Cargo.toml [keys: release]
+    Finished 3 changes
+note: answered project = "hello", the default
+  |
+  = help: pass `--var project=…` to choose another
+[exit 0]
+--- mine/Cargo.toml
+[package]
+name = "mine"
+
+[workspace.lints.rust]
+unsafe_code = "deny"
+
+[profile.release]
+lto = "fat"

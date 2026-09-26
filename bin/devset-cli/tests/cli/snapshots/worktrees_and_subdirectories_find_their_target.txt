@@ -3,7 +3,7 @@ $ devset init --path ../profile
     Finished 1 change
 [exit 0]
 $ devset status --exit-code
-demo 1.0.0  ../profile
+profile/demo 1.0.0
 
 1 file matches the profile.
 [exit 0]

@@ -1,11 +1,13 @@
 //! Versioned file bundles, applied to a directory and updated without losing local edits.
 //!
-//! A *profile* is a directory of files, on disk or in git; a *target* is a directory that
-//! applies profiles as *layers*. devset records what it wrote in the target's `.devset/`, so a
-//! later update tells a local edit from a change the profile made: the edit is kept, and merged
-//! with the change where the file's [`Policy`](profile::Policy) says so. A profile owns a whole
-//! file, or a part of one its [`Scope`](profile::Scope) names: the keys its payload defines, or a
-//! marked block.
+//! A *profile* is a directory of files in a *source*, a git repository or a local directory; a
+//! *target* is a directory that names its sources and applies profiles from them as *layers*.
+//! Profiles compose as crates do: a profile requires others by name, and offers features that add
+//! files, parts, requirements and features of what it requires; an entry applies only when its
+//! gates hold. devset records what it wrote in the target's `.devset/`, so a later update tells a
+//! local edit from a change the profile made: the edit is kept, and merged with the change where
+//! the file's [`Policy`](profile::Policy) says so. A profile owns a whole file, or a part of one
+//! its [`Scope`](profile::Scope) names: the keys its payload defines, or a marked block.
 //!
 //! # Applying a profile
 //!
@@ -15,16 +17,18 @@
 //! use std::fs;
 //!
 //! use devset_core::source::Source;
+//! use devset_core::target::LayerSpec;
 //! use devset_core::{Cache, Mode, Refresh, Target, commit, plan, resolve, survey};
 //!
 //! let dir = camino_tempfile::tempdir()?;
 //! let root = dir.path();
-//! # fs::create_dir_all(root.join("base/files"))?;
-//! # fs::write(root.join("base/profile.toml"), "[profile]\nname = \"base\"\n\n[files.\".editorconfig\"]\n")?;
-//! # fs::write(root.join("base/files/.editorconfig"), "root = true\n")?;
+//! # fs::create_dir_all(root.join("house/base/files"))?;
+//! # fs::write(root.join("house/base/profile.toml"), "[profile]\nname = \"base\"\n\n[files.\".editorconfig\"]\n")?;
+//! # fs::write(root.join("house/base/files/.editorconfig"), "root = true\n")?;
 //! # fs::create_dir(root.join("repo"))?;
 //! let mut target = Target::open_or_new(&root.join("repo"))?;
-//! target.add_layer(Source::Dir("../base".into()))?;
+//! target.add_source("house".parse()?, Source::Dir("../house".into()))?;
+//! target.add_layer(LayerSpec::new("house/base".parse()?))?;
 //!
 //! let resolved = resolve(&target, &Cache::at(root.join("cache")), Refresh::None)?; // read, compose
 //! let survey = survey(resolved, &target)?; // compare with the disk
@@ -38,7 +42,7 @@
 //!
 //! # Updating
 //!
-//! [`Refresh::All`] moves every layer to what its ref names now; the rest of the chain is the
+//! [`Refresh::All`] moves every source to what its ref names now; the rest of the chain is the
 //! same. A `merge` file then merges its local edits with the profile's new version. A conflict
 //! leaves the update unfinished, waiting in `.devset/conflicts/`: a chain under
 //! [`Mode::Continue`] installs the fix, or a [`Rollback`] takes the whole update back.
@@ -53,10 +57,13 @@
 //! - [`Error`]: why any of it did not go through, one type per domain.
 //!
 //! The files people write have modules of their own: [`profile`] for `profile.toml`,
-//! [`target`] for `.devset/config.toml`, and [`source`] for where a layer comes from.
+//! [`collection`] for a source's profiles, [`target`] for `.devset/config.toml`, and [`source`]
+//! for where profiles come from; [`name`] holds the names they use.
 
 extern crate alloc;
 
+pub mod collection;
+pub mod name;
 pub mod plan;
 pub mod profile;
 pub mod resolve;
@@ -68,7 +75,9 @@ mod commit;
 mod digest;
 mod errors;
 mod format;
+mod gate;
 mod git;
+mod graph;
 mod merge;
 mod part;
 mod path;
@@ -79,8 +88,8 @@ mod vars;
 
 pub use crate::commit::commit;
 pub use crate::errors::{
-    Error, MergeError, ParseError, PathError, ProfileError, Result, SourceError, TargetError,
-    VarError,
+    Error, MergeError, NameError, ParseError, PathError, ProfileError, Result, SourceError,
+    TargetError, VarError,
 };
 pub use crate::path::RelPath;
 #[doc(inline)]

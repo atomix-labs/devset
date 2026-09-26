@@ -13,3 +13,9 @@ $ devset apply
     Finished 1 change
     Fetching [ROOT]/profiles.git
 [exit 0]
+$ devset status
+org/org 1.0.0
+  requires rust
+
+All 2 files match the profile.
+[exit 0]

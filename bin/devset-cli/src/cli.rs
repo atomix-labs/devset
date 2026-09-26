@@ -1,7 +1,11 @@
 //! The command line: devset's commands, their arguments, and how each is parsed.
 
+use core::str::FromStr;
+
 use camino::Utf8PathBuf;
-use clap::{Args, Parser, Subcommand, ValueEnum};
+use clap::{ArgGroup, Args, Parser, Subcommand, ValueEnum};
+use devset_core::NameError;
+use devset_core::name::{FeatureName, ProfileName, ScaffoldId, SourceName};
 use devset_core::profile::VarName;
 use devset_core::source::SourceSpec;
 
@@ -9,7 +13,8 @@ use devset_core::source::SourceSpec;
 #[derive(Debug, Parser)]
 #[command(name = "devset", version, styles = clap_cargo::style::CLAP_STYLING, after_help = "\
 Examples:
-  devset init --git https://github.com/acme/profiles --tag v1.4.0 --path rust
+  devset new hello atxp/rust --git https://github.com/atomix-labs/atxp --tag v0.4.0
+  devset add atxp/mdbook --features katex
   devset status
   devset update
 
@@ -32,31 +37,78 @@ pub(crate) struct Cli {
 /// A devset command.
 #[derive(Debug, Subcommand)]
 pub(crate) enum Command {
-    /// Add a profile as a layer, and apply it.
+    /// Start a target in a new directory, or a profile or a collection to author.
     #[command(after_help = "\
 Examples:
-  devset init --path ../profiles/base
-  devset init --git https://github.com/acme/profiles --tag v1.4.0 --path rust
-  devset init --git git@github.com:acme/profiles --branch main --var author=Ada")]
-    Init {
+  devset new hello                    a target: hello/.devset/config.toml, to add layers to
+  devset new hello atxp/rust --git https://github.com/atomix-labs/atxp --tag v0.4.0
+  devset new --profile my-lint        a profile: profile.toml, files/ and a README
+  devset new --collection acme        a source of profiles: collection.toml and profiles/")]
+    New {
+        /// The directory to create it in.
+        dir: Utf8PathBuf,
+        /// Create a profile to author, not a target.
+        #[arg(long, conflicts_with_all = ["collection", "layer", "git", "path"])]
+        profile: bool,
+        /// Create a collection of profiles to publish, not a target.
+        #[arg(long, conflicts_with_all = ["layer", "git", "path"])]
+        collection: bool,
+        /// The first layer, if any.
+        #[command(flatten)]
+        add: AddArgs,
+        /// Answers to its variables.
+        #[command(flatten)]
+        answers: Answers,
         /// Show what would change; write nothing.
         #[arg(long)]
         dry_run: bool,
-        /// The layer to add.
+    },
+    /// Start a target in the current directory, with a first layer if given.
+    #[command(after_help = "\
+Examples:
+  devset init
+  devset init atxp/rust --git https://github.com/atomix-labs/atxp --tag v0.4.0 --features docs
+  devset init --path ../profiles/base")]
+    Init {
+        /// The first layer, if any.
         #[command(flatten)]
-        source: SourceArgs,
-        /// Answers to the profile's variables.
+        add: AddArgs,
+        /// Answers to its variables.
         #[command(flatten)]
         answers: Answers,
+        /// Show what would change; write nothing.
+        #[arg(long)]
+        dry_run: bool,
+    },
+    /// Add a profile as a layer, and apply it.
+    #[command(
+        group(ArgGroup::new("what").required(true).multiple(true).args(["layer", "git", "path"])),
+        after_help = "\
+Examples:
+  devset add atxp/mdbook                    from a source the target names
+  devset add atxp/mdbook --features katex   with features beside the defaults
+  devset add house/deploy --git git@github.com:acme/profiles --branch main
+  devset add --path ../profiles/base        a source holding one profile"
+    )]
+    Add {
+        /// The layer.
+        #[command(flatten)]
+        add: AddArgs,
+        /// Answers to its variables.
+        #[command(flatten)]
+        answers: Answers,
+        /// Show what would change; write nothing.
+        #[arg(long)]
+        dry_run: bool,
     },
     /// Remove a layer: its unchanged files go, and edited ones stay, untracked.
     #[command(after_help = "\
 Examples:
-  devset remove base             by its profile name
-  devset remove base --dry-run   what would change")]
+  devset remove mdbook             by its profile's name
+  devset remove mdbook --dry-run   what would change")]
     Remove {
         /// The layer, by its profile's name.
-        layer: String,
+        layer: ProfileName,
         /// Show what would change; write nothing.
         #[arg(long)]
         dry_run: bool,
@@ -90,12 +142,16 @@ Examples:
     /// Apply the pinned profile without destroying local edits.
     #[command(after_help = "\
 Examples:
-  devset apply --dry-run   what would change
-  devset apply --force     also restore drifted owned files")]
+  devset apply --dry-run                what would change
+  devset apply --force                  also restore drifted owned files
+  devset apply --rescaffold mdbook/book write a scaffold's missing files again")]
     Apply {
         /// Also restore `owned` files that were edited, deleted or never recorded.
         #[arg(long)]
         force: bool,
+        /// Write the missing files of a scaffold again, `profile/group`; repeatable.
+        #[arg(long, value_name = "PROFILE/GROUP")]
+        rescaffold: Vec<ScaffoldId>,
         /// Show what would change; write nothing.
         #[arg(long)]
         dry_run: bool,
@@ -103,21 +159,21 @@ Examples:
         #[command(flatten)]
         answers: Answers,
     },
-    /// Move layers to what their refs name now, merging local edits.
+    /// Move sources to what their refs name now, merging local edits.
     #[command(after_help = "\
 Examples:
-  devset update              every layer
-  devset update rust         one layer, by its profile name
+  devset update              every source
+  devset update atxp         one source, or the source of one layer
   devset update --continue   after resolving .devset/conflicts/
   devset update --abort      take back an update that conflicted")]
     Update {
-        /// Only the layer whose profile has this name.
-        layer: Option<String>,
+        /// Only the source with this name, or the source of the layer with this name.
+        name: Option<String>,
         /// Install the conflicts resolved in .devset/conflicts/.
-        #[arg(long = "continue", conflicts_with_all = ["layer", "abort"])]
+        #[arg(long = "continue", conflicts_with_all = ["name", "abort"])]
         resume: bool,
         /// Take back the unfinished update: every file it wrote, the lock and the state.
-        #[arg(long, conflicts_with_all = ["layer", "vars"])]
+        #[arg(long, conflicts_with_all = ["name", "vars"])]
         abort: bool,
         /// With --abort, also discard changes made since the update.
         #[arg(long, requires = "abort")]
@@ -128,6 +184,37 @@ Examples:
         /// Answers to the profile's variables.
         #[command(flatten)]
         answers: Answers,
+    },
+    /// Show each layer's features: which are on, and who turned them on.
+    #[command(after_help = "\
+Examples:
+  devset features          every layer
+  devset features mdbook   one, with the features it leaves off")]
+    Features {
+        /// Only the layer whose profile has this name.
+        layer: Option<ProfileName>,
+    },
+    /// Show why a file is managed as it is: each layer that lists it, and its gates.
+    #[command(after_help = "\
+Examples:
+  devset explain docs/book.toml")]
+    Explain {
+        /// The file, from the current directory.
+        path: Utf8PathBuf,
+    },
+    /// List the profiles a source holds, with their features.
+    #[command(after_help = "\
+Examples:
+  devset list                                   every source the target names
+  devset list atxp                              one of them
+  devset list --git https://github.com/atomix-labs/atxp --tag v0.4.0")]
+    List {
+        /// A source the target names.
+        #[arg(conflicts_with_all = ["git", "path"])]
+        source: Option<SourceName>,
+        /// Or any source.
+        #[command(flatten)]
+        location: Location,
     },
     /// Print the JSON Schema of a devset file, for editor completion.
     Schema {
@@ -146,10 +233,50 @@ Examples:
     },
 }
 
-/// A layer's source: the fields of `[[layers]]` in `.devset/config.toml`.
+/// A layer to add: the profile, where it is, and its features.
+#[derive(Debug, Args)]
+pub(crate) struct AddArgs {
+    /// The profile, `source/profile`; with --git or --path, `profile` alone names it in the
+    /// source they name.
+    pub(crate) layer: Option<LayerArg>,
+    /// Where the source is, when the target does not name it yet.
+    #[command(flatten)]
+    pub(crate) location: Location,
+    /// Features to turn on, beside the default ones; comma-separated or repeated.
+    #[arg(long, short = 'F', value_delimiter = ',', help_heading = "Features")]
+    pub(crate) features: Vec<FeatureName>,
+    /// Leave the profile's default features off.
+    #[arg(long, help_heading = "Features")]
+    pub(crate) no_default_features: bool,
+}
+
+/// A layer as the command line names it: `source/profile`, or `profile` in the source the flags
+/// name.
+#[derive(Clone, Debug)]
+pub(crate) struct LayerArg {
+    /// The source, as `[sources]` names it.
+    pub(crate) source: Option<SourceName>,
+    /// The profile.
+    pub(crate) profile: ProfileName,
+}
+
+impl FromStr for LayerArg {
+    type Err = NameError;
+
+    fn from_str(written: &str) -> Result<Self, NameError> {
+        Ok(match written.split_once('/') {
+            Some((source, profile)) => {
+                Self { source: Some(source.parse()?), profile: profile.parse()? }
+            },
+            None => Self { source: None, profile: written.parse()? },
+        })
+    }
+}
+
+/// Where a source is: the fields of an entry in `[sources]`.
 #[derive(Debug, Args)]
 #[command(next_help_heading = "Source")]
-pub(crate) struct SourceArgs {
+pub(crate) struct Location {
     /// Git repository URL.
     #[arg(long)]
     git: Option<String>,
@@ -162,16 +289,16 @@ pub(crate) struct SourceArgs {
     /// Full commit id to use.
     #[arg(long, requires = "git")]
     rev: Option<String>,
-    /// Profile directory: local, or within the repository with --git.
-    #[arg(long, required_unless_present = "git")]
+    /// A local directory; with --git, the directory in the repository its profiles are in.
+    #[arg(long)]
     path: Option<String>,
 }
 
-impl SourceArgs {
-    /// The source these arguments name, as `[[layers]]` would.
-    pub(crate) fn spec(self) -> SourceSpec {
+impl Location {
+    /// The source these arguments name, as `[sources]` would; `None` when they name none.
+    pub(crate) fn spec(self) -> Option<SourceSpec> {
         let Self { git, tag, branch, rev, path } = self;
-        SourceSpec { git, tag, branch, rev, path }
+        (git.is_some() || path.is_some()).then_some(SourceSpec { git, tag, branch, rev, path })
     }
 }
 
@@ -191,6 +318,8 @@ pub(crate) enum SchemaFile {
     Profile,
     /// A target's `.devset/config.toml`.
     Config,
+    /// A source's `collection.toml`.
+    Collection,
 }
 
 /// Parses `NAME=VALUE`.

@@ -1,9 +1,9 @@
-$ devset init --path ../cycle/a
-error: requirements form a cycle: ../cycle/a → ../cycle/b → ../cycle/a
+$ devset init cycle/a --path ../cycle
+error: requirements form a cycle: a → b → a
   |
   = help: drop one requirement to break the cycle
 [exit 2]
-$ devset init --path ../clash/both
+$ devset init clash/both --path ../clash
 error: same.toml is provided by x and y
   |
   = help: choose one in .devset/config.toml:
@@ -11,9 +11,14 @@ error: same.toml is provided by x and y
               from = "x"   # or "y"
 [exit 2]
 $ devset init --path ../bad
-error: a requirement table names a git source; a sibling is a relative path
- --> ../bad/profile.toml:4:13
+error: `tag`, `branch`, `rev` and `path` name another source, with `git`; a profile in this one is required by name alone
+ --> ../bad/profile.toml:6:5
   |
-4 | requires = [{ path = "../x" }]
-  |             ^^^^^^^^^^^^^^^^^
+6 | x = { path = "../x" }
+  |     ^^^^^^^^^^^^^^^^^
+[exit 2]
+$ devset init --path ../lost
+error: ../lost has no profile named nowhere
+  |
+  = help: it holds lost; `devset list` shows them, and `devset update <source>` takes a newer commit of the source
 [exit 2]

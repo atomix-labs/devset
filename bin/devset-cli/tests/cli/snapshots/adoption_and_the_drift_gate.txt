@@ -5,13 +5,13 @@ $ devset init --path ../profile
     Finished 3 changes
 [exit 0]
 $ devset status --exit-code
-demo 1.0.0  ../profile
+profile/demo 1.0.0
 
 Local changes, kept:
     edited     deny.toml  merge
 [exit 0]
 $ devset status --exit-code
-demo 1.0.0  ../profile
+profile/demo 1.0.0
 
 Drifted — `devset apply --force` restores:
     edited     rustfmt.toml  owned  restore
@@ -31,7 +31,7 @@ $ devset apply --force
     Finished 1 change
 [exit 0]
 $ devset status --exit-code
-demo 1.0.0  ../profile
+profile/demo 1.0.0
 
 Local changes, kept:
     edited     deny.toml  merge

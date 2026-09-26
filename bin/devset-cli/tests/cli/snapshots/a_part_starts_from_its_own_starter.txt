@@ -1,0 +1,20 @@
+$ devset init --path ../p/book
+     Created docs/book.toml [keys: book]
+    Finished 1 change
+[exit 0]
+--- docs/book.toml
+[book]
+title = "Book"
+
+[output.html]
+mathjax-support = false
+$ devset init --path ../p/book
+     Created docs/book.toml [keys: book]
+    Finished 1 change
+[exit 0]
+--- mine/docs/book.toml
+[book]
+title = "Mine"
+
+[output.html]
+mathjax-support = false

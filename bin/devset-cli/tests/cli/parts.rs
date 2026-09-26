@@ -187,15 +187,20 @@ fn layers_share_a_file_in_parts() {
     sb.profile("whole", "whole", &[("Cargo.toml", "owned", "[package]\nname = \"x\"\n")]);
     sb.write("repo/Cargo.toml", "[workspace]\nmembers = []\n");
     let mut log = sb.devset("repo", &["init", "--path", "../lints"]);
-    log += &sb.devset("repo", &["init", "--path", "../rust"]);
+    log += &sb.devset("repo", &["add", "--path", "../rust"]);
     write!(log, "--- Cargo.toml\n{}", sb.read("repo/Cargo.toml")).unwrap();
     log += &sb.devset("repo", &["status", "-v"]);
-    log += &sb.devset("repo", &["init", "--path", "../strict"]);
-    log += &sb.devset("repo", &["init", "--path", "../whole"]);
-    let config = sb.read("repo/.devset/config.toml");
-    let config = format!(
-        "{config}\n[[layers]]\npath = \"../whole\"\n\n[files.\"Cargo.toml\"]\nfrom = \"lints\"\n"
-    );
+    log += &sb.devset("repo", &["add", "--path", "../strict"]);
+    log += &sb.devset("repo", &["add", "--path", "../whole"]);
+    let names = ["lints", "rust", "whole"];
+    let mut config = String::from("[sources]\n");
+    for name in names {
+        writeln!(config, "{name} = {{ path = \"../{name}\" }}").unwrap();
+    }
+    for name in names {
+        write!(config, "\n[[layers]]\nprofile = \"{name}/{name}\"\n").unwrap();
+    }
+    config += "\n[files.\"Cargo.toml\"]\nfrom = \"lints\"\n";
     sb.write("repo/.devset/config.toml", &config);
     log += &sb.devset("repo", &["apply"]);
     assert!(!sb.read("repo/Cargo.toml").contains("[package]"), "`from` picks the part");

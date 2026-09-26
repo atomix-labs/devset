@@ -44,7 +44,7 @@ highlight = "all"
 [licenses]
 allow = ["MIT", "Apache-2.0"]
 $ devset status
-p 1.0.0  ../profiles.git branch main path p  @4720d24
+p/p 1.0.0  @4720d24
 
 Conflicts — resolve in .devset/conflicts/, then run `devset update --continue`:
     conflict   deny.toml [keys: p]  merge  → .devset/conflicts/deny.toml
@@ -54,7 +54,7 @@ $ devset update --continue
     Finished 1 change
 [exit 0]
 $ devset status --exit-code
-p 1.0.0  ../profiles.git branch main path p  @4720d24
+p/p 1.0.0  @4720d24
 
 1 file matches the profile.
 [exit 0]

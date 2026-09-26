@@ -1,5 +1,5 @@
 $ devset status --exit-code
-p 1.0.0  ../profiles.git branch main path p  @54ba0dc
+p/p 1.0.0  @54ba0dc
 
 Conflicts — resolve in .devset/conflicts/, then run `devset update --continue`:
     conflict   a.toml  merge  → .devset/conflicts/a.toml

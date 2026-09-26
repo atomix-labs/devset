@@ -16,7 +16,7 @@ $ devset update --abort
     Finished update aborted: no file to take back
 [exit 0]
 $ devset status
-p 1.0.0  ../profiles.git branch main path p  @5d4dd77
+p/p 1.0.0  @5d4dd77
 
 Local changes, kept:
     edited     a.toml  merge

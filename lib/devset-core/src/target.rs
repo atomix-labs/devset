@@ -2,10 +2,10 @@
 //!
 //! ```text
 //! .devset/
-//! ├── config.toml     the layers, and the target's word on their settings (committed)
-//! ├── lock.toml       each layer's exact revision and digest (committed)
+//! ├── config.toml     the sources, the layers, and the target's word on settings (committed)
+//! ├── lock.toml       each source's revision, each layer's digest and features (committed)
 //! ├── answers.toml    answers to the layers' variables (committed)
-//! ├── state.toml      what devset last wrote, by file and part (committed)
+//! ├── state.toml      what devset last wrote, by file and part, and each scaffold (committed)
 //! ├── base/           those bytes, by digest, as merge bases (committed)
 //! └── conflicts/      an unfinished update: merges awaiting resolution (ignored)
 //!     └── .devset/    what it withheld, and what it would take to undo it
@@ -16,13 +16,16 @@ use core::str;
 use std::io;
 
 use camino::{Utf8Path, Utf8PathBuf};
+use derive_more::Display;
 use schemars::JsonSchema;
 use serde::de::{self, DeserializeOwned};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
-use toml_edit::{ArrayOfTables, DocumentMut, Item, TomlError, Value, ser};
+use toml_edit::{ArrayOfTables, DocumentMut, Item, Table, TomlError, Value, ser};
 
 use crate::digest::{Digest, Fingerprint};
 use crate::errors::{ParseError, Result, TargetError};
+use crate::graph::Enabler;
+use crate::name::{FeatureName, ProfileName, ProfileRef, ScaffoldId, SourceName};
 use crate::part::{Scope, Slot};
 use crate::path::RelPath;
 use crate::profile::{Format, MergeSpec, Policy};
@@ -78,17 +81,40 @@ pub struct Target {
     answers: BTreeMap<VarName, String>,
     /// Variables answered since loading, which must be declared.
     given: BTreeSet<VarName>,
+    /// Scaffolds to write again, whatever was decided.
+    rescaffold: BTreeSet<ScaffoldId>,
     /// Digest of `state.toml` as read, to catch a concurrent writer.
     state_digest: Option<Digest>,
 }
 
-/// `.devset/config.toml`: the layers, and the target's word on every setting they carry.
+/// What a new target's `config.toml` says before it has a source or a layer.
+const SKELETON: &str = "\
+# devset applies the profiles below to this directory, and keeps them up to date.
+# The manual: https://atomix-labs.github.io/devset/
+#
+# Where profiles come from, each named once: a git repository at a ref, or a directory.
+#
+#   [sources]
+#   atxp = { git = \"https://github.com/atomix-labs/atxp\", tag = \"v0.4.0\" }
+#
+# The profiles to apply, in order, by source and name, with the features to turn on.
+#
+#   [[layers]]
+#   profile  = \"atxp/rust\"
+#   features = [\"docs\"]
+";
+
+/// `.devset/config.toml`: the sources, the layers, and the target's word on every setting they
+/// carry.
 #[derive(Debug, Default, Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct Config {
+    /// Where profiles come from, each named once.
+    #[serde(default)]
+    pub sources: BTreeMap<SourceName, Source>,
     /// Profiles to apply, in order.
     #[serde(default)]
-    pub layers: Vec<Source>,
+    pub layers: Vec<LayerSpec>,
     /// Merge settings; these override every layer's.
     #[serde(default)]
     pub merge: MergeSpec,
@@ -97,13 +123,49 @@ pub struct Config {
     pub files: BTreeMap<RelPath, Override>,
 }
 
+/// A `[[layers]]` entry: a profile, and the features the target turns on.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields, rename_all = "kebab-case")]
+pub struct LayerSpec {
+    /// The profile, `source/name`.
+    pub profile: ProfileRef,
+    /// Its features to turn on, beside its default ones.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub features: Vec<FeatureName>,
+    /// Whether its default features are on; unless a profile that requires it turns them on.
+    #[serde(default = "yes", skip_serializing_if = "is_yes")]
+    pub default_features: bool,
+}
+
+impl LayerSpec {
+    /// A layer of `profile`, its default features on and no other.
+    #[must_use]
+    pub const fn new(profile: ProfileRef) -> Self {
+        Self { profile, features: Vec::new(), default_features: true }
+    }
+}
+
+/// `true`, serde's default for a flag that is on unless set.
+const fn yes() -> bool {
+    true
+}
+
+/// Whether `flag` is on, its default.
+#[expect(
+    clippy::trivially_copy_pass_by_ref,
+    reason = "serde's `skip_serializing_if` passes a reference"
+)]
+const fn is_yes(flag: &bool) -> bool {
+    *flag
+}
+
 /// A `[files."path"]` entry in `config.toml`, overriding the providing layer's.
 #[derive(Clone, Debug, Default, Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct Override {
     /// The layer that provides the file, when several do.
     #[serde(default)]
-    pub from: Option<String>,
+    pub from: Option<ProfileName>,
     /// How devset manages the file.
     #[serde(default)]
     pub policy: Option<Policy>,
@@ -112,21 +174,47 @@ pub struct Override {
     pub validate: Option<Format>,
 }
 
+/// What was decided of a scaffold, and where it wrote its files: `state.toml`'s record.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct Scaffold {
+    /// Whether the group was written, or found the target's own.
+    pub decision: Scaffolded,
+    /// Each file it wrote, by its path as the profile writes it, at its path in the target: a
+    /// changed answer moves no file a scaffold wrote.
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub files: BTreeMap<RelPath, RelPath>,
+}
+
+/// What was decided of a scaffold, once and for good.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Display)]
+#[serde(rename_all = "lowercase")]
+#[display(rename_all = "lowercase")]
+pub enum Scaffolded {
+    /// Its sentinels were absent, so its files were written.
+    Written,
+    /// A sentinel was there: the target has its own, and the group was left out.
+    Found,
+}
+
 impl Target {
     /// The target containing `dir`: the nearest ancestor holding `.devset/config.toml`.
     ///
     /// # Errors
     /// - [`TargetError::NotFound`], no ancestor holds one.
+    /// - [`TargetError::OldConfig`], its `config.toml` is devset 0.1's.
     /// - [`Error::Parse`](crate::Error::Parse), one of its files does not parse.
     pub fn find(dir: &Utf8Path) -> Result<Self> {
         let root = enclosing(dir).ok_or_else(|| TargetError::NotFound { dir: dir.to_owned() })?;
         Self::load(root)
     }
 
-    /// The target rooted at `root`, or a new, empty one there. Never one inside another target.
+    /// The target rooted at `root`, or a new one there, its `config.toml` a commented skeleton.
+    /// Never one inside another target.
     ///
     /// # Errors
     /// - [`TargetError::Nested`], `root` lies inside another target.
+    /// - [`TargetError::OldConfig`], its `config.toml` is devset 0.1's.
     /// - [`Error::Parse`](crate::Error::Parse), one of its files does not parse.
     pub fn open_or_new(root: &Utf8Path) -> Result<Self> {
         match enclosing(root) {
@@ -137,12 +225,13 @@ impl Target {
             None => Ok(Self {
                 root: root.to_owned(),
                 config: Config::default(),
-                config_text: String::new(),
+                config_text: SKELETON.to_owned(),
                 lock: Lock::default(),
                 pending: None,
                 state: State::default(),
                 answers: BTreeMap::new(),
                 given: BTreeSet::new(),
+                rescaffold: BTreeSet::new(),
                 state_digest: None,
             }),
         }
@@ -160,19 +249,55 @@ impl Target {
         &self.config
     }
 
-    /// Appends `source` as the last layer; written by the next [`commit`](crate::commit()).
+    /// Whether `config.toml` exists yet: a new target's is written by its first
+    /// [`commit`](crate::commit()).
+    #[must_use]
+    pub fn exists(&self) -> bool {
+        self.dir().join(CONFIG).is_file()
+    }
+
+    /// Names `source` `name` in `[sources]`; written by the next [`commit`](crate::commit()).
+    ///
+    /// Nothing changes when it already does.
     ///
     /// # Errors
-    /// - [`TargetError::DuplicateLayer`], the layer is already present.
-    /// - [`Error::Parse`](crate::Error::Parse), `layers` in `config.toml` is not a list of tables.
-    /// - [`Error::Io`](crate::Error::Io), the layer cannot be written as TOML.
-    pub fn add_layer(&mut self, source: Source) -> Result<()> {
-        if self.config.layers.contains(&source) {
-            return Err(TargetError::DuplicateLayer { layer: source.to_string() }.into());
+    /// - [`TargetError::SourceExists`], `name` already names another source.
+    /// - [`Error::Parse`](crate::Error::Parse), `sources` in `config.toml` is not a table.
+    pub fn add_source(&mut self, name: SourceName, source: Source) -> Result<()> {
+        match self.config.sources.get(&name) {
+            Some(named) if *named == source => return Ok(()),
+            Some(named) => {
+                return Err(TargetError::SourceExists { name, location: named.to_string() }.into());
+            },
+            None => {},
         }
-        let table =
-            ser::to_document(&SourceSpec::from(source)).map_err(io::Error::other)?.into_table();
-        self.edit(|doc| {
+        let spec = ser::to_document(&SourceSpec::from(source)).map_err(io::Error::other)?;
+        let inline = spec.into_table().into_inline_table();
+        self.edit("`sources` must be a table", |doc| {
+            let sources = doc.entry("sources").or_insert_with(|| Item::Table(Table::new()));
+            let Some(sources) = sources.as_table_like_mut() else { return false };
+            sources.insert(name.as_str(), Item::Value(Value::InlineTable(inline)));
+            true
+        })
+    }
+
+    /// Appends `layer` as the last layer; written by the next [`commit`](crate::commit()).
+    ///
+    /// # Errors
+    /// - [`TargetError::DuplicateLayer`], a layer already applies the profile.
+    /// - [`TargetError::NoSuchSource`], `[sources]` does not name its source.
+    /// - [`Error::Parse`](crate::Error::Parse), `layers` in `config.toml` is not a list of tables.
+    pub fn add_layer(&mut self, layer: LayerSpec) -> Result<()> {
+        if self.layer(&layer.profile.profile).is_some() {
+            return Err(TargetError::DuplicateLayer { layer: layer.profile.profile }.into());
+        }
+        if !self.config.sources.contains_key(&layer.profile.source) {
+            let sources = self.config.sources.keys().cloned().collect();
+            let (name, layers) = (layer.profile.source.clone(), vec![layer.profile]);
+            return Err(TargetError::NoSuchSource { name, sources, layers }.into());
+        }
+        let table = ser::to_document(&layer).map_err(io::Error::other)?.into_table();
+        self.edit("`layers` must be a list of tables", |doc| {
             match doc.entry("layers").or_insert_with(|| Item::ArrayOfTables(ArrayOfTables::new())) {
                 Item::ArrayOfTables(layers) => layers.push(table),
                 Item::Value(Value::Array(layers)) => layers.push(table.into_inline_table()),
@@ -182,26 +307,25 @@ impl Target {
         })
     }
 
-    /// The source of the layer whose profile has `name`, as the lock last recorded it.
+    /// The layer that applies the profile named `name`.
     #[must_use]
-    pub fn layer(&self, name: &str) -> Option<&Source> {
-        let lock = self.pending.as_ref().unwrap_or(&self.lock);
-        let locked = lock.layers.iter().find(|locked| locked.name.as_deref() == Some(name))?;
-        self.config.layers.iter().find(|source| **source == locked.source)
+    pub fn layer(&self, name: &ProfileName) -> Option<&LayerSpec> {
+        self.config.layers.iter().find(|layer| layer.profile.profile == *name)
     }
 
-    /// Removes the layer at `source`; written by the next [`commit`](crate::commit()).
+    /// Removes the layer that applies the profile named `name`; written by the next
+    /// [`commit`](crate::commit()). Its source stays, for another layer to use.
     ///
     /// Every `[files]` override that picks it, `from = "<name>"`, goes with it.
     ///
     /// # Errors
     /// [`Error::Parse`](crate::Error::Parse), `config.toml` changed shape so that the layer
     /// cannot be found in it.
-    pub fn remove_layer(&mut self, source: &Source, name: &str) -> Result<()> {
-        let Some(index) = self.config.layers.iter().position(|layer| layer == source) else {
+    pub fn remove_layer(&mut self, name: &ProfileName) -> Result<()> {
+        let Some(index) = self.config.layers.iter().position(|l| l.profile.profile == *name) else {
             return Ok(());
         };
-        self.edit(|doc| {
+        self.edit("`layers` must be a list of tables", |doc| {
             match doc.get_mut("layers") {
                 Some(Item::ArrayOfTables(layers)) if index < layers.len() => {
                     layers.remove(index);
@@ -212,7 +336,8 @@ impl Target {
                 Some(_) | None => return false,
             }
             if let Some(files) = doc.get_mut("files").and_then(Item::as_table_like_mut) {
-                let picks = |item: &Item| item.get("from").and_then(Item::as_str) == Some(name);
+                let picks =
+                    |item: &Item| item.get("from").and_then(Item::as_str) == Some(name.as_str());
                 let picked: Vec<String> = files
                     .iter()
                     .filter(|(_, item)| picks(item))
@@ -231,7 +356,7 @@ impl Target {
     /// # Errors
     /// [`Error::Parse`](crate::Error::Parse), as [`add_layer`](Self::add_layer).
     pub fn remove_override(&mut self, path: &RelPath) -> Result<()> {
-        self.edit(|doc| {
+        self.edit("`files` must be a table", |doc| {
             if let Some(files) = doc.get_mut("files").and_then(Item::as_table_like_mut) {
                 files.remove(path.as_str());
             }
@@ -241,8 +366,9 @@ impl Target {
 
     /// Applies `edit` to `config.toml`, keeping its formatting and comments, and reads it again.
     ///
-    /// `edit` returns `false` when the file is not the shape it expects.
-    fn edit(&mut self, edit: impl FnOnce(&mut DocumentMut) -> bool) -> Result<()> {
+    /// `edit` returns `false` when the file is not the shape it expects, which `shape` says. A
+    /// skeleton's comments stay at the top, above the first table.
+    fn edit(&mut self, shape: &str, edit: impl FnOnce(&mut DocumentMut) -> bool) -> Result<()> {
         let file = label(CONFIG);
         let failed = |text: &str, message: String| ParseError {
             file: file.clone(),
@@ -254,9 +380,24 @@ impl Target {
             .config_text
             .parse()
             .map_err(|e: TomlError| failed(&self.config_text, e.to_string()))?;
+        let lead = doc.is_empty().then(|| doc.trailing().as_str().map(str::to_owned)).flatten();
         if !edit(&mut doc) {
-            let message = "`layers` must be a list of tables".to_owned();
-            return Err(failed(&self.config_text, message).into());
+            return Err(failed(&self.config_text, shape.to_owned()).into());
+        }
+        if let Some(lead) = lead.filter(|lead| !lead.trim().is_empty()) {
+            doc.set_trailing("");
+            if let Some((_, first)) = doc.iter_mut().next() {
+                let prefix = format!("{}\n\n", lead.trim_end());
+                match first {
+                    Item::Table(table) => table.decor_mut().set_prefix(prefix),
+                    Item::ArrayOfTables(tables) => {
+                        if let Some(table) = tables.get_mut(0) {
+                            table.decor_mut().set_prefix(prefix);
+                        }
+                    },
+                    Item::Value(_) | Item::None => {},
+                }
+            }
         }
         let text = doc.to_string();
         self.config = from_toml(text.as_bytes(), &file)?;
@@ -276,6 +417,22 @@ impl Target {
         &self.answers
     }
 
+    /// Writes the absent files of `scaffold` again at the next [`survey`](crate::survey()),
+    /// whatever was decided of it.
+    pub fn rescaffold(&mut self, scaffold: ScaffoldId) {
+        self.rescaffold.insert(scaffold);
+    }
+
+    /// The scaffolds to write again.
+    pub(crate) const fn rescaffolds(&self) -> &BTreeSet<ScaffoldId> {
+        &self.rescaffold
+    }
+
+    /// What was decided of each scaffold, as `state.toml` recorded it.
+    pub(crate) const fn scaffolds(&self) -> &BTreeMap<ScaffoldId, Scaffold> {
+        &self.state.scaffolds
+    }
+
     /// Variables answered since loading.
     pub(crate) fn given(&self) -> impl Iterator<Item = &VarName> {
         self.given.iter()
@@ -291,13 +448,25 @@ impl Target {
         &self.config_text
     }
 
-    /// The lock entry of the layer at `source`.
+    /// The lock in force: the pending one while an update is withheld.
+    fn lock(&self) -> &Lock {
+        self.pending.as_ref().unwrap_or(&self.lock)
+    }
+
+    /// The commit the lock pins `source` to.
     ///
     /// Found by source, not position, so removing or reordering layers leaves the others pinned.
-    /// The pending lock stands in while an update is withheld.
-    pub(crate) fn locked(&self, source: &Source) -> Option<&Locked> {
-        let lock = self.pending.as_ref().unwrap_or(&self.lock);
-        lock.layers.iter().find(|locked| locked.source == *source)
+    #[must_use]
+    pub fn pinned(&self, source: &Source) -> Option<&Oid> {
+        let locked = self.lock().profiles.iter();
+        locked.filter(|locked| locked.source == *source).find_map(|locked| locked.rev.as_ref())
+    }
+
+    /// The digest the lock recorded for the profile `name` from `source`.
+    pub(crate) fn locked(&self, source: &Source, name: &ProfileName) -> Option<Digest> {
+        let lock = self.lock();
+        let locked = lock.profiles.iter().find(|l| l.source == *source && l.name == *name);
+        locked.map(|locked| locked.digest)
     }
 
     /// Where the conflicted merge of `path` waits.
@@ -333,23 +502,44 @@ impl Target {
     fn load(root: &Utf8Path) -> Result<Self> {
         let dir = root.join(DIR);
         let config_raw = fs_err::read(dir.join(CONFIG))?;
-        let config = from_toml(&config_raw, &label(CONFIG))?;
+        let config = read_config(&config_raw)?;
         let config_text = String::from_utf8(config_raw).map_err(io::Error::other)?;
         let state_raw = read_optional(&dir.join(STATE))?;
         let state_digest = state_raw.as_deref().map(Digest::of);
         let state = state_raw.map(|raw| from_toml(&raw, &label(STATE))).transpose()?;
+        let lock = |name: &str| -> Result<Option<Lock>> {
+            let raw = read_optional(&dir.join(name))?;
+            raw.map(|raw| Lock::read(&raw, &label(name))).transpose()
+        };
         Ok(Self {
             root: root.to_owned(),
             config,
             config_text,
-            lock: read_toml(&dir, LOCK)?.unwrap_or_default(),
-            pending: read_toml(&dir, &format!("{CONFLICTS}/{DIR}/{PENDING}"))?,
+            lock: lock(LOCK)?.unwrap_or_default(),
+            pending: lock(&format!("{CONFLICTS}/{DIR}/{PENDING}"))?,
             state: state.unwrap_or_default(),
             state_digest,
             answers: read_toml(&dir, ANSWERS)?.unwrap_or_default(),
             given: BTreeSet::new(),
+            rescaffold: BTreeSet::new(),
         })
     }
+}
+
+/// `config.toml`, refused when it is devset 0.1's: its layers named locations.
+fn read_config(raw: &[u8]) -> Result<Config> {
+    let file = label(CONFIG);
+    let table: toml::Table = from_toml(raw, &file)?;
+    let located = |layer: &toml::Value| {
+        layer
+            .as_table()
+            .is_some_and(|layer| layer.contains_key("git") || layer.contains_key("path"))
+    };
+    let layers = table.get("layers").and_then(toml::Value::as_array);
+    if layers.is_some_and(|layers| layers.iter().any(located)) {
+        return Err(TargetError::OldConfig.into());
+    }
+    from_toml(raw, &file)
 }
 
 /// `name` in `.devset/`, as users know it.
@@ -367,32 +557,55 @@ fn enclosing(dir: &Utf8Path) -> Option<&Utf8Path> {
 #[serde(deny_unknown_fields)]
 pub(crate) struct Lock {
     /// Format version.
-    version: V1,
-    /// One per layer, in `config.toml` order.
-    #[serde(default)]
-    layers: Vec<Locked>,
+    version: V2,
+    /// One per active profile, in the order they apply.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    profiles: Vec<Locked>,
 }
 
-/// What one layer resolved to.
+/// What one active profile resolved to.
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub(crate) struct Locked {
-    /// The profile's name, so a layer can be named without reading its source.
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub name: Option<String>,
-    /// Commit, for a versioned source.
+    /// The profile's name.
+    pub name: ProfileName,
+    /// Commit of its source, for a versioned one; every profile of a source has one.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub rev: Option<Oid>,
-    /// Digest of manifest and payload.
+    /// Digest of its manifest, rendered payload and features.
     pub digest: Digest,
-    /// The layer as configured when locked.
+    /// Its source, as configured when locked.
     pub source: Source,
+    /// Every feature that was on, with who turned it on.
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub features: BTreeMap<FeatureName, Vec<String>>,
+}
+
+impl Locked {
+    /// Who turned each of `features` on, as the lock writes it.
+    pub(crate) fn features(
+        features: &BTreeMap<FeatureName, BTreeSet<Enabler>>,
+    ) -> BTreeMap<FeatureName, Vec<String>> {
+        features
+            .iter()
+            .map(|(feature, by)| (feature.clone(), by.iter().map(ToString::to_string).collect()))
+            .collect()
+    }
 }
 
 impl Lock {
-    /// A lock of `layers`, in order.
-    pub(crate) const fn new(layers: Vec<Locked>) -> Self {
-        Self { version: V1, layers }
+    /// A lock of `profiles`, in order.
+    pub(crate) const fn new(profiles: Vec<Locked>) -> Self {
+        Self { version: V2, profiles }
+    }
+
+    /// The lock in `raw`, read from `file`; devset 0.1's is empty, so every source resolves anew.
+    fn read(raw: &[u8], file: &str) -> Result<Self> {
+        let table: toml::Table = from_toml(raw, file)?;
+        if table.get("version").and_then(toml::Value::as_integer) == Some(1) {
+            return Ok(Self::default());
+        }
+        from_toml(raw, file)
     }
 }
 
@@ -400,8 +613,11 @@ impl Lock {
 #[derive(Debug, Default, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub(crate) struct State {
-    /// Format version.
-    version: V1,
+    /// Format version; devset 0.1's reads as this one.
+    version: V2,
+    /// What was decided of each scaffold.
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    scaffolds: BTreeMap<ScaffoldId, Scaffold>,
     /// Each managed file's recorded base.
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     files: BTreeMap<RelPath, FileRecord>,
@@ -450,9 +666,11 @@ struct PartRecord {
 }
 
 impl State {
-    /// A state recording `records`.
-    pub(crate) fn new(records: BTreeMap<Slot, Record>) -> Self {
-        let mut state = Self::default();
+    /// A state recording `records`, and what was decided of `scaffolds`.
+    pub(crate) fn new(
+        records: BTreeMap<Slot, Record>, scaffolds: BTreeMap<ScaffoldId, Scaffold>,
+    ) -> Self {
+        let mut state = Self { scaffolds, ..Self::default() };
         for (Slot { path, part }, Record { scope, fingerprint, policy }) in records {
             let Fingerprint { exact, canonical } = fingerprint;
             match part {
@@ -491,7 +709,7 @@ impl State {
     }
 }
 
-/// The only on-disk format version, `1`.
+/// Format version `1`: `undo.toml`'s.
 #[derive(Clone, Copy, Debug, Default)]
 pub(crate) struct V1;
 
@@ -505,6 +723,25 @@ impl<'de> Deserialize<'de> for V1 {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         match u8::deserialize(deserializer)? {
             1 => Ok(Self),
+            other => Err(de::Error::custom(format_args!("unsupported format version {other}"))),
+        }
+    }
+}
+
+/// Format version `2`: `lock.toml`'s and `state.toml`'s; version `1` reads as it.
+#[derive(Clone, Copy, Debug, Default)]
+pub(crate) struct V2;
+
+impl Serialize for V2 {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        serializer.serialize_u8(2)
+    }
+}
+
+impl<'de> Deserialize<'de> for V2 {
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        match u8::deserialize(deserializer)? {
+            1 | 2 => Ok(Self),
             other => Err(de::Error::custom(format_args!("unsupported format version {other}"))),
         }
     }
@@ -533,5 +770,64 @@ pub(crate) fn read_optional(path: &Utf8Path) -> Result<Option<Vec<u8>>> {
         Ok(bytes) => Ok(Some(bytes)),
         Err(e) if e.kind() == io::ErrorKind::NotFound => Ok(None),
         Err(e) => Err(e.into()),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{LayerSpec, Lock, State, Target};
+    use crate::errors::{Error, TargetError};
+    use crate::source::Source;
+
+    #[test]
+    fn a_new_target_keeps_its_skeleton_above_what_is_added() {
+        let dir = camino_tempfile::tempdir().expect("a directory");
+        let mut target = Target::open_or_new(dir.path()).expect("a new target");
+        target
+            .add_source("house".parse().expect("a name"), Source::Dir("../p".into()))
+            .expect("added");
+        target.add_layer(LayerSpec::new("house/base".parse().expect("a layer"))).expect("added");
+        let text = target.config_text();
+        assert!(text.starts_with("# devset applies"), "the skeleton leads: {text}");
+        assert!(
+            text.contains("\n\n[sources]\nhouse = { path = \"../p\" }\n"),
+            "a source, inline: {text}"
+        );
+        assert!(text.ends_with("[[layers]]\nprofile = \"house/base\"\n"), "then the layer: {text}");
+        let same = target.add_source("house".parse().expect("a name"), Source::Dir("../p".into()));
+        assert!(same.is_ok(), "naming a source again as it is changes nothing");
+        let other = target.add_source("house".parse().expect("a name"), Source::Dir("../q".into()));
+        assert!(matches!(other, Err(Error::Target(TargetError::SourceExists { .. }))), "{other:?}");
+        let twice = target.add_layer(LayerSpec::new("house/base".parse().expect("a layer")));
+        assert!(
+            matches!(twice, Err(Error::Target(TargetError::DuplicateLayer { .. }))),
+            "{twice:?}"
+        );
+        let unknown = target.add_layer(LayerSpec::new("nope/other".parse().expect("a layer")));
+        assert!(
+            matches!(unknown, Err(Error::Target(TargetError::NoSuchSource { .. }))),
+            "{unknown:?}"
+        );
+    }
+
+    #[test]
+    fn devset_0_1_records() {
+        let dir = camino_tempfile::tempdir().expect("a directory");
+        let devset = dir.path().join(".devset");
+        fs_err::create_dir_all(&devset).expect("a directory");
+        fs_err::write(devset.join("config.toml"), "[[layers]]\npath = \"../p\"\n")
+            .expect("written");
+        let old = Target::find(dir.path()).expect_err("an old config");
+        assert!(matches!(old, Error::Target(TargetError::OldConfig)), "refused: {old}");
+        let lock =
+            Lock::read(b"version = 1\n[[layers]]\ndigest = \"x\"\n", "lock.toml").expect("read");
+        assert!(lock.profiles.is_empty(), "an old lock pins nothing");
+        let state: State = toml::from_str(
+            "version = 1\n[files.\"a\"]\nexact = \"0000000000000000000000000000000000000000000000000000000000000000\"\ncanonical = \"0000000000000000000000000000000000000000000000000000000000000000\"\n",
+        )
+        .expect("an old state reads");
+        assert_eq!(state.records().count(), 1, "with its records");
+        let written = toml::to_string(&state).expect("written");
+        assert!(written.starts_with("version = 2\n"), "as version 2: {written}");
     }
 }

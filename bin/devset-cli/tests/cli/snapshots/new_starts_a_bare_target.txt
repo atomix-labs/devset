@@ -1,0 +1,39 @@
+$ devset new hello
+     Created hello/.devset/config.toml
+help: add a layer: `devset add <source>/<profile> --git <url>`, or `--path <dir>`
+[exit 0]
+--- hello/.devset/config.toml
+# devset applies the profiles below to this directory, and keeps them up to date.
+# The manual: https://atomix-labs.github.io/devset/
+#
+# Where profiles come from, each named once: a git repository at a ref, or a directory.
+#
+#   [sources]
+#   atxp = { git = "https://github.com/atomix-labs/atxp", tag = "v0.4.0" }
+#
+# The profiles to apply, in order, by source and name, with the features to turn on.
+#
+#   [[layers]]
+#   profile  = "atxp/rust"
+#   features = ["docs"]
+$ devset status
+The target applies no profile yet.
+help: add one: `devset add <source>/<profile> --git <url>`, or `--path <dir>`
+[exit 0]
+$ devset add p/base --path ../p
+     Created a.toml
+    Finished 1 change
+[exit 0]
+$ devset new second p/base --path p
+     Created a.toml
+    Finished 1 change
+[exit 0]
+$ devset new fourth p/base --git p --branch main
+     Created a.toml
+    Finished 1 change
+    Fetching ../p
+[exit 0]
+$ devset init --dry-run
+       Would create .devset/config.toml
+help: add a layer: `devset add <source>/<profile> --git <url>`, or `--path <dir>`
+[exit 0]

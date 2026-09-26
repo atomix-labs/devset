@@ -1,0 +1,72 @@
+$ devset init rust --git ../profiles.git --tag v1
+     Created rustfmt.toml
+    Finished 1 change
+    Fetching ../profiles.git
+[exit 0]
+$ devset add book
+     Created book.toml
+    Finished 1 change
+[exit 0]
+$ devset add --path ../house/deploy
+     Created deploy.toml
+    Finished 1 change
+[exit 0]
+$ devset add mermaid
+error: which source is mermaid in? name it as `source/mermaid`
+  |
+  = help: the sources are acme and deploy
+[exit 2]
+--- .devset/config.toml
+# devset applies the profiles below to this directory, and keeps them up to date.
+# The manual: https://atomix-labs.github.io/devset/
+#
+# Where profiles come from, each named once: a git repository at a ref, or a directory.
+#
+#   [sources]
+#   atxp = { git = "https://github.com/atomix-labs/atxp", tag = "v0.4.0" }
+#
+# The profiles to apply, in order, by source and name, with the features to turn on.
+#
+#   [[layers]]
+#   profile  = "atxp/rust"
+#   features = ["docs"]
+
+[sources]
+acme = { git = "../profiles.git", tag = "v1" }
+deploy = { path = "../house/deploy" }
+
+[[layers]]
+profile = "acme/rust"
+
+[[layers]]
+profile = "acme/book"
+
+[[layers]]
+profile = "deploy/deploy"
+$ devset list
+acme  ../profiles.git tag v1
+  Profiles for Rust
+    book
+          features: katex*, mermaid
+    rust
+  * on by default
+deploy  ../house/deploy
+    deploy
+[exit 0]
+$ devset list acme
+acme  ../profiles.git tag v1
+  Profiles for Rust
+    book
+          features: katex*, mermaid
+    rust
+  * on by default
+[exit 0]
+$ devset list --git profiles.git --tag v1
+acme  profiles.git tag v1
+  Profiles for Rust
+    book
+          features: katex*, mermaid
+    rust
+  * on by default
+    Fetching profiles.git
+[exit 0]

@@ -1,0 +1,21 @@
+$ devset init p/book --path ../p
+     Created theme.css
+    Finished 1 change
+[exit 0]
+$ devset apply
+    Finished up to date
+[exit 0]
+$ devset explain docs/src/SUMMARY.md
+docs/src/SUMMARY.md
+    p/book  file  once  off: scaffold book/book found the target's own
+        scaffold book/book: found the target's own
+[exit 0]
+--- .devset/state.toml
+version = 2
+
+[scaffolds."book/book"]
+decision = "found"
+
+[files."theme.css"]
+exact = "9f621f5eeda35e1e30592260439716ea71b7c3ff080bc09aacdaaacdac8208f2"
+canonical = "9f621f5eeda35e1e30592260439716ea71b7c3ff080bc09aacdaaacdac8208f2"

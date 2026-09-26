@@ -56,6 +56,16 @@ impl Shell {
         self.diagnose(&[group])
     }
 
+    /// A `warning:` on stderr, with a `help:` if given, unless quiet.
+    pub(crate) fn warn(&self, text: &str, help: Option<&str>) -> io::Result<()> {
+        let title = Level::WARNING.secondary_title(text);
+        let group = match help {
+            Some(help) => title.element(Level::HELP.message(help)),
+            None => Group::with_title(title),
+        };
+        self.diagnose(&[group])
+    }
+
     /// A `help:` on stderr, unless quiet.
     pub(crate) fn help(&self, text: &str) -> io::Result<()> {
         self.diagnose(&[Group::with_title(Level::HELP.secondary_title(text))])

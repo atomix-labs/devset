@@ -6,6 +6,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::errors::{ProfileError, Result};
 use crate::merge::Driver;
+use crate::name::ProfileName;
 use crate::resolve::Layer;
 
 /// A `[merge]` table: defaults in `profile.toml`, decisions in `.devset/config.toml`.
@@ -50,7 +51,7 @@ pub struct Settings {
 #[derive(Clone, Debug)]
 pub struct Suggestion {
     /// The layer's profile name.
-    pub layer: String,
+    pub layer: ProfileName,
     /// The driver it names.
     pub driver: Driver,
 }
@@ -77,7 +78,7 @@ impl Settings {
             .iter()
             .filter_map(|layer| {
                 let driver = layer.merge().driver.clone()?;
-                Some(Suggestion { layer: layer.meta().name.clone(), driver })
+                Some(Suggestion { layer: layer.name().clone(), driver })
             })
             .collect()
     }
@@ -94,7 +95,7 @@ fn agreed<T: Copy + PartialEq>(
         };
         match agreed {
             Some((first, by)) if first != value => {
-                let (first, second) = (by.meta().name.clone(), layer.meta().name.clone());
+                let (first, second) = (by.name().clone(), layer.name().clone());
                 return Err(ProfileError::Setting { key: key.to_owned(), first, second }.into());
             },
             Some(_) => {},

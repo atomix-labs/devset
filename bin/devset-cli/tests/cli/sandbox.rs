@@ -65,6 +65,13 @@ impl Sandbox {
         self.write(&format!("{dir}/profile.toml"), &manifest);
     }
 
+    /// Appends `toml` to the manifest of the profile at `dir`: its `[requires]`, `[features]`,
+    /// `[scaffolds]` or more `[files]`.
+    pub(crate) fn extend(&self, dir: &str, toml: &str) {
+        let manifest = self.read(&format!("{dir}/profile.toml"));
+        self.write(&format!("{dir}/profile.toml"), &format!("{manifest}\n{toml}"));
+    }
+
     /// Runs `program` in `cwd` with a cleared environment.
     fn command(&self, program: impl AsRef<OsStr>, cwd: &str, args: &[&str]) -> Command {
         fs::create_dir_all(self.path(cwd)).unwrap();

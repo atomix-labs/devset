@@ -109,12 +109,23 @@ impl Commit {
         &self.rev
     }
 
-    /// Every directory in the commit that holds a profile, as `path` would name it.
-    pub(crate) fn profiles(&self) -> Vec<String> {
-        let manifest = format!("/{MANIFEST}");
+    /// Every directory under the source's own that holds a `profile.toml`, relative to it; `""`
+    /// for its root. Hidden directories are left out.
+    pub(crate) fn manifests(&self) -> Vec<String> {
+        let within = self.dir.as_ref().map(|dir| format!("{dir}/"));
         self.files
             .keys()
-            .filter_map(|path| path.strip_suffix(&manifest))
+            .filter_map(|path| {
+                within
+                    .as_ref()
+                    .map_or(Some(path.as_str()), |within| path.strip_prefix(within.as_str()))
+            })
+            .filter_map(|path| match path.strip_suffix(MANIFEST) {
+                Some("") => Some(""),
+                Some(dir) => dir.strip_suffix('/'),
+                None => None,
+            })
+            .filter(|dir| !dir.split('/').any(|part| part.starts_with('.')))
             .map(str::to_owned)
             .collect()
     }

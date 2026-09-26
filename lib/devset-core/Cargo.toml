@@ -27,6 +27,8 @@ derive_more           = { workspace = true }
 diffy                 = { workspace = true }
 etcetera              = { workspace = true }
 fs-err                = { workspace = true }
+globset               = { workspace = true }
+ignore                = { workspace = true }
 jsonc-parser          = { workspace = true, features = ["cst", "serde"] }
 minijinja             = { workspace = true }
 schemars              = { workspace = true }
@@ -40,7 +42,6 @@ thiserror             = { workspace = true }
 toml                  = { workspace = true }
 toml_edit             = { workspace = true }
 unicode-normalization = { workspace = true }
-walkdir               = { workspace = true }
 yaml-edit             = { workspace = true }
 
 [dev-dependencies]

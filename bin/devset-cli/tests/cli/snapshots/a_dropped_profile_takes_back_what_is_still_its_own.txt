@@ -9,7 +9,7 @@ $ devset init --path ../gone
     Finished 7 changes
 [exit 0]
 --- .devset/state.toml
-version = 1
+version = 2
 
 [files."as-written.toml"]
 exact = "700d22f9add80fee0e537c94bfd8320a18ea8eae00d899547f0e6bc2f52acb39"
@@ -43,7 +43,7 @@ scope = "block"
 exact = "e024cdaea8bcdc8c34f15b12bc98c921b8125d7f80702b0544005c65ed584bde"
 canonical = "e024cdaea8bcdc8c34f15b12bc98c921b8125d7f80702b0544005c65ed584bde"
 $ devset status
-gone 1.0.0  ../gone  (changed since it was applied)
+gone/gone 1.0.0  (changed since it was applied)
 
 Pending — `devset apply` will:
     dropped    .gitignore [block: gone]         remove
@@ -68,7 +68,7 @@ $ devset apply
 [workspace]
 members = ["a"]
 $ devset status --exit-code
-gone 1.0.0  ../gone
+gone/gone 1.0.0
 
 The profile provides no files.
 [exit 0]

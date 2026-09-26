@@ -1,0 +1,28 @@
+$ devset init p/lints --path ../p
+     Created Cargo.toml [keys: lints]
+    Finished 1 change
+[exit 0]
+$ devset add p/ws1
+     Adopted Cargo.toml
+    Finished 1 change
+[exit 0]
+$ devset add p/ws2
+error: Cargo.toml is provided by ws1 and ws2
+  |
+  = help: choose one in .devset/config.toml:
+              [files."Cargo.toml"]
+              from = "ws1"   # or "ws2"
+[exit 2]
+$ devset apply
+    Finished up to date
+[exit 0]
+--- Cargo.toml
+[workspace.lints.rust]
+unsafe_code = "deny"
+$ devset status --exit-code
+p/lints 1.0.0
+p/ws1 1.0.0
+p/ws2 1.0.0
+
+1 file matches the profile.
+[exit 0]

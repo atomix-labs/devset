@@ -2,6 +2,7 @@
 
 use alloc::collections::BTreeMap;
 
+use devset_core::name::{FeatureName, ProfileName};
 use devset_core::profile::{OnConflict, Policy, VarName};
 use devset_core::resolve::Applied;
 use devset_core::source::{Oid, Source};
@@ -35,6 +36,14 @@ pub(super) struct StatusJson<'a> {
 struct LayerJson<'a> {
     /// Profile name.
     name: &'a str,
+    /// `source/name`, as the target names it; the name for a source a profile requires by git.
+    profile: String,
+    /// Its features that are on.
+    features: Vec<&'a str>,
+    /// Whether the target configures it, rather than a profile requiring it.
+    configured: bool,
+    /// The profiles that require it.
+    required_by: &'a [ProfileName],
     /// Profile version.
     version: Option<&'a str>,
     /// Where it came from, as configured.
@@ -66,6 +75,8 @@ struct FileJson<'a> {
     apply: Option<Change>,
     /// What `apply --force` would do.
     force: Option<Change>,
+    /// Why its gates turned it off, when they released it.
+    gate: Option<String>,
 }
 
 /// Settings in `status --json`.
@@ -97,7 +108,11 @@ impl<'a> StatusJson<'a> {
                 .layers()
                 .iter()
                 .map(|layer| LayerJson {
-                    name: &layer.meta().name,
+                    name: layer.name().as_str(),
+                    profile: layer.qualified(),
+                    features: layer.features().keys().map(FeatureName::as_str).collect(),
+                    configured: layer.configured(),
+                    required_by: layer.required_by(),
                     version: layer.meta().version.as_deref(),
                     source: layer.source(),
                     rev: layer.rev(),
@@ -112,11 +127,12 @@ impl<'a> StatusJson<'a> {
                     path: &entry.path,
                     scope: entry.scope(),
                     part: entry.part.as_ref().map(|part| part.owner.as_str()),
-                    layer: resolved.provider(entry),
+                    layer: resolved.provider(entry).map(ProfileName::as_str),
                     policy: entry.want.map(|want| want.policy),
                     state: State::of(entry),
                     apply: change(entry, devset_core::Mode::Apply),
                     force: change(entry, devset_core::Mode::Force),
+                    gate: entry.gate.as_ref().map(ToString::to_string),
                 })
                 .collect(),
             settings: SettingsJson {
@@ -127,7 +143,7 @@ impl<'a> StatusJson<'a> {
             suggestions: resolved
                 .suggestions()
                 .iter()
-                .map(|s| SuggestionJson { layer: &s.layer, driver: s.driver.to_string() })
+                .map(|s| SuggestionJson { layer: s.layer.as_str(), driver: s.driver.to_string() })
                 .collect(),
             drifted: survey.drifted(),
             unfinished: survey.unfinished(),

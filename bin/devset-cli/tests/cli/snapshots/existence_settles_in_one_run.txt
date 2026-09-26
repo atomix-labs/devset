@@ -1,0 +1,30 @@
+$ devset init p/book --path ../p
+    Finished up to date
+[exit 0]
+$ devset add p/agents
+     Created AGENTS.md
+     Created AGENTS.md [block: book]
+    Finished 2 changes
+[exit 0]
+$ devset add p/base
+     Created a.txt
+     Created b.txt
+     Created c.txt
+    Finished 3 changes
+[exit 0]
+$ devset apply
+     Created proto.md
+    Finished 1 change
+[exit 0]
+$ devset explain self.txt
+self.txt
+    p/book  file  owned  off: self.txt will not exist
+        when self.txt exists: no
+[exit 0]
+$ devset status
+p/book 1.0.0
+p/agents 1.0.0
+p/base 1.0.0
+
+All 5 files match the profile.
+[exit 0]

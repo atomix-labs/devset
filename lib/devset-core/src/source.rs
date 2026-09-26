@@ -10,9 +10,9 @@ use std::sync::Mutex;
 use camino::{Utf8Component, Utf8Path, Utf8PathBuf};
 use derive_more::{Display, Into};
 use etcetera::BaseStrategy;
+use ignore::WalkBuilder;
 use schemars::{JsonSchema, Schema, SchemaGenerator};
 use serde::{Deserialize, Serialize};
-use walkdir::WalkDir;
 
 use crate::errors::{Result, SourceError};
 use crate::git;
@@ -306,10 +306,25 @@ pub(crate) enum Reader {
 }
 
 impl Source {
+    /// This source as written from `from`, written from `to` instead: a local directory, or a
+    /// local repository, relative to `to`; unchanged when it is absolute or remote.
+    #[must_use]
+    pub fn rebased(self, from: &Utf8Path, to: &Utf8Path) -> Self {
+        match self {
+            Self::Dir(dir) if dir.is_absolute() => Self::Dir(dir),
+            Self::Dir(dir) => Self::Dir(relative(&from.join(dir), to)),
+            Self::Git { url, at, path } if !remote(&url) && !Utf8Path::new(&url).is_absolute() => {
+                let url = relative(&from.join(&url), to).into_string();
+                Self::Git { url, at, path }
+            },
+            git @ Self::Git { .. } => git,
+        }
+    }
+
     /// Opens the source: a git source at `pin` if given, else at its ref, fetching as needed.
     pub(crate) fn open(&self, root: &Utf8Path, pin: Option<&Oid>, cache: &Cache) -> Result<Reader> {
         match self {
-            Self::Dir(dir) => Ok(Reader::Dir(root.join(dir))),
+            Self::Dir(dir) => Ok(Reader::Dir(lexical(&root.join(dir)))),
             Self::Git { url, at, path } => {
                 git::Commit::open(&locate(url, root), url, at, path.as_ref(), pin, cache)
                     .map(Reader::Git)
@@ -319,12 +334,51 @@ impl Source {
 }
 
 /// `url` as `git` sees it from any directory: a local path is made absolute against `root`.
+fn locate<'a>(url: &'a str, root: &Utf8Path) -> Cow<'a, str> {
+    if remote(url) {
+        Cow::Borrowed(url)
+    } else {
+        Cow::Owned(lexical(&root.join(url)).into_string())
+    }
+}
+
+/// Whether `url` names a remote repository rather than a local path.
 ///
 /// Git's rule: `host:path` is scp-like only when the colon precedes any slash.
-fn locate<'a>(url: &'a str, root: &Utf8Path) -> Cow<'a, str> {
-    let remote = url.contains("://")
-        || url.find(':').is_some_and(|colon| url.find('/').is_none_or(|slash| colon < slash));
-    if remote { Cow::Borrowed(url) } else { Cow::Owned(root.join(url).into_string()) }
+fn remote(url: &str) -> bool {
+    url.contains("://")
+        || url.find(':').is_some_and(|colon| url.find('/').is_none_or(|slash| colon < slash))
+}
+
+/// `path` with `.` dropped and each `..` taking back the directory before it, by name alone, as
+/// a shell resolves `cd ../x`; so a path under a directory not yet made still resolves.
+fn lexical(path: &Utf8Path) -> Utf8PathBuf {
+    let mut resolved = Utf8PathBuf::new();
+    for component in path.components() {
+        match component {
+            Utf8Component::CurDir => {},
+            Utf8Component::ParentDir
+                if matches!(resolved.components().next_back(), Some(Utf8Component::Normal(_))) =>
+            {
+                resolved.pop();
+            },
+            Utf8Component::ParentDir
+            | Utf8Component::Prefix(_)
+            | Utf8Component::RootDir
+            | Utf8Component::Normal(_) => resolved.push(component),
+        }
+    }
+    resolved
+}
+
+/// `path` relative to `base`, both resolved by name: `../p` for `/a/p` from `/a/repo`.
+fn relative(path: &Utf8Path, base: &Utf8Path) -> Utf8PathBuf {
+    let (path, base) = (lexical(path), lexical(base));
+    let shared = path.components().zip(base.components()).take_while(|(a, b)| a == b).count();
+    let up = base.components().skip(shared).map(|_| Utf8Component::ParentDir);
+    let down = path.components().skip(shared);
+    let relative: Utf8PathBuf = up.chain(down).collect();
+    if relative.as_str().is_empty() { Utf8PathBuf::from(".") } else { relative }
 }
 
 impl Reader {
@@ -336,12 +390,12 @@ impl Reader {
         }
     }
 
-    /// Every directory the source holds that is a profile, as its `path` would name it.
-    pub(crate) fn profiles(&self, configured: &Source) -> Vec<String> {
-        match (self, configured) {
-            (Self::Git(commit), _) => commit.profiles(),
-            (Self::Dir(root), Source::Dir(written)) => local_profiles(root, written),
-            (Self::Dir(_), Source::Git { .. }) => Vec::new(),
+    /// Every directory in the source that holds a `profile.toml`, relative to its root; `""` for
+    /// the root. Hidden and ignored directories are left out, as git leaves out what it ignores.
+    pub(crate) fn manifests(&self) -> Vec<String> {
+        match self {
+            Self::Git(commit) => commit.manifests(),
+            Self::Dir(root) => local_manifests(root),
         }
     }
 
@@ -354,33 +408,21 @@ impl Reader {
     }
 }
 
-/// The profiles around `root`, as `path` would name them.
-///
-/// The two directories above it, for a path pointing inside a profile, and two levels below,
-/// hidden ones left out.
-fn local_profiles(root: &Utf8Path, written: &Utf8Path) -> Vec<String> {
-    let above = root
-        .ancestors()
-        .zip(written.ancestors())
-        .skip(1)
-        .take(2)
-        .filter(|(dir, name)| !name.as_str().is_empty() && dir.join(MANIFEST).is_file())
-        .map(|(_, name)| name.to_string());
-    let below = WalkDir::new(root)
-        .min_depth(1)
-        .max_depth(2)
-        .follow_links(true)
-        .into_iter()
-        .filter_entry(|entry| {
-            entry.file_type().is_dir() && !entry.file_name().as_encoded_bytes().starts_with(b".")
-        })
+/// [`Reader::manifests`] for a local directory.
+fn local_manifests(root: &Utf8Path) -> Vec<String> {
+    let mut found: Vec<String> = WalkBuilder::new(root)
+        .require_git(false)
+        .git_global(false)
+        .build()
         .filter_map(Result::ok)
-        .filter(|entry| entry.path().join(MANIFEST).is_file())
+        .filter(|entry| entry.file_type().is_some_and(|kind| !kind.is_dir()))
+        .filter(|entry| entry.file_name() == MANIFEST)
         .filter_map(|entry| {
-            let inside = Utf8Path::from_path(entry.path().strip_prefix(root).ok()?)?;
-            Some(written.join(inside).into_string())
-        });
-    let mut found: Vec<String> = above.chain(below).collect();
+            let dir = entry.path().parent()?.strip_prefix(root).ok()?;
+            let dir = Utf8Path::from_path(dir)?;
+            Some(dir.components().map(|part| part.as_str()).collect::<Vec<_>>().join("/"))
+        })
+        .collect();
     found.sort();
     found
 }
@@ -472,15 +514,30 @@ bogus = 1"#,
     fn local_git_paths_are_anchored() {
         let root = camino::Utf8Path::new("/work/repo");
         for (url, want) in [
-            ("../p.git", "/work/repo/../p.git"),
+            ("../p.git", "/work/p.git"),
             ("/abs/p.git", "/abs/p.git"),
             ("https://h/p", "https://h/p"),
             ("file:///p", "file:///p"),
             ("git@h:org/p", "git@h:org/p"),
-            ("./a:b", "/work/repo/./a:b"),
+            ("./a:b", "/work/repo/a:b"),
         ] {
             assert_eq!(super::locate(url, root), want, "{url}");
         }
+    }
+
+    #[test]
+    fn sources_are_rebased_by_name() {
+        let (cwd, root) = (camino::Utf8Path::new("/w"), camino::Utf8Path::new("/w/hello"));
+        let dir = Source::Dir("p".into()).rebased(cwd, root);
+        assert_eq!(dir, Source::Dir("../p".into()), "a directory, from the target");
+        let git = |url: &str| Source::Git { url: url.to_owned(), at: GitRef::Head, path: None };
+        assert_eq!(git("p.git").rebased(cwd, root), git("../p.git"), "a local repository");
+        for kept in ["https://h/p", "git@h:org/p", "/abs/p.git"] {
+            assert_eq!(git(kept).rebased(cwd, root), git(kept), "{kept} is left as it is");
+        }
+        assert_eq!(super::relative("/w/hello".into(), root), camino::Utf8Path::new("."), "itself");
+        let absolute = Source::Dir("/abs/p".into()).rebased(cwd, root);
+        assert_eq!(absolute, Source::Dir("/abs/p".into()), "an absolute directory stays so");
     }
 
     #[test]

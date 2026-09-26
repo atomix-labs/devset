@@ -7,7 +7,7 @@ note: profile p suggests a merge driver; devset never runs a program a profile n
               [merge]
               driver = "cp %B %A"
 [exit 0]
-$ devset init --path ../q
+$ devset add --path ../q
 error: p and q set merge.on-conflict differently
   |
   = help: decide it in .devset/config.toml by setting merge.on-conflict
@@ -17,22 +17,30 @@ $ devset status --json
   "layers": [
     {
       "name": "p",
+      "profile": "p/p",
+      "features": [],
+      "configured": true,
+      "required_by": [],
       "version": "1.0.0",
       "source": {
         "path": "../p"
       },
       "rev": null,
-      "digest": "46cbf6a7bb17b31f7ebb8e11e3e41fb867f916f378f1908bcfc9a7d94c58619f",
+      "digest": "b0ad9fd630b8967d382f04a77f03e4fcac6786f322497a92e4f50ffdeae58d87",
       "applied": "changed"
     },
     {
       "name": "q",
+      "profile": "q/q",
+      "features": [],
+      "configured": true,
+      "required_by": [],
       "version": "1.0.0",
       "source": {
         "path": "../q"
       },
       "rev": null,
-      "digest": "95e9b097d9411f525099581de244a5c83da6c8e893a10992ab13836d553a5386",
+      "digest": "79bbfc3f7eb0ada7f87ba64cb589a2d8e43322ccad1c3c791159b0bd4173ca01",
       "applied": "never"
     }
   ],
@@ -45,7 +53,8 @@ $ devset status --json
       "policy": "merge",
       "state": "edited",
       "apply": "merge",
-      "force": "merge"
+      "force": "merge",
+      "gate": null
     },
     {
       "path": "b.txt",
@@ -55,7 +64,8 @@ $ devset status --json
       "policy": "once",
       "state": "new",
       "apply": "create",
-      "force": "create"
+      "force": "create",
+      "gate": null
     }
   ],
   "settings": {

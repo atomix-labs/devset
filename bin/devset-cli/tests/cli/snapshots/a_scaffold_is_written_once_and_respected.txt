@@ -1,0 +1,48 @@
+$ devset init p/book --path ../p
+     Created docs/book.toml
+     Created docs/src/SUMMARY.md
+     Created theme.css
+    Finished 3 changes
+[exit 0]
+--- .devset/state.toml
+version = 2
+
+[scaffolds."book/book"]
+decision = "written"
+
+[scaffolds."book/book".files]
+"docs/book.toml" = "docs/book.toml"
+"docs/src/SUMMARY.md" = "docs/src/SUMMARY.md"
+
+[files."docs/book.toml"]
+exact = "25745d2418acc80da96cd9b2ccf90ad39fed21610aa2217abf2a42b66f4b1d60"
+canonical = "25745d2418acc80da96cd9b2ccf90ad39fed21610aa2217abf2a42b66f4b1d60"
+policy = "once"
+
+[files."docs/src/SUMMARY.md"]
+exact = "2c7fd74c49a258ae4690a3eb8ec37352164f7b5c95e6747a492f376bf75c4373"
+canonical = "2c7fd74c49a258ae4690a3eb8ec37352164f7b5c95e6747a492f376bf75c4373"
+policy = "once"
+
+[files."theme.css"]
+exact = "9f621f5eeda35e1e30592260439716ea71b7c3ff080bc09aacdaaacdac8208f2"
+canonical = "9f621f5eeda35e1e30592260439716ea71b7c3ff080bc09aacdaaacdac8208f2"
+$ devset apply --force
+    Finished up to date
+[exit 0]
+$ devset apply --rescaffold book/book
+     Adopted docs/book.toml
+     Created docs/src/SUMMARY.md
+    Finished 2 changes
+[exit 0]
+$ devset apply --rescaffold book/bok
+error: no scaffold is named book/bok
+  |
+  = help: did you mean `book/book`?
+[exit 2]
+$ devset status
+p/book 1.0.0
+
+Local changes, kept:
+    edited     docs/book.toml  once
+[exit 0]

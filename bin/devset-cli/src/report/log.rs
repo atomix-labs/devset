@@ -60,8 +60,14 @@ pub(crate) fn applied(shell: &Shell, steps: &[Step], wrote: Wrote) -> io::Result
             continue;
         }
         changes = changes.saturating_add(1);
+        // What its gates turned off says why it goes.
+        let path = step
+            .entry
+            .gate
+            .as_ref()
+            .map_or_else(|| path.to_string(), |why| format!("{path}  ({why})"));
         let (status, style, message) = match wrote {
-            Wrote::All => (change.past(), GOOD, path.to_string()),
+            Wrote::All => (change.past(), GOOD, path),
             Wrote::Conflicts => ("Withheld", WARN, format!("{path}  would {change}")),
             Wrote::Nothing { held: false } => ("Would", GOOD, format!("{change} {path}")),
             Wrote::Nothing { held: true } => ("Would", WARN, format!("withhold {path}  {change}")),

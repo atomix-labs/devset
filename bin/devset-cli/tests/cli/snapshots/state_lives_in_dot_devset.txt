@@ -8,13 +8,31 @@ $ devset init --path ../extra
 [exit 0]
 --- .devset/config.toml
 # layers, in order
-[[layers]]
-path = "../base"
+# devset applies the profiles below to this directory, and keeps them up to date.
+# The manual: https://atomix-labs.github.io/devset/
+#
+# Where profiles come from, each named once: a git repository at a ref, or a directory.
+#
+#   [sources]
+#   atxp = { git = "https://github.com/atomix-labs/atxp", tag = "v0.4.0" }
+#
+# The profiles to apply, in order, by source and name, with the features to turn on.
+#
+#   [[layers]]
+#   profile  = "atxp/rust"
+#   features = ["docs"]
+
+[sources]
+base = { path = "../base" }
+extra = { path = "../extra" }
 
 [[layers]]
-path = "../extra"
+profile = "base/base"
+
+[[layers]]
+profile = "extra/extra"
 --- .devset/state.toml
-version = 1
+version = 2
 
 [files."a.toml"]
 exact = "700d22f9add80fee0e537c94bfd8320a18ea8eae00d899547f0e6bc2f52acb39"

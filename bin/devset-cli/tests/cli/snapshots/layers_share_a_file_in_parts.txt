@@ -2,7 +2,7 @@ $ devset init --path ../lints
      Created Cargo.toml [keys: lints]
     Finished 1 change
 [exit 0]
-$ devset init --path ../rust
+$ devset add --path ../rust
      Created Cargo.toml [keys: rust]
     Finished 1 change
 [exit 0]
@@ -19,8 +19,8 @@ unsafe_code = "forbid"
 [workspace.package]
 edition = "2024"
 $ devset status -v
-lints 1.0.0  ../lints
-rust 1.0.0  ../rust
+lints/lints 1.0.0
+rust/rust 1.0.0
   merge driver: builtin
 
 In sync:
@@ -29,14 +29,14 @@ In sync:
 
 1 file matches the profile.
 [exit 0]
-$ devset init --path ../strict
+$ devset add --path ../strict
 error: lints and strict both own workspace.lints.clippy in Cargo.toml
   |
   = help: choose one in .devset/config.toml:
               [files."Cargo.toml"]
               from = "lints"   # or "strict"
 [exit 2]
-$ devset init --path ../whole
+$ devset add --path ../whole
 error: Cargo.toml is owned in different scopes: `keys` by lints, `keys` by rust and `file` by whole
   |
   = help: choose one in .devset/config.toml:
@@ -48,9 +48,9 @@ $ devset apply
     Finished 1 change
 [exit 0]
 $ devset status
-lints 1.0.0  ../lints
-rust 1.0.0  ../rust
-whole 1.0.0  ../whole
+lints/lints 1.0.0
+rust/rust 1.0.0
+whole/whole 1.0.0
 
 1 file matches the profile.
 [exit 0]

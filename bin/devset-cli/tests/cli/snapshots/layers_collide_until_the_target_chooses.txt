@@ -2,7 +2,7 @@ $ devset init --path ../base
      Created fmt.toml
     Finished 1 change
 [exit 0]
-$ devset init --path ../rust
+$ devset add --path ../rust
 error: fmt.toml is provided by base and rust
   |
   = help: choose one in .devset/config.toml:
@@ -20,8 +20,8 @@ $ devset apply --force
     Finished 2 changes
 [exit 0]
 $ devset status -v
-base 1.0.0  ../base
-rust 1.0.0  ../rust
+base/base 1.0.0
+rust/rust 1.0.0
   merge driver: builtin
 
 In sync:

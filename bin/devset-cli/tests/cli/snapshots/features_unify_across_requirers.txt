@@ -1,0 +1,76 @@
+$ devset init p/rust --path ../p --features docs
+     Created api.js
+     Created book.toml
+     Created ci.yml
+     Created katex.css
+     Created pages.yml
+     Created rustfmt.toml
+    Finished 6 changes
+[exit 0]
+$ devset features
+p/ci 1.0.0  [pages]  (required by book)
+    pages    <- book/pages
+p/book 1.0.0  [api, katex, pages]  (required by rust)
+    api    <- rust
+    katex  <- default, book/api
+    pages  <- rust/docs
+p/rust 1.0.0  [docs]
+    docs  <- target
+[exit 0]
+$ devset features book
+p/book 1.0.0  [api, katex, pages]  (required by rust)
+    api    <- rust
+    katex  <- default, book/api
+    pages  <- rust/docs
+    off: links
+[exit 0]
+$ devset status -v
+p/ci 1.0.0  [pages]  (required by book)
+p/book 1.0.0  [api, katex, pages]  (required by rust)
+p/rust 1.0.0  [docs]
+  merge driver: builtin
+
+In sync:
+    unchanged  api.js        owned  (book)
+    unchanged  book.toml     owned  (book)
+    unchanged  ci.yml        owned  (ci)
+    unchanged  katex.css     owned  (book)
+    unchanged  pages.yml     owned  (ci)
+    unchanged  rustfmt.toml  owned  (rust)
+
+All 6 files match the profile.
+[exit 0]
+--- .devset/lock.toml
+version = 2
+
+[[profiles]]
+name = "ci"
+digest = "a0887445e124c5a41f5d4411b4b5eb0d68a97009b087133ecd3d2acc2a3057f1"
+
+[profiles.source]
+path = "../p"
+
+[profiles.features]
+pages = ["book/pages"]
+
+[[profiles]]
+name = "book"
+digest = "3bfb774b568370714fff3f781edc65493aa4814d842ea9b4b1fba482bb7db292"
+
+[profiles.source]
+path = "../p"
+
+[profiles.features]
+api = ["rust"]
+katex = ["default", "book/api"]
+pages = ["rust/docs"]
+
+[[profiles]]
+name = "rust"
+digest = "1414cfc2a10bc7801c2bac0a980986b8edf979d1a68a9a5c74a721ea6c6aa048"
+
+[profiles.source]
+path = "../p"
+
+[profiles.features]
+docs = ["target"]

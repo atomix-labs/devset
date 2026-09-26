@@ -1,0 +1,19 @@
+$ devset init p/rust --path ../p
+     Created Cargo.toml
+     Created Cargo.toml [keys: lints]
+    Finished 2 changes
+[exit 0]
+$ devset apply
+    Finished up to date
+[exit 0]
+$ devset apply --rescaffold ws/ws
+     Created Cargo.toml
+    Restored Cargo.toml [keys: lints]
+    Finished 2 changes
+[exit 0]
+$ devset status --exit-code
+p/rust 1.0.0
+  requires lints, ws
+
+1 file matches the profile.
+[exit 0]

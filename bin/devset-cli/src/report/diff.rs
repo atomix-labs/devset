@@ -3,6 +3,7 @@
 use core::str;
 use std::io::{self, Write};
 
+use devset_core::name::ProfileName;
 use devset_core::{Error, RelPath, Survey, Target};
 use diffy::{DiffOptions, PatchFormatter};
 
@@ -40,7 +41,7 @@ pub(crate) fn diff(survey: &Survey, target: &Target, paths: &[RelPath]) -> Resul
             writeln!(out, "Binary files differ: {entry}")?;
             continue;
         };
-        let layer = resolved.provider(entry).unwrap_or_default();
+        let layer = resolved.provider(entry).map_or("", ProfileName::as_str);
         let patch = DiffOptions::new()
             .set_original_filename(format!("{}  (profile {layer})", entry.path))
             .set_modified_filename(yours)

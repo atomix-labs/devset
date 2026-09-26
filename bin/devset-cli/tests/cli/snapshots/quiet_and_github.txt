@@ -1,7 +1,7 @@
 $ devset -q init --path ../p
 [exit 0]
 $ devset status --exit-code
-p 1.0.0  ../p  (changed since it was applied)
+p/p 1.0.0  (changed since it was applied)
 
 Drifted — `devset apply --force` restores:
     edited     a.toml  owned  restore

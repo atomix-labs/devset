@@ -5,7 +5,8 @@ use crate::sandbox::Sandbox;
 #[test]
 fn settings_precedence() {
     let sb = Sandbox::new();
-    let layers = "[[layers]]\npath = \"../p\"\n\n[[layers]]\npath = \"../q\"\n";
+    let layers = "[sources]\np = { path = \"../p\" }\nq = { path = \"../q\" }\n\n\
+                  [[layers]]\nprofile = \"p/p\"\n\n[[layers]]\nprofile = \"q/q\"\n";
     sb.profile("p", "p", &[("a.txt", "merge", "a\n")]);
     let p = sb.read("p/profile.toml");
     sb.write(
@@ -19,7 +20,7 @@ fn settings_precedence() {
     // A suggested driver is announced, never run.
     let mut log = sb.devset("repo", &["init", "--path", "../p"]);
     // The layers disagree and the target has not decided.
-    log += &sb.devset("repo", &["init", "--path", "../q"]);
+    log += &sb.devset("repo", &["add", "--path", "../q"]);
     // The target decides, adopts the driver, and overrides a layer's policy.
     sb.write(
         "repo/.devset/config.toml",

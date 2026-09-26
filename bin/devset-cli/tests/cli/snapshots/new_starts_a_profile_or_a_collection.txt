@@ -1,0 +1,63 @@
+$ devset new --profile my-lint
+     Created my-lint
+help: list its files in my-lint/profile.toml and put them under my-lint/files/; a target takes it with `devset add --path my-lint`
+[exit 0]
+--- my-lint/profile.toml
+[profile]
+name        = "my-lint"
+description = "One line: what this profile sets up"
+devset      = ">=[..]"
+
+# Profiles this one builds on, by name in its source; each applies before it.
+# [requires]
+# just = {}
+# lychee = { optional = true }                # applies only when a feature activates it
+
+# What a target, or a profile requiring this one, may turn on. `default` is on unless a
+# layer sets `default-features = false`. A feature turns on other features, `dep:` an
+# optional requirement, and `name/feature` a feature of a requirement.
+# [features]
+# default = ["links"]
+# links   = ["dep:lychee"]
+
+# Variables templates and paths use; the target answers them.
+# [vars.project]
+# prompt = "Project name"
+
+# Starter files, written once, together, when none of `unless` is there.
+# [scaffolds.starter]
+# unless = "README.md"
+
+# Every file the profile manages, by its path in the target and under files/.
+# [files."README.md"]
+# scaffold = "starter"                        # written with its scaffold, then the target's
+# template = true                             # rendered with the answers and `devset`
+#
+# [files.".editorconfig"]                     # owned: kept as the profile has it
+#
+# [files."Cargo.toml"]
+# scope = "keys"                              # only the keys its payload defines
+# when  = { exists = ["Cargo.toml"] }         # only where the target has one
+$ devset new --profile my-lint
+error: failed to open file `[ROOT]/my-lint/profile.toml`: File exists (os error 17)
+[exit 2]
+$ devset new --collection acme
+     Created acme
+help: add profiles under acme/profiles/, each a directory with a profile.toml; `devset list --path acme` shows them
+[exit 0]
+$ devset list --path acme
+acme  acme
+  One line: what these profiles are for
+    example  One line: what this profile sets up
+[exit 0]
+$ devset new demo acme/example --path acme
+    Finished up to date
+[exit 0]
+$ devset status
+acme/example
+
+The profile provides no files.
+[exit 0]
+$ devset new --profile bad.name
+error: invalid profile name "bad.name": use letters, digits, `-` and `_`
+[exit 2]

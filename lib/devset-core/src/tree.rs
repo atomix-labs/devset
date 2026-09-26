@@ -23,6 +23,11 @@ impl Tree {
         self.buf.get(self.index.get(path)?.clone())
     }
 
+    /// Whether it holds `path`.
+    pub(crate) fn contains(&self, path: &RelPath) -> bool {
+        self.index.contains_key(path)
+    }
+
     /// Every file, in path order.
     pub(crate) fn iter(&self) -> impl Iterator<Item = (&RelPath, &[u8])> {
         self.index.iter().filter_map(|(path, span)| Some((path, self.buf.get(span.clone())?)))

@@ -3,7 +3,7 @@ $ devset init --path ../q
     Finished 1 change
 [exit 0]
 $ devset remove p
-    Removing layer p  ../p
+    Removing layer p/p
      Removed t.txt
     Finished 1 change
 note: dropped the answer to `cpu`, which no layer declares now

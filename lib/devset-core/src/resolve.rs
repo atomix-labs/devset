@@ -1,36 +1,53 @@
-//! Resolving a target's layers into one [`Resolved`] profile: fetched, composed, answered.
+//! Resolving a target's layers into one [`Resolved`] profile: read, composed, answered, rendered.
+//!
+//! In order, each step reading only what the steps before it decided:
+//!
+//! 1. **Graph.** The configured layers and everything they require, by name, their features
+//!    unified, in the order they apply.
+//! 2. **Variables.** Every variable a layer declares, answered.
+//! 3. **Paths.** Each entry's path, and the paths and globs its gates name, rendered.
+//! 4. **Gates.** Entries whose `features`, `profiles` or `vars` do not hold are off; `exists` and
+//!    scaffolds wait for [`survey`](crate::survey()), which sees the disk.
+//! 5. **Providers.** One layer per file, or one per part, the target's overrides applied.
+//! 6. **Content.** Templates rendered with the answers and the graph; parts read out of it.
 
 use alloc::collections::{BTreeMap, BTreeSet};
-use core::slice;
+use core::{mem, slice};
 
-use camino::{Utf8Component, Utf8Path, Utf8PathBuf};
 use semver::Version;
 use serde::Serialize;
 
+use crate::collection::{Index, label};
 use crate::digest::Digest;
 use crate::errors::{ProfileError, Result, TargetError};
 use crate::format::Format;
+use crate::gate::{self, Pattern, Reason};
+use crate::graph::{Configured, Graph, Load, Node};
+pub use crate::graph::{Enabler, Warning};
 pub use crate::merge::Driver;
+use crate::name::{FeatureName, ProfileName, ScaffoldName, SourceName};
 use crate::part::{Key, Scope, Shape, Slot, Written, display, overlap};
 use crate::path::RelPath;
-use crate::profile::{FileSpec, MANIFEST, Manifest, MergeSpec, Meta, PAYLOAD, Policy, Requirement};
+use crate::profile::{
+    FileSpec, MANIFEST, Manifest, MergeSpec, Meta, PAYLOAD, Policy, ScaffoldSpec,
+};
 pub use crate::settings::{Settings, Suggestion};
-use crate::source::{Cache, Oid, Source};
+use crate::source::{Cache, Oid, Reader, Source};
 use crate::survey::Entry;
 use crate::target::{Override, Target, from_toml};
 use crate::tree::Tree;
 pub use crate::vars::Question;
-use crate::vars::{self, VarName, VarSpec};
+use crate::vars::{self, Context, VarName, VarSpec};
 
-/// Which layers [`resolve`] may move off their locked commit.
+/// Which sources [`resolve`] may move off their locked commit.
 #[derive(Clone, Copy, Debug)]
 pub enum Refresh<'a> {
-    /// None: every layer at its locked commit.
+    /// None: every source at its locked commit.
     None,
-    /// Every layer, to what its ref names now.
+    /// Every source, to what its ref names now.
     All,
-    /// The layer whose profile has this name.
-    Layer(&'a str),
+    /// The source with this name, or the one the layer with this name comes from.
+    Only(&'a str),
 }
 
 /// Whether a layer's content is what the lock recorded.
@@ -39,35 +56,79 @@ pub enum Refresh<'a> {
 pub enum Applied {
     /// It is.
     Current,
-    /// The layer moved, or its local directory changed, since it was applied.
+    /// Its source moved, its local directory changed, or an answer or the graph did, since it
+    /// was applied.
     Changed,
     /// The layer has never been applied.
     Never,
 }
 
-/// A profile resolved from its source at one revision.
+/// An active profile, read from its source at one revision, and rendered for the target.
 #[derive(Debug)]
 pub struct Layer {
     /// Where it came from.
     source: Source,
+    /// The name the target gives its source; `None` for a source a profile requires by `git`.
+    source_name: Option<SourceName>,
+    /// Its directory in the source.
+    dir: String,
     /// Its `[profile]` table.
     meta: Meta,
     /// Its `[merge]` table.
     merge: MergeSpec,
     /// Its variables.
     vars: BTreeMap<VarName, VarSpec>,
+    /// Every feature it declares.
+    declared: Vec<FeatureName>,
+    /// Every feature that is on, with who turned it on.
+    features: BTreeMap<FeatureName, BTreeSet<Enabler>>,
+    /// The profiles that require it.
+    required_by: Vec<ProfileName>,
+    /// Whether the target configures it as a layer.
+    configured: bool,
     /// The commit, for a versioned source.
     rev: Option<Oid>,
-    /// Digest of manifest and payload together.
+    /// Digest of its manifest as read.
+    manifest: Digest,
+    /// Digest of manifest, rendered payload and features together.
     digest: Digest,
     /// The digest the lock recorded for it.
     locked: Option<Digest>,
-    /// Its files.
-    files: BTreeMap<RelPath, FileSpec>,
-    /// Their bytes.
+    /// Its `[files]` and `[scaffolds]`, as written, until their paths are rendered.
+    specs: Specs,
+    /// Its `[scaffolds]`: each group's sentinels, rendered.
+    scaffolds: BTreeMap<ScaffoldName, Vec<Pattern>>,
+    /// Its files, by rendered path.
+    files: BTreeMap<RelPath, LayerFile>,
+    /// Its payload as read, by path as written, until rendered.
+    written: Tree,
+    /// Each file's bytes, by rendered path, templates rendered; of the files that apply.
     payload: Tree,
-    /// The profile that requires this one, for a layer not configured by the target.
-    required_by: Option<String>,
+    /// Each part's starter, by the rendered path of its file, templates rendered.
+    starters: Tree,
+}
+
+/// A profile's `[files]` and `[scaffolds]`, as written.
+pub(crate) type Specs = (BTreeMap<RelPath, FileSpec>, BTreeMap<ScaffoldName, ScaffoldSpec>);
+
+/// One of a layer's files: its entry, where its payload is, and whether its gates let it apply.
+#[derive(Clone, Debug)]
+pub struct LayerFile {
+    /// Its path as the profile wrote it: under `files/`, and before variables are answered.
+    pub written: RelPath,
+    /// Its entry.
+    pub spec: FileSpec,
+    /// The paths and globs of its `when.exists`, rendered.
+    pub(crate) exists: Vec<Pattern>,
+    /// Why it does not apply, when its `features`, `profiles` or `vars` say so.
+    pub gated: Option<Reason>,
+}
+
+impl LayerFile {
+    /// The paths and globs of its `when.exists`, rendered.
+    pub fn exists(&self) -> impl Iterator<Item = &str> {
+        self.exists.iter().map(Pattern::as_str)
+    }
 }
 
 impl Layer {
@@ -75,6 +136,28 @@ impl Layer {
     #[must_use]
     pub const fn source(&self) -> &Source {
         &self.source
+    }
+
+    /// The name the target gives its source; `None` for a source a profile requires by `git`.
+    #[must_use]
+    pub const fn source_name(&self) -> Option<&SourceName> {
+        self.source_name.as_ref()
+    }
+
+    /// Its profile's name, which names the layer.
+    #[must_use]
+    pub const fn name(&self) -> &ProfileName {
+        &self.meta.name
+    }
+
+    /// `source/profile`, as the target names it; the profile's name for a source a profile
+    /// requires by `git`.
+    #[must_use]
+    pub fn qualified(&self) -> String {
+        let name = &self.meta.name;
+        self.source_name
+            .as_ref()
+            .map_or_else(|| name.to_string(), |source| format!("{source}/{name}"))
     }
 
     /// Its `[profile]` table.
@@ -95,16 +178,45 @@ impl Layer {
         self.rev.as_ref()
     }
 
-    /// Digest of manifest and payload together.
+    /// Digest of manifest, rendered payload and features together.
     #[must_use]
     pub const fn digest(&self) -> Digest {
         self.digest
     }
 
-    /// The profile that requires this layer; `None` for a layer the target configures.
+    /// Every feature it declares, in order.
     #[must_use]
-    pub fn required_by(&self) -> Option<&str> {
-        self.required_by.as_deref()
+    pub fn declared(&self) -> &[FeatureName] {
+        &self.declared
+    }
+
+    /// Every feature that is on, with who turned it on.
+    #[must_use]
+    pub const fn features(&self) -> &BTreeMap<FeatureName, BTreeSet<Enabler>> {
+        &self.features
+    }
+
+    /// The profiles that require it.
+    #[must_use]
+    pub fn required_by(&self) -> &[ProfileName] {
+        &self.required_by
+    }
+
+    /// Whether the target configures it as a layer, rather than a profile requiring it.
+    #[must_use]
+    pub const fn configured(&self) -> bool {
+        self.configured
+    }
+
+    /// Its files, by rendered path: those that apply, and those whose gates say they do not.
+    #[must_use]
+    pub const fn files(&self) -> &BTreeMap<RelPath, LayerFile> {
+        &self.files
+    }
+
+    /// Its scaffold groups, each with its sentinels.
+    pub fn scaffolds(&self) -> impl Iterator<Item = (&ScaffoldName, impl Iterator<Item = &str>)> {
+        self.scaffolds.iter().map(|(name, unless)| (name, unless.iter().map(Pattern::as_str)))
     }
 
     /// Whether this content is what the lock recorded.
@@ -122,68 +234,58 @@ impl Layer {
         self.vars.iter()
     }
 
-    /// Where `file` in its profile is, as users know it.
+    /// Its scaffold groups' sentinels, rendered.
+    pub(crate) const fn sentinels(&self) -> &BTreeMap<ScaffoldName, Vec<Pattern>> {
+        &self.scaffolds
+    }
+
+    /// Where `file`, relative to its profile, is, as users know it.
     pub(crate) fn label(&self, file: &str) -> String {
-        label(&self.source, file)
-    }
-
-    /// Its files' bytes.
-    pub(crate) const fn payload(&self) -> &Tree {
-        &self.payload
-    }
-
-    /// Replaces its files' bytes, templates rendered.
-    pub(crate) fn set_payload(&mut self, payload: Tree) {
-        self.payload = payload;
-    }
-
-    /// Whether any of its files is a template.
-    pub(crate) fn has_templates(&self) -> bool {
-        self.files.values().any(|spec| spec.template)
-    }
-
-    /// Whether `path` is a template.
-    pub(crate) fn is_template(&self, path: &RelPath) -> bool {
-        self.files.get(path).is_some_and(|spec| spec.template)
-    }
-
-    /// Reads and checks the profile at `source`, at `pin` if given.
-    fn load(source: &Source, root: &Utf8Path, pin: Option<&Oid>, cache: &Cache) -> Result<Self> {
-        let reader = source.open(root, pin, cache)?;
-        let manifest_path = RelPath::new(MANIFEST)?;
-        let head = reader.read("", slice::from_ref(&manifest_path))?;
-        let Some(raw) = head.get(&manifest_path) else {
-            let profiles = reader.profiles(source);
-            return Err(ProfileError::NotAProfile { location: source.to_string(), profiles }.into());
-        };
-        let manifest: Manifest = from_toml(raw, &label(source, MANIFEST))?;
-        let meta = manifest.profile;
-        if let Some(required) = &meta.devset
-            && !Version::parse(crate::VERSION).is_ok_and(|version| required.matches(&version))
-        {
-            let requires = required.to_string();
-            return Err(ProfileError::Incompatible { profile: meta.name, requires }.into());
+        if self.dir.is_empty() {
+            label(&self.source, file)
+        } else {
+            label(&self.source, &format!("{}/{file}", self.dir))
         }
-        let paths: Vec<RelPath> = manifest.files.keys().cloned().collect();
-        let payload = reader.read(PAYLOAD, &paths)?;
-        if let Some(missing) = paths.into_iter().find(|path| payload.get(path).is_none()) {
-            return Err(ProfileError::MissingPayload { profile: meta.name, path: missing }.into());
-        }
+    }
+
+    /// Its `[files]` and `[scaffolds]` as written, taken for their paths to be rendered.
+    pub(crate) fn take_specs(&mut self) -> Specs {
+        mem::take(&mut self.specs)
+    }
+
+    /// Sets its files, and its scaffolds' sentinels, rendered.
+    pub(crate) fn set_files(
+        &mut self, files: BTreeMap<RelPath, LayerFile>,
+        scaffolds: BTreeMap<ScaffoldName, Vec<Pattern>>,
+    ) {
+        self.files = files;
+        self.scaffolds = scaffolds;
+    }
+
+    /// Its files, to gate.
+    pub(crate) const fn files_mut(&mut self) -> &mut BTreeMap<RelPath, LayerFile> {
+        &mut self.files
+    }
+
+    /// Its payload as read, by path as written.
+    pub(crate) const fn written(&self) -> &Tree {
+        &self.written
+    }
+
+    /// Sets its rendered payload and starters, and digests them.
+    pub(crate) fn set_payload(&mut self, payload: Tree, starters: Tree) {
         let mut hasher = blake3::Hasher::new();
-        hasher.update(Digest::of(raw).as_bytes());
+        hasher.update(self.manifest.as_bytes());
         hasher.update(payload.digest().as_bytes());
-        Ok(Self {
-            source: source.clone(),
-            meta,
-            merge: manifest.merge,
-            vars: manifest.vars,
-            rev: reader.rev().cloned(),
-            digest: Digest::new(hasher.finalize()),
-            locked: None,
-            files: manifest.files,
-            payload,
-            required_by: None,
-        })
+        hasher.update(starters.digest().as_bytes());
+        for feature in self.features.keys() {
+            hasher.update(feature.as_str().as_bytes());
+            hasher.update(&[0]);
+        }
+        self.digest = Digest::new(hasher.finalize());
+        self.payload = payload;
+        self.starters = starters;
+        self.written = Tree::default();
     }
 }
 
@@ -215,6 +317,10 @@ pub(crate) struct Portion {
     pub payload: Written,
     /// The payload file itself, templates rendered.
     pub text: Vec<u8>,
+    /// Whether its starter, if it has one, is the file's.
+    pub starts: bool,
+    /// The file the target's starts from when it is absent, templates rendered.
+    pub starter: Option<Vec<u8>>,
 }
 
 impl Portion {
@@ -233,21 +339,11 @@ impl Portion {
     }
 }
 
-/// Where `source`'s manifest is, as a path users recognise.
-fn label(source: &Source, file: &str) -> String {
-    match source {
-        Source::Dir(dir) => dir.join(file).into_string(),
-        Source::Git { url, path, .. } => path
-            .as_ref()
-            .map_or_else(|| format!("{url}/{file}"), |path| format!("{url}/{path}/{file}")),
-    }
-}
-
 /// A target's layers, composed: each file has one provider, or one per part, and settings are
 /// decided.
 #[derive(Debug)]
 pub struct Resolved {
-    /// In `config.toml` order.
+    /// In the order they apply: each requirement before its requirers.
     layers: Vec<Layer>,
     /// Each slot's provider.
     providers: BTreeMap<Slot, Provided>,
@@ -257,13 +353,21 @@ pub struct Resolved {
     suggestions: Vec<Suggestion>,
     /// The answer to every declared variable.
     answers: BTreeMap<VarName, String>,
+    /// What the graph settled that the target may not expect.
+    warnings: Vec<Warning>,
 }
 
 impl Resolved {
-    /// The layers, in `config.toml` order.
+    /// The layers, each requirement before its requirers.
     #[must_use]
     pub fn layers(&self) -> &[Layer] {
         &self.layers
+    }
+
+    /// The layer whose profile is `name`.
+    #[must_use]
+    pub fn layer(&self, name: &str) -> Option<&Layer> {
+        self.layers.iter().find(|layer| layer.meta.name == *name)
     }
 
     /// The settings in force.
@@ -284,10 +388,22 @@ impl Resolved {
         &self.answers
     }
 
+    /// What the graph settled that the target may not expect.
+    #[must_use]
+    pub fn warnings(&self) -> &[Warning] {
+        &self.warnings
+    }
+
     /// The name of the layer that provides `entry`.
     #[must_use]
-    pub fn provider(&self, entry: &Entry) -> Option<&str> {
+    pub fn provider(&self, entry: &Entry) -> Option<&ProfileName> {
         Some(&self.layers.get(entry.want?.layer)?.meta.name)
+    }
+
+    /// The layer file behind `entry`, while a layer provides it.
+    #[must_use]
+    pub fn file(&self, entry: &Entry) -> Option<&LayerFile> {
+        self.layers.get(entry.want?.layer)?.files.get(&entry.path)
     }
 
     /// Every slot, its provider, and what it provides: a whole file's bytes, or a part's content.
@@ -298,12 +414,15 @@ impl Resolved {
     }
 
     /// What the profile provides for `entry`: a whole file's bytes, or a part's content.
+    ///
+    /// # Errors
+    /// [`TargetError::NotManaged`], no layer provides it: only an entry with a
+    /// [`want`](Entry::want) has a payload.
     pub(crate) fn payload(&self, entry: &Entry) -> Result<&[u8]> {
         let slot = entry.slot();
         let bytes = self.providers.get(&slot).and_then(|provided| self.bytes(&slot, provided));
         bytes.ok_or_else(|| {
-            let profile = self.provider(entry).unwrap_or_default().to_owned();
-            ProfileError::MissingPayload { profile, path: entry.path.clone() }.into()
+            TargetError::NotManaged { path: entry.path.to_string(), managed: Vec::new() }.into()
         })
     }
 
@@ -315,7 +434,8 @@ impl Resolved {
         }
     }
 
-    /// `entry`'s part as the profile provides it; `None` for a whole file.
+    /// `entry`'s part as its profile provides it, or provided before its gates turned it off;
+    /// `None` for a whole file.
     pub(crate) fn portion(&self, entry: &Entry) -> Option<&Portion> {
         self.providers.get(&entry.slot())?.portion.as_ref()
     }
@@ -323,248 +443,278 @@ impl Resolved {
 
 /// Resolves `target`'s layers into one profile, the target's overrides and settings on top.
 ///
-/// Each layer is read at its locked commit unless `refresh` moves it; then the layers are
-/// composed, their variables answered, and their templates rendered.
+/// Each source is read at its locked commit unless `refresh` moves it; then the graph is built,
+/// the variables answered, the paths rendered and gated, the layers composed, and their templates
+/// rendered.
 ///
 /// # Errors
 /// - [`Error::Source`](crate::Error::Source), a source cannot be read.
-/// - [`Error::Profile`](crate::Error::Profile), a source is not a valid profile, or the layers
-///   collide on a path or a setting the target does not decide.
-/// - [`Error::Target`](crate::Error::Target), an override or `refresh` names nothing.
+/// - [`Error::Profile`](crate::Error::Profile), a profile is not valid or not found, a feature is
+///   unknown, or the layers collide on a path or a setting the target does not decide.
+/// - [`Error::Target`](crate::Error::Target), a layer names no source, or an override or `refresh`
+///   names nothing.
 /// - [`VarError::Unanswered`](crate::VarError::Unanswered), a variable needs an answer; answer it
 ///   with [`Target::answer`] and resolve again.
 pub fn resolve(target: &Target, cache: &Cache, refresh: Refresh<'_>) -> Result<Resolved> {
-    let config = target.config();
-    let layers = load(target, cache, refresh)?;
-    let mut providers = providers(&layers, &config.files)?;
+    let moves = Moves::of(target, cache, refresh)?;
+    let (mut layers, warnings) = layers(target, cache, &moves)?;
     let answers = vars::answers(&layers, target)?;
-    let layers = vars::render(layers, &answers)?;
+    let context = Context::of(target, &layers);
+    vars::render_paths(&mut layers, &answers, &context)?;
+    gate::statics(&mut layers, &answers);
+    let config = target.config();
+    let mut providers = providers(&layers, &config.files)?;
+    vars::render(&mut layers, &answers, &context)?;
     portions(&layers, &mut providers)?;
     let settings = Settings::compose(&layers, &config.merge)?;
     let suggestions = Settings::suggestions(&layers, &config.merge);
-    Ok(Resolved { layers, providers, settings, suggestions, answers })
+    Ok(Resolved { layers, providers, settings, suggestions, answers, warnings })
 }
 
-/// How deep requirements may nest; a longer chain is a mistake, not a design.
-const DEPTH: usize = 16;
-
-/// Every layer of `target`, each after the profiles it requires, at its locked commit unless
-/// `refresh` moves it.
-fn load(target: &Target, cache: &Cache, refresh: Refresh<'_>) -> Result<Vec<Layer>> {
-    let mut expansion = Expansion { target, cache, layers: Vec::new(), chain: Vec::new() };
-    let mut refreshed = false;
-    for source in &target.config().layers {
-        let moves = matches!(refresh, Refresh::All);
-        let mut layer = expansion.load(source, None, moves)?;
-        let named = matches!(refresh, Refresh::Layer(name) if layer.meta.name == name);
-        if named {
-            refreshed = true;
-            if layer.rev.is_some() {
-                layer = expansion.load(source, None, true)?;
-            }
-        }
-        expansion.expand(layer, moves || named, 0)?;
-    }
-    let layers = expansion.layers;
-    for (index, layer) in layers.iter().enumerate() {
-        let twin = layers
-            .iter()
-            .skip(index.saturating_add(1))
-            .find(|other| other.meta.name == layer.meta.name);
-        if let Some(twin) = twin {
-            let (first, second) = (layer.source.to_string(), twin.source.to_string());
-            return Err(
-                ProfileError::SameName { name: layer.meta.name.clone(), first, second }.into()
-            );
-        }
-    }
-    if let Refresh::Layer(name) = refresh
-        && !refreshed
-    {
-        if let Some(by) = layers.iter().find(|l| l.meta.name == name).and_then(Layer::required_by) {
-            return Err(TargetError::Required { name: name.into(), by: by.to_owned() }.into());
-        }
-        let names = layers
-            .iter()
-            .filter(|layer| layer.required_by.is_none())
-            .map(|layer| layer.meta.name.clone())
-            .collect();
-        return Err(TargetError::NoSuchLayer { name: name.into(), layers: names }.into());
-    }
-    Ok(layers)
+/// The sources a resolution moves to what their refs name now.
+enum Moves {
+    /// None.
+    None,
+    /// Every one.
+    All,
+    /// These.
+    Only(Vec<Source>),
 }
 
-/// Layers being expanded: each configured layer, after what it requires.
-struct Expansion<'a> {
+impl Moves {
+    /// What `refresh` moves in `target`: a source it names, or the source of a layer it names.
+    fn of(target: &Target, cache: &Cache, refresh: Refresh<'_>) -> Result<Self> {
+        let name = match refresh {
+            Refresh::None => return Ok(Self::None),
+            Refresh::All => return Ok(Self::All),
+            Refresh::Only(name) => name,
+        };
+        let config = target.config();
+        if let Some(source) = config.sources.iter().find(|(named, _)| named.as_str() == name) {
+            return Ok(Self::Only(vec![source.1.clone()]));
+        }
+        let configured = config.layers.iter().find(|layer| layer.profile.profile == *name);
+        if let Some(source) = configured.and_then(|layer| config.sources.get(&layer.profile.source))
+        {
+            return Ok(Self::Only(vec![source.clone()]));
+        }
+        let (layers, _) = layers(target, cache, &Self::None)?;
+        if let Some(layer) = layers.iter().find(|layer| layer.meta.name == *name) {
+            return Ok(Self::Only(vec![layer.source.clone()]));
+        }
+        let layers = layers.iter().map(|layer| layer.meta.name.to_string());
+        let names = layers.chain(config.sources.keys().map(ToString::to_string)).collect();
+        Err(TargetError::NoSuchLayer { name: name.to_owned(), names }.into())
+    }
+
+    /// Whether `source` moves.
+    fn moves(&self, source: &Source) -> bool {
+        match self {
+            Self::None => false,
+            Self::All => true,
+            Self::Only(sources) => sources.contains(source),
+        }
+    }
+}
+
+/// Every active profile of `target`, read and in order, and what the graph warns of.
+fn layers(target: &Target, cache: &Cache, moves: &Moves) -> Result<(Vec<Layer>, Vec<Warning>)> {
+    let config = target.config();
+    let configured = config
+        .layers
+        .iter()
+        .map(|layer| {
+            let source = config.sources.get(&layer.profile.source).ok_or_else(|| {
+                let sources = config.sources.keys().cloned().collect();
+                let name = layer.profile.source.clone();
+                let naming = config.layers.iter().filter(|l| l.profile.source == name);
+                let layers = naming.map(|l| l.profile.clone()).collect();
+                TargetError::NoSuchSource { name, sources, layers }
+            })?;
+            Ok(Configured {
+                source,
+                name: &layer.profile.profile,
+                features: &layer.features,
+                defaults: layer.default_features,
+            })
+        })
+        .collect::<Result<Vec<_>>>()?;
+    let mut loader = Loader { target, cache, moves, opened: Vec::new() };
+    let Graph { nodes, warnings } = Graph::build(&configured, &mut loader)?;
+    let layers = nodes.into_iter().map(|node| loader.layer(node)).collect::<Result<_>>()?;
+    Ok((layers, warnings))
+}
+
+/// Reads profiles for the graph: each source opened once, at one revision.
+struct Loader<'a> {
     /// Whose layers.
     target: &'a Target,
     /// Where git sources are fetched.
     cache: &'a Cache,
-    /// Expanded so far, in order.
-    layers: Vec<Layer>,
-    /// The sources being expanded, outermost first; one met again is a cycle.
-    chain: Vec<Source>,
+    /// Which sources move off their locked commit.
+    moves: &'a Moves,
+    /// Every source opened so far.
+    opened: Vec<Opened>,
 }
 
-impl Expansion<'_> {
-    /// The layer at `source`: at `pin` if given, else at its locked commit, or at what its ref
-    /// names now when it `moves`.
-    fn load(&self, source: &Source, pin: Option<&Oid>, moves: bool) -> Result<Layer> {
-        let locked = self.target.locked(source);
-        let pin = pin.or_else(|| locked.and_then(|locked| locked.rev.as_ref()).filter(|_| !moves));
-        let mut layer = Layer::load(source, self.target.root(), pin, self.cache)?;
-        layer.locked = locked.map(|locked| locked.digest);
-        Ok(layer)
+/// A source, opened at its revision, and its profiles by name.
+struct Opened {
+    /// The source.
+    source: Source,
+    /// Its files.
+    reader: Reader,
+    /// Its profiles.
+    index: Index,
+}
+
+/// A profile the graph read: where it is, and what it declares.
+pub(crate) struct Loaded {
+    /// Which opened source it is in.
+    opened: usize,
+    /// Its directory in the source.
+    dir: String,
+    /// Its manifest, parsed and checked.
+    manifest: Manifest,
+    /// Digest of its manifest as read.
+    digest: Digest,
+}
+
+impl Load for Loader<'_> {
+    type Profile = Loaded;
+
+    fn load(&mut self, source: &Source, name: &ProfileName) -> Result<Loaded> {
+        let opened = self.open(source)?;
+        let Some(Opened { reader, index, .. }) = self.opened.get(opened) else {
+            return Err(ProfileError::NoProfiles { location: source.to_string() }.into());
+        };
+        let dir = index.find(name, source)?.to_owned();
+        let path = if dir.is_empty() {
+            RelPath::new(MANIFEST)?
+        } else {
+            RelPath::new(&format!("{dir}/{MANIFEST}"))?
+        };
+        let read = reader.read("", slice::from_ref(&path))?;
+        let raw = read
+            .get(&path)
+            .ok_or_else(|| ProfileError::NoProfiles { location: source.to_string() })?;
+        let file = label(source, path.as_str());
+        let manifest: Manifest = from_toml(raw, &file)?;
+        if let Some(required) = &manifest.profile.devset
+            && !Version::parse(crate::VERSION).is_ok_and(|version| required.matches(&version))
+        {
+            let (profile, requires) = (manifest.profile.name, required.to_string());
+            return Err(ProfileError::Incompatible { profile, requires }.into());
+        }
+        manifest.check(&file)?;
+        Ok(Loaded { opened, dir, manifest, digest: Digest::of(raw) })
     }
 
-    /// Adds `layer`, after everything it requires; what it requires by git `moves` with it.
-    fn expand(&mut self, layer: Layer, moves: bool, depth: usize) -> Result<()> {
-        if self.layers.iter().any(|expanded| expanded.source == layer.source) {
-            return Ok(());
+    fn manifest(profile: &Loaded) -> &Manifest {
+        &profile.manifest
+    }
+}
+
+impl Loader<'_> {
+    /// The position of `source` among the opened: opened now, at its locked commit unless it
+    /// moves, if it was not already.
+    ///
+    /// # Errors
+    /// [`ProfileError::Diverged`], another ref of it is open: one source at two refs.
+    fn open(&mut self, source: &Source) -> Result<usize> {
+        if let Some(at) = self.opened.iter().position(|opened| opened.source == *source) {
+            return Ok(at);
         }
-        if let Some(twin) = self.layers.iter().find(|expanded| expanded.source.twin(&layer.source))
-        {
-            let (first, second) = (twin.source.to_string(), layer.source.to_string());
+        if let Some(twin) = self.opened.iter().find(|opened| opened.source.twin(source)) {
+            let (first, second) = (twin.source.to_string(), source.to_string());
             return Err(ProfileError::Diverged { first, second }.into());
         }
-        self.chain.push(layer.source.clone());
-        if depth >= DEPTH {
-            return Err(ProfileError::TooDeep { chain: names(&self.chain) }.into());
+        let pin = if self.moves.moves(source) { None } else { self.target.pinned(source) };
+        let reader = source.open(self.target.root(), pin, self.cache)?;
+        let index = Index::read(&reader, source)?;
+        if index.names().next().is_none() {
+            return Err(ProfileError::NoProfiles { location: source.to_string() }.into());
         }
-        for requirement in &layer.meta.requires {
-            let (source, pin) = match requirement {
-                Requirement::Sibling(relative) => sibling(&layer, relative)?,
-                Requirement::Git(source) => (source.clone(), None),
-            };
-            if self.chain.contains(&source) {
-                let mut chain = names(&self.chain);
-                chain.push(source.to_string());
-                return Err(ProfileError::Cycle { chain }.into());
-            }
-            if self.layers.iter().any(|expanded| expanded.source == source) {
-                continue;
-            }
-            let mut required = self.load(&source, pin.as_ref(), moves)?;
-            required.required_by = Some(layer.meta.name.clone());
-            self.expand(required, moves, depth.saturating_add(1))?;
+        self.opened.push(Opened { source: source.clone(), reader, index });
+        Ok(self.opened.len().saturating_sub(1))
+    }
+
+    /// The layer of `node`: its payload read, as written.
+    fn layer(&self, node: Node<Loaded>) -> Result<Layer> {
+        let Node { profile, name, source, features, required_by, configured, .. } = node;
+        let Loaded { opened, dir, manifest, digest } = profile;
+        let Some(Opened { reader, .. }) = self.opened.get(opened) else {
+            return Err(ProfileError::NoProfiles { location: source.to_string() }.into());
+        };
+        let paths: Vec<RelPath> = manifest.payload_paths().into_iter().collect();
+        let payload_dir =
+            if dir.is_empty() { PAYLOAD.to_owned() } else { format!("{dir}/{PAYLOAD}") };
+        let written = reader.read(&payload_dir, &paths)?;
+        if let Some(missing) = paths.into_iter().find(|path| written.get(path).is_none()) {
+            return Err(ProfileError::MissingPayload { profile: name, path: missing }.into());
         }
-        self.chain.pop();
-        self.layers.push(layer);
-        Ok(())
+        let config = self.target.config();
+        let source_name = config
+            .sources
+            .iter()
+            .find(|(_, named)| **named == source)
+            .map(|(name, _)| name.clone());
+        let locked = self.target.locked(&source, &name);
+        let Manifest { profile: meta, merge, vars, features: declared, files, scaffolds, .. } =
+            manifest;
+        Ok(Layer {
+            rev: reader.rev().cloned(),
+            source,
+            source_name,
+            dir,
+            meta,
+            merge,
+            vars,
+            declared: declared.declared.into_keys().collect(),
+            features,
+            required_by: required_by.into_iter().collect(),
+            configured,
+            manifest: digest,
+            digest,
+            locked,
+            specs: (files, scaffolds),
+            scaffolds: BTreeMap::new(),
+            files: BTreeMap::new(),
+            written,
+            payload: Tree::default(),
+            starters: Tree::default(),
+        })
     }
-}
-
-/// Each of `sources`, as users know it.
-fn names(sources: &[Source]) -> Vec<String> {
-    sources.iter().map(ToString::to_string).collect()
-}
-
-/// The source of the profile at `relative` beside `requirer`, and the commit it is pinned to: the
-/// requirer's own, for a git source.
-fn sibling(requirer: &Layer, relative: &str) -> Result<(Source, Option<Oid>)> {
-    let escapes =
-        || ProfileError::Escapes { profile: requirer.meta.name.clone(), path: relative.to_owned() };
-    match &requirer.source {
-        Source::Dir(dir) => {
-            Ok((Source::Dir(lexical(&dir.join(relative)).ok_or_else(escapes)?), None))
-        },
-        Source::Git { url, at, path } => {
-            let base = Utf8Path::new(path.as_ref().map_or("", RelPath::as_str));
-            let joined = lexical(&base.join(relative)).ok_or_else(escapes)?;
-            if joined.starts_with("..") {
-                return Err(escapes().into());
-            }
-            let path = match joined.as_str() {
-                "" | "." => None,
-                inside => Some(RelPath::new(inside)?),
-            };
-            let source = Source::Git { url: url.clone(), at: at.clone(), path };
-            Ok((source, requirer.rev.clone()))
-        },
-    }
-}
-
-/// `path` with `.` dropped and each `..` taking back the directory before it, by name alone;
-/// `None` for an absolute path that climbs above its root.
-fn lexical(path: &Utf8Path) -> Option<Utf8PathBuf> {
-    let mut out: Vec<Utf8Component<'_>> = Vec::new();
-    for component in path.components() {
-        match component {
-            Utf8Component::CurDir => {},
-            Utf8Component::ParentDir => match out.last() {
-                Some(Utf8Component::Normal(_)) => {
-                    out.pop();
-                },
-                Some(Utf8Component::RootDir | Utf8Component::Prefix(_)) => return None,
-                Some(Utf8Component::ParentDir | Utf8Component::CurDir) | None => {
-                    out.push(component);
-                },
-            },
-            Utf8Component::Prefix(_) | Utf8Component::RootDir | Utf8Component::Normal(_) => {
-                out.push(component);
-            },
-        }
-    }
-    Some(out.into_iter().collect())
 }
 
 /// The one layer that provides each file, or each layer's part of it, with `overrides` applied.
 ///
-/// A target's `from` narrows a file to one layer, whatever the scopes; otherwise every layer's
-/// part is taken, so long as all own it in one scope, and one layer at most owns it whole.
+/// Every layer's part is taken, so long as all own it in one scope, beside at most one starter: a
+/// whole `once` file, or a part's own. A target's `from` settles which layer provides the file:
+/// the starter, beside every layer's part, or the one layer that has it, whatever the scopes. A
+/// `from` naming a layer whose gates leave the file out stands aside.
 fn providers(
     layers: &[Layer], overrides: &BTreeMap<RelPath, Override>,
 ) -> Result<BTreeMap<Slot, Provided>> {
     let mut owners: BTreeMap<&RelPath, Vec<usize>> = BTreeMap::new();
     for (index, layer) in layers.iter().enumerate() {
-        for path in layer.files.keys() {
-            owners.entry(path).or_default().push(index);
+        for (path, file) in &layer.files {
+            if file.gated.is_none() {
+                owners.entry(path).or_default().push(index);
+            }
         }
     }
-    if let Some(path) = overrides.keys().find(|path| !owners.contains_key(path)) {
-        let provided = owners.keys().map(|&path| path.clone()).collect();
+    let listed = |path: &RelPath| layers.iter().any(|layer| layer.files.contains_key(path));
+    if let Some(path) = overrides.keys().find(|path| !listed(path)) {
+        let mut provided: Vec<RelPath> =
+            layers.iter().flat_map(|layer| layer.files.keys().cloned()).collect();
+        provided.sort();
+        provided.dedup();
         return Err(TargetError::StaleOverride { path: path.clone(), provided }.into());
     }
-    let name =
-        |index: usize| layers.get(index).map_or_else(String::new, |layer| layer.meta.name.clone());
     let mut providers = BTreeMap::new();
     let mut folds = BTreeMap::<String, &RelPath>::new();
-    for (path, mut candidates) in owners {
-        let over = overrides.get(path);
-        let spec = |index: usize| layers.get(index).and_then(|layer| layer.files.get(path));
-        let scope = |index: usize| spec(index).map_or(Scope::File, |spec| spec.scope);
-        if let Some(from) = over.and_then(|over| over.from.as_deref()) {
-            let picked =
-                candidates.iter().copied().find(|&i| name(i) == from).ok_or_else(|| {
-                    let layers = candidates.iter().map(|&i| name(i)).collect();
-                    ProfileError::NotProvided { path: path.clone(), from: from.into(), layers }
-                })?;
-            candidates = vec![picked];
-        }
-        share(path, &candidates, name, scope)?;
-        for index in candidates {
-            let spec = spec(index).cloned().unwrap_or_default();
-            let owner = name(index);
-            let validate = over.and_then(|o| o.validate).or(spec.validate);
-            let format = validate.unwrap_or_else(|| Format::of(path));
-            let shape = Shape::of(spec.scope, path, format, spec.comment, &owner)?;
-            let portion = shape.map(|shape| Portion {
-                scope: spec.scope,
-                shape,
-                content: Vec::new(),
-                payload: Written::default(),
-                text: Vec::new(),
-            });
-            let slot = Slot { path: path.clone(), part: portion.as_ref().map(|_| owner) };
-            let provided = Provided {
-                layer: index,
-                policy: over.and_then(|o| o.policy).or(spec.policy).unwrap_or_default(),
-                validate: format,
-                executable: spec.executable,
-                portion,
-            };
-            providers.insert(slot, provided);
-        }
+    for (path, candidates) in owners {
+        providers.extend(provide(layers, path, candidates, overrides.get(path))?);
         if let Some(other) = folds.insert(path.fold(), path)
             && other != path
         {
@@ -576,33 +726,142 @@ fn providers(
     Ok(providers)
 }
 
-/// Checks that the layers in `candidates` may share `path`: one of them provides it, or all own
-/// parts of it in one scope.
+/// The providers of `path`, which the layers at `candidates` list and `over` overrides.
+fn provide(
+    layers: &[Layer], path: &RelPath, mut candidates: Vec<usize>, over: Option<&Override>,
+) -> Result<Vec<(Slot, Provided)>> {
+    let name = |index: usize| layers.get(index).map(|layer| layer.meta.name.clone());
+    let spec = |index: usize| {
+        layers.get(index).and_then(|layer| layer.files.get(path)).map(|file| &file.spec)
+    };
+    let policy = |index: usize| {
+        over.and_then(|o| o.policy)
+            .unwrap_or_else(|| spec(index).map_or_else(Policy::default, FileSpec::policy))
+    };
+    let starts = |index: usize| {
+        spec(index).is_some_and(|spec| match spec.scope {
+            Scope::File => policy(index) == Policy::Once,
+            Scope::Keys | Scope::Block => spec.starter.is_some(),
+        })
+    };
+    let mut starter = None;
+    if let Some(from) = over.and_then(|over| over.from.as_ref()) {
+        let listing: Vec<usize> = (0..layers.len())
+            .filter(|&i| layers.get(i).is_some_and(|l| l.files.contains_key(path)))
+            .collect();
+        if !listing.iter().any(|&i| name(i).as_ref() == Some(from)) {
+            let layers = listing.iter().filter_map(|&i| name(i)).collect();
+            return Err(ProfileError::NotProvided {
+                path: path.clone(),
+                from: from.clone(),
+                layers,
+            }
+            .into());
+        }
+        // A `from` whose layer's gates leave the file out stands aside.
+        if let Some(picked) = candidates.iter().copied().find(|&i| name(i).as_ref() == Some(from)) {
+            if starts(picked) {
+                let part = |i: usize| spec(i).is_some_and(|spec| spec.scope != Scope::File);
+                candidates.retain(|&i| i == picked || part(i));
+                starter = Some(picked);
+            } else {
+                candidates = vec![picked];
+            }
+        }
+    }
+    let starts = |index: usize| starter.map_or_else(|| starts(index), |picked| picked == index);
+    let claims: Vec<Claim> = candidates
+        .iter()
+        .filter_map(|&i| {
+            Some(Claim {
+                layer: name(i)?,
+                scope: spec(i)?.scope,
+                policy: policy(i),
+                starts: starts(i),
+            })
+        })
+        .collect();
+    share(path, &claims)?;
+    let mut provided = Vec::with_capacity(candidates.len());
+    for index in candidates {
+        let (Some(spec), Some(owner)) = (spec(index), name(index)) else { continue };
+        let validate = over.and_then(|o| o.validate).or(spec.validate);
+        let format = validate.unwrap_or_else(|| Format::of(path));
+        let shape = Shape::of(spec.scope, path, format, spec.comment, owner.as_str())?;
+        let portion = shape.map(|shape| Portion {
+            scope: spec.scope,
+            shape,
+            content: Vec::new(),
+            payload: Written::default(),
+            text: Vec::new(),
+            starts: starts(index),
+            starter: None,
+        });
+        let slot = Slot { path: path.clone(), part: portion.as_ref().map(|_| owner.to_string()) };
+        let policy = policy(index);
+        provided.push((
+            slot,
+            Provided {
+                layer: index,
+                policy,
+                validate: format,
+                executable: spec.executable,
+                portion,
+            },
+        ));
+    }
+    Ok(provided)
+}
+
+/// How one layer owns a file, for [`share`].
+struct Claim {
+    /// The layer.
+    layer: ProfileName,
+    /// How much of the file it owns.
+    scope: Scope,
+    /// How it manages it.
+    policy: Policy,
+    /// Whether it starts the file when the target has none.
+    starts: bool,
+}
+
+/// Checks that the layers `claims` names may share `path`: one of them provides it, or all own
+/// parts of it in one scope, beside at most one starter.
 ///
 /// # Errors
 /// - [`ProfileError::Collision`], several own it whole.
-/// - [`ProfileError::Scopes`], they own it in different scopes.
-fn share(
-    path: &RelPath, candidates: &[usize], name: impl Fn(usize) -> String,
-    scope: impl Fn(usize) -> Scope,
-) -> Result<()> {
-    let scopes: Vec<Scope> = candidates.iter().map(|&i| scope(i)).collect();
-    match scopes.as_slice() {
-        [_] => Ok(()),
-        [first, rest @ ..] if rest.iter().all(|s| s == first) && *first != Scope::File => Ok(()),
-        _ if scopes.iter().all(|&s| s == Scope::File) => {
-            let layers = candidates.iter().map(|&i| name(i)).collect();
-            Err(ProfileError::Collision { path: path.clone(), layers }.into())
-        },
-        _ => {
-            let layers = candidates.iter().map(|&i| (name(i), scope(i))).collect();
-            Err(ProfileError::Scopes { path: path.clone(), layers }.into())
-        },
+/// - [`ProfileError::Starters`], several would start it.
+/// - [`ProfileError::Scopes`], they own it in different scopes, or one owns it whole and is not
+///   `once`.
+fn share(path: &RelPath, claims: &[Claim]) -> Result<()> {
+    if claims.len() <= 1 {
+        return Ok(());
     }
+    let named = |keep: &dyn Fn(&Claim) -> bool| -> Vec<ProfileName> {
+        claims.iter().filter(|claim| keep(claim)).map(|claim| claim.layer.clone()).collect()
+    };
+    let wholes = named(&|claim| claim.scope == Scope::File);
+    if wholes.len() > 1 {
+        return Err(ProfileError::Collision { path: path.clone(), layers: wholes }.into());
+    }
+    let mut parts =
+        claims.iter().filter(|claim| claim.scope != Scope::File).map(|claim| claim.scope);
+    let one_scope = parts.next().is_none_or(|first| parts.all(|scope| scope == first));
+    let owned =
+        claims.iter().any(|claim| claim.scope == Scope::File && claim.policy != Policy::Once);
+    if !one_scope || owned {
+        let layers = claims.iter().map(|claim| (claim.layer.clone(), claim.scope)).collect();
+        return Err(ProfileError::Scopes { path: path.clone(), layers }.into());
+    }
+    let starters = named(&|claim| claim.starts);
+    if starters.len() > 1 {
+        return Err(ProfileError::Starters { path: path.clone(), layers: starters }.into());
+    }
+    Ok(())
 }
 
-/// Reads each part's content out of its layer's rendered payload, and checks that no two layers
-/// own overlapping keys of one file.
+/// Reads each part's content, and its starter, out of its layer's rendered payload, and checks
+/// that no two layers own overlapping keys of one file.
 fn portions(layers: &[Layer], providers: &mut BTreeMap<Slot, Provided>) -> Result<()> {
     let mut owned: Vec<(&RelPath, usize, Key)> = Vec::new();
     for (slot, provided) in providers.iter_mut() {
@@ -616,22 +875,27 @@ fn portions(layers: &[Layer], providers: &mut BTreeMap<Slot, Provided>) -> Resul
             profile: layer.meta.name.clone(),
             path: slot.path.clone(),
         })?;
-        let label = layer.label(&format!("{PAYLOAD}/{}", slot.path));
+        let written =
+            layer.files.get(&slot.path).map_or(slot.path.as_str(), |file| file.written.as_str());
+        let label = layer.label(&format!("{PAYLOAD}/{written}"));
         (portion.content, portion.payload) = portion.shape.read(bytes, &label)?;
         portion.text = bytes.to_vec();
+        portion.starter =
+            layer.starters.get(&slot.path).filter(|_| portion.starts).map(<[u8]>::to_vec);
         let keys = portion.shape.keys(&portion.content);
         owned.extend(keys.into_iter().map(|key| (&slot.path, provided.layer, key)));
     }
     owned.sort_by_key(|&(path, layer, _)| (path, layer));
-    let name = |index: usize| layers.get(index).map_or_else(String::new, |l| l.meta.name.clone());
+    let name = |index: usize| layers.get(index).map(|l| l.meta.name.clone());
     for (at, (path, layer, key)) in owned.iter().enumerate() {
         let earlier = owned.get(..at).unwrap_or_default().iter().rev();
         let clash = earlier
             .take_while(|(other, ..)| other == path)
             .find(|(_, other, theirs)| other != layer && overlap(key, theirs));
-        if let Some((_, other, theirs)) = clash {
+        if let Some((_, other, theirs)) = clash
+            && let (Some(first), Some(second)) = (name(*other), name(*layer))
+        {
             let key = display(if key.len() <= theirs.len() { key } else { theirs });
-            let (first, second) = (name(*other), name(*layer));
             return Err(ProfileError::Overlap { path: (*path).clone(), key, first, second }.into());
         }
     }

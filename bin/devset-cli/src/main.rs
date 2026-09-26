@@ -1,14 +1,14 @@
 //! Apply versioned file bundles to a directory, and update them without losing local edits.
 //!
-//! Run from anywhere inside a target; `init` makes one. Status lines go to stdout, diagnostics
-//! and progress to stderr. The exit code is 0 on success, 1 on a conflict or, under
+//! Run from anywhere inside a target; `new` and `init` make one. Status lines go to stdout,
+//! diagnostics and progress to stderr. The exit code is 0 on success, 1 on a conflict or, under
 //! `status --exit-code`, on drift, and 2 on an error.
 //!
 //! ```text
-//! devset init --git https://github.com/acme/profiles --tag v1.4.0 --path rust
+//! devset new hello atxp/rust --git https://github.com/atomix-labs/atxp --tag v0.4.0
+//! devset add atxp/mdbook --features katex
 //! devset status --exit-code
 //! devset update
-//! devset update --continue
 //! ```
 
 extern crate alloc;
@@ -19,6 +19,7 @@ mod github;
 mod help;
 mod report;
 mod shell;
+mod skeleton;
 mod words;
 
 use std::env;
@@ -28,16 +29,18 @@ use std::process::ExitCode;
 use camino::{Utf8Component, Utf8Path, Utf8PathBuf};
 use clap::{CommandFactory, Parser};
 use clap_cargo::style::GOOD;
+use devset_core::collection::{self, CollectionFile, Listing};
+use devset_core::name::{ProfileName, ProfileRef, SourceName};
 use devset_core::profile::{Manifest, VarName};
-use devset_core::source::Source;
-use devset_core::target::Config;
+use devset_core::source::{Source, SourceSpec};
+use devset_core::target::{Config, LayerSpec};
 use devset_core::{
-    Cache, Error, Mode, Refresh, RelPath, Rollback, Survey, Target, TargetError, commit, plan,
-    resolve, survey,
+    Cache, Error, Mode, ProfileError, Refresh, RelPath, Rollback, Survey, Target, TargetError,
+    commit, plan, resolve, survey,
 };
 use dialoguer::console;
 
-use crate::cli::{Answers, Cli, Command, SchemaFile};
+use crate::cli::{AddArgs, Answers, Cli, Command, LayerArg, Location, SchemaFile};
 use crate::report::Wrote;
 use crate::shell::Shell;
 
@@ -67,28 +70,35 @@ fn main() -> ExitCode {
 /// Runs `command`, returning the exit code for a clean finish.
 fn run(shell: &Shell, command: Command) -> Result<ExitCode, Error> {
     let cwd = Utf8PathBuf::try_from(env::current_dir()?).map_err(io::Error::other)?;
-    // Built for the commands that resolve layers only: nothing else needs a home directory.
+    // Built for the commands that read sources only: nothing else needs a home directory.
     let cache = || -> Result<Cache, Error> {
         Ok(Cache::user()?.prompting(shell.interactive()).on_fetch(shell.fetches()))
     };
     match command {
-        Command::Init { source, answers, dry_run } => {
-            let mut target = Target::open_or_new(&cwd)?;
-            target.add_layer(Source::try_from(source.spec())?)?;
-            apply(shell, &mut target, &cache()?, (Refresh::None, Mode::Apply), answers, dry_run)
+        Command::New { dir, profile: true, .. } => author(shell, (&cwd, &dir), skeleton::profile),
+        Command::New { dir, collection: true, .. } => {
+            author(shell, (&cwd, &dir), skeleton::collection)
+        },
+        Command::New { dir, add, answers, dry_run, .. } => {
+            start(shell, (&cwd, &dir), &cache()?, add, answers, dry_run)
+        },
+        Command::Init { add, answers, dry_run } => {
+            start(shell, (&cwd, Utf8Path::new("")), &cache()?, add, answers, dry_run)
+        },
+        Command::Add { add, answers, dry_run } => {
+            let mut target = Target::find(&cwd)?;
+            let cache = cache()?;
+            if let Some(layer) = layer(&mut target, &cache, add, &cwd)? {
+                target.add_layer(layer)?;
+            }
+            apply(shell, &mut target, &cache, (Refresh::None, Mode::Apply), answers, dry_run)
         },
         Command::Remove { layer, dry_run } => {
             let mut target = Target::find(&cwd)?;
             let cache = cache()?;
             remove(shell, &mut target, &cache, &layer, dry_run)?;
-            apply(
-                shell,
-                &mut target,
-                &cache,
-                (Refresh::None, Mode::Apply),
-                Answers::default(),
-                dry_run,
-            )
+            let how = (Refresh::None, Mode::Apply);
+            apply(shell, &mut target, &cache, how, Answers::default(), dry_run)
         },
         Command::Diff { paths } => {
             let target = Target::find(&cwd)?;
@@ -100,23 +110,142 @@ fn run(shell: &Shell, command: Command) -> Result<ExitCode, Error> {
         Command::Status { exit_code, json, verbose } => {
             status(shell, &cwd, &cache()?, exit_code, json, verbose)
         },
-        Command::Apply { force, answers, dry_run } => {
+        Command::Apply { force, rescaffold, answers, dry_run } => {
             let mode = if force { Mode::Force } else { Mode::Apply };
             let target = &mut Target::find(&cwd)?;
+            for scaffold in rescaffold {
+                target.rescaffold(scaffold);
+            }
             apply(shell, target, &cache()?, (Refresh::None, mode), answers, dry_run)
         },
         Command::Update { abort: true, force, dry_run, .. } => abort(shell, &cwd, force, dry_run),
-        Command::Update { layer, resume, answers, dry_run, .. } => {
-            let how = match (resume, layer.as_deref()) {
+        Command::Update { name, resume, answers, dry_run, .. } => {
+            let how = match (resume, name.as_deref()) {
                 (true, _) => (Refresh::None, Mode::Continue),
-                (false, Some(name)) => (Refresh::Layer(name), Mode::Apply),
+                (false, Some(name)) => (Refresh::Only(name), Mode::Apply),
                 (false, None) => (Refresh::All, Mode::Apply),
             };
             apply(shell, &mut Target::find(&cwd)?, &cache()?, how, answers, dry_run)
         },
+        Command::Features { layer } => {
+            let target = Target::find(&cwd)?;
+            let resolved = resolve(&target, &cache()?, Refresh::None)?;
+            report::features(&resolved, layer.as_ref())?;
+            Ok(ExitCode::SUCCESS)
+        },
+        Command::Explain { path } => {
+            let target = Target::find(&cwd)?;
+            let survey = survey(resolve(&target, &cache()?, Refresh::None)?, &target)?;
+            let path = listed(&survey, &target, &cwd, &path)?;
+            report::explain(&survey, &path)?;
+            Ok(ExitCode::SUCCESS)
+        },
+        Command::List { source, location } => list(&cwd, &cache()?, source.as_ref(), location),
         Command::Schema { file } => schema(file),
         Command::Completions { shell } => completions(shell),
     }
+}
+
+/// Creates, in `dir` relative to `cwd`, what `write` writes: a profile or a collection to author.
+fn author(
+    shell: &Shell, (cwd, dir): (&Utf8Path, &Utf8Path),
+    write: fn(&Utf8Path, &Utf8Path) -> Result<String, Error>,
+) -> Result<ExitCode, Error> {
+    let next = write(&cwd.join(dir), dir)?;
+    shell.status("Created", GOOD, dir)?;
+    shell.help(&next)?;
+    Ok(ExitCode::SUCCESS)
+}
+
+/// Starts a target in `dir`, relative to `cwd`, with the layer `add` names, if any, and applies
+/// it; a new target without one is a commented `config.toml`.
+fn start(
+    shell: &Shell, (cwd, dir): (&Utf8Path, &Utf8Path), cache: &Cache, add: AddArgs,
+    answers: Answers, dry_run: bool,
+) -> Result<ExitCode, Error> {
+    let root = if dir.as_str().is_empty() { cwd.to_owned() } else { cwd.join(dir) };
+    let mut target = Target::open_or_new(&root)?;
+    let new = !target.exists();
+    if let Some(layer) = layer(&mut target, cache, add, cwd)? {
+        target.add_layer(layer)?;
+    }
+    if !target.config().layers.is_empty() {
+        return apply(shell, &mut target, cache, (Refresh::None, Mode::Apply), answers, dry_run);
+    }
+    if new {
+        if !dry_run {
+            let plan = plan(
+                survey(resolve(&target, cache, Refresh::None)?, &target)?,
+                Mode::Apply,
+                &target,
+            )?;
+            commit(plan, &target)?;
+        }
+        let config = dir.join(".devset/config.toml");
+        let (verb, what) = if dry_run { ("Would", "create ") } else { ("Created", "") };
+        shell.status(verb, GOOD, format_args!("{what}{config}"))?;
+    }
+    shell.help("add a layer: `devset add <source>/<profile> --git <url>`, or `--path <dir>`")?;
+    Ok(ExitCode::SUCCESS)
+}
+
+/// The layer `add` names, its source named in `target` when `add` locates a new one, written
+/// from `cwd`; `None` when `add` names nothing.
+///
+/// A profile named alone is in the source `add` locates, or in the target's only source. A
+/// source `add` locates is named as the target names it already, as `add` names it, as its
+/// `collection.toml` does, or after its directory; its profile, unless named, is its only one.
+fn layer(
+    target: &mut Target, cache: &Cache, add: AddArgs, cwd: &Utf8Path,
+) -> Result<Option<LayerSpec>, Error> {
+    let AddArgs { layer, location, features, no_default_features } = add;
+    let spec = location.spec();
+    let named = |layer: &Option<LayerArg>| layer.as_ref().and_then(|layer| layer.source.clone());
+    let (source, profile) = match (layer, spec) {
+        (None, None) => return Ok(None),
+        (Some(LayerArg { source: Some(source), profile }), None) => (source, profile),
+        (Some(LayerArg { source: None, profile }), None) => {
+            let sources: Vec<SourceName> = target.config().sources.keys().cloned().collect();
+            match sources.as_slice() {
+                [only] => (only.clone(), profile),
+                _ => return Err(TargetError::WhichSource { profile, sources }.into()),
+            }
+        },
+        (layer, Some(spec)) => {
+            let derived = derive(&spec);
+            let source = Source::try_from(spec)?.rebased(cwd, target.root());
+            let Listing { meta, profiles } = collection::list(&source, target.root(), None, cache)?;
+            let known =
+                target.config().sources.iter().find(|(_, s)| **s == source).map(|(n, _)| n.clone());
+            let name = match named(&layer).or(known).or_else(|| meta.map(|meta| meta.name)) {
+                Some(name) => name,
+                None => derived?,
+            };
+            let profile = match (layer.map(|layer| layer.profile), profiles.as_slice()) {
+                (Some(profile), _) => profile,
+                (None, [only]) => only.manifest.profile.name.clone(),
+                (None, []) => {
+                    return Err(ProfileError::NoProfiles { location: source.to_string() }.into());
+                },
+                (None, many) => {
+                    let profiles = many.iter().map(|p| p.manifest.profile.name.clone()).collect();
+                    let location = source.to_string();
+                    return Err(TargetError::Ambiguous { location, profiles }.into());
+                },
+            };
+            target.add_source(name.clone(), source)?;
+            (name, profile)
+        },
+    };
+    let profile = ProfileRef { source, profile };
+    Ok(Some(LayerSpec { profile, features, default_features: !no_default_features }))
+}
+
+/// The name a source takes after where it is: its directory's, or its repository's.
+fn derive(spec: &SourceSpec) -> Result<SourceName, Error> {
+    let located = spec.path.as_deref().or(spec.git.as_deref()).unwrap_or_default();
+    let last = located.trim_end_matches('/').rsplit(['/', ':']).next().unwrap_or_default();
+    Ok(last.trim_end_matches(".git").parse()?)
 }
 
 /// Reports where the target stands; with `exit_code`, fails when `apply --force` would write or
@@ -145,11 +274,38 @@ fn abort(shell: &Shell, cwd: &Utf8Path, force: bool, dry_run: bool) -> Result<Ex
     Ok(ExitCode::SUCCESS)
 }
 
+/// Lists the profiles of the source `location` names, of the one the target names `source`, or
+/// of every source the target names, each at its locked commit.
+fn list(
+    cwd: &Utf8Path, cache: &Cache, source: Option<&SourceName>, location: Location,
+) -> Result<ExitCode, Error> {
+    if let Some(spec) = location.spec() {
+        let source = Source::try_from(spec)?;
+        let listing = collection::list(&source, cwd, None, cache)?;
+        report::list(None, &source, &listing)?;
+        return Ok(ExitCode::SUCCESS);
+    }
+    let target = Target::find(cwd)?;
+    let sources = &target.config().sources;
+    if let Some(name) = source.filter(|name| !sources.contains_key(*name)) {
+        let sources = sources.keys().cloned().collect();
+        let layers = Vec::new();
+        return Err(TargetError::NoSuchSource { name: name.clone(), sources, layers }.into());
+    }
+    let picked = sources.iter().filter(|(name, _)| source.is_none_or(|s| s == *name));
+    for (name, each) in picked {
+        let listing = collection::list(each, target.root(), target.pinned(each), cache)?;
+        report::list(Some(name), each, &listing)?;
+    }
+    Ok(ExitCode::SUCCESS)
+}
+
 /// Prints the JSON schema of `file`.
 fn schema(file: SchemaFile) -> Result<ExitCode, Error> {
     let schema = match file {
         SchemaFile::Profile => schemars::schema_for!(Manifest),
         SchemaFile::Config => schemars::schema_for!(Config),
+        SchemaFile::Collection => schemars::schema_for!(CollectionFile),
     };
     let mut out = anstream::stdout().lock();
     serde_json::to_writer_pretty(&mut out, &schema).map_err(io::Error::from)?;
@@ -170,39 +326,46 @@ fn completions(shell: clap_complete::Shell) -> Result<ExitCode, Error> {
 ///
 /// Written by the commit that follows, unless `dry_run`.
 fn remove(
-    shell: &Shell, target: &mut Target, cache: &Cache, name: &str, dry_run: bool,
+    shell: &Shell, target: &mut Target, cache: &Cache, name: &ProfileName, dry_run: bool,
 ) -> Result<(), Error> {
     let (verb, what) = if dry_run { ("Would", "remove ") } else { ("Removing", "") };
-    // A layer never applied is not in the lock by name: read the layers to find it.
-    let source = if let Some(source) = target.layer(name) {
-        source.clone()
-    } else {
+    let Some(layer) = target.layer(name) else {
         let resolved = resolve(target, cache, Refresh::None)?;
-        let layers = resolved.layers();
-        let named = layers.iter().find(|layer| layer.meta().name == name);
-        named.map(|layer| layer.source().clone()).ok_or_else(|| TargetError::NoSuchLayer {
-            name: name.to_owned(),
-            layers: layers.iter().map(|layer| layer.meta().name.clone()).collect(),
-        })?
+        if let Some(by) = resolved.layer(name.as_str()).and_then(|l| l.required_by().first()) {
+            return Err(TargetError::Required { name: name.clone(), by: by.clone() }.into());
+        }
+        let names = target.config().layers.iter().map(|l| l.profile.profile.to_string());
+        return Err(
+            TargetError::NoSuchLayer { name: name.to_string(), names: names.collect() }.into()
+        );
     };
-    if !target.config().layers.contains(&source) {
-        let resolved = resolve(target, cache, Refresh::None)?;
-        let by = resolved.layers().iter().find(|layer| layer.meta().name == name);
-        let by = by.and_then(|layer| layer.required_by()).unwrap_or_default().to_owned();
-        return Err(TargetError::Required { name: name.to_owned(), by }.into());
-    }
-    target.remove_layer(&source, name)?;
-    shell.status(verb, GOOD, format_args!("{what}layer {name}  {source}"))?;
+    let profile = layer.profile.clone();
+    target.remove_layer(name)?;
+    shell.status(verb, GOOD, format_args!("{what}layer {profile}"))?;
     // Overrides of paths only the removed layer provided are stale now: they go with it.
     loop {
-        let Err(Error::Target(TargetError::StaleOverride { path, .. })) =
-            resolve(target, cache, Refresh::None)
-        else {
-            return Ok(());
-        };
-        target.remove_override(&path)?;
-        shell.status(verb, GOOD, format_args!("{what}override [files.\"{path}\"]"))?;
+        let resolved = resolve(target, cache, Refresh::None);
+        if let Err(Error::Target(TargetError::StaleOverride { path, .. })) = &resolved {
+            target.remove_override(path)?;
+            shell.status(verb, GOOD, format_args!("{what}override [files.\"{path}\"]"))?;
+            continue;
+        }
+        // Any other error is the apply's that follows to report.
+        let by = resolved.ok().and_then(|resolved| {
+            resolved.layer(name.as_str()).and_then(|l| l.required_by().first().cloned())
+        });
+        if let Some(by) = by {
+            shell.note(&format!("{name} stays active: {by} requires it"), None)?;
+        }
+        return Ok(());
     }
+}
+
+/// `given`, relative to `cwd`, as a path in `target`, when it is inside it.
+fn inside(target: &Target, cwd: &Utf8Path, given: &Utf8Path) -> Option<RelPath> {
+    let full = lexical(&cwd.join(given))?;
+    let relative = full.strip_prefix(target.root()).ok()?;
+    RelPath::new(relative.as_str()).ok()
 }
 
 /// `paths`, given relative to `cwd`, as the managed paths of `target` they name.
@@ -215,16 +378,38 @@ fn managed(
     paths
         .iter()
         .map(|given| {
-            let full = lexical(&cwd.join(given));
-            let inside = full.as_deref().and_then(|full| full.strip_prefix(target.root()).ok());
-            let path = inside.and_then(|relative| RelPath::new(relative.as_str()).ok());
+            let path = inside(target, cwd, given);
             path.filter(|path| managed.contains(path)).ok_or_else(|| {
                 // Named from the target root, as `status` names managed files.
-                let path = inside.map_or_else(|| given.to_string(), ToString::to_string);
+                let path = relative(target, cwd, given);
                 TargetError::NotManaged { path, managed: managed.clone() }.into()
             })
         })
         .collect()
+}
+
+/// `given`, relative to `cwd`, as a path some layer of `target` lists, applied or not.
+fn listed(
+    survey: &Survey, target: &Target, cwd: &Utf8Path, given: &Utf8Path,
+) -> Result<RelPath, Error> {
+    let layers = survey.resolved().layers();
+    let mut listed: Vec<RelPath> =
+        layers.iter().flat_map(|layer| layer.files().keys().cloned()).collect();
+    listed.extend(survey.entries().iter().map(|entry| entry.path.clone()));
+    listed.sort();
+    listed.dedup();
+    let path = inside(target, cwd, given);
+    path.filter(|path| listed.contains(path)).ok_or_else(|| {
+        let path = relative(target, cwd, given);
+        TargetError::NotManaged { path, managed: listed }.into()
+    })
+}
+
+/// `given`, relative to `cwd`, named from `target`'s root when it is inside it.
+fn relative(target: &Target, cwd: &Utf8Path, given: &Utf8Path) -> String {
+    let full = lexical(&cwd.join(given));
+    let inside = full.as_deref().and_then(|full| full.strip_prefix(target.root()).ok());
+    inside.map_or_else(|| given.to_string(), ToString::to_string)
 }
 
 /// Plans `target` and commits, unless `dry_run`; exit 1 when a file conflicts.
@@ -234,6 +419,7 @@ fn apply(
 ) -> Result<ExitCode, Error> {
     let answered = target.answers().clone();
     let resolved = ask::resolved(shell, target, cache, refresh, answers.vars)?;
+    report::warnings(shell, resolved.warnings())?;
     let dropped: Vec<VarName> =
         answered.into_keys().filter(|name| !resolved.answers().contains_key(name)).collect();
     let plan = plan(survey(resolved, target)?, mode, target)?;
@@ -270,8 +456,9 @@ fn lexical(path: &Utf8Path) -> Option<Utf8PathBuf> {
 #[cfg(test)]
 mod tests {
     use camino::Utf8Path;
+    use devset_core::source::SourceSpec;
 
-    use super::lexical;
+    use super::{derive, lexical};
 
     #[test]
     fn lexical_resolves_dots_by_name() {
@@ -282,5 +469,22 @@ mod tests {
             "`.` and `..` resolved"
         );
         assert_eq!(lexical(Utf8Path::new("/..")), None, "and none above the root");
+    }
+
+    #[test]
+    fn sources_are_named_after_where_they_are() {
+        let git = |url: &str, path: Option<&str>| SourceSpec {
+            git: Some(url.to_owned()),
+            path: path.map(str::to_owned),
+            ..SourceSpec::default()
+        };
+        for (spec, name) in [
+            (git("https://github.com/atomix-labs/atxp", None), "atxp"),
+            (git("git@github.com:acme/profiles.git", None), "profiles"),
+            (git("../profiles.git/", Some("rust")), "rust"),
+            (SourceSpec { path: Some("../base".to_owned()), ..SourceSpec::default() }, "base"),
+        ] {
+            assert_eq!(derive(&spec).expect("a name").as_str(), name, "{spec:?}");
+        }
     }
 }

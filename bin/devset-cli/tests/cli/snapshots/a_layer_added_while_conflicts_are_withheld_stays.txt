@@ -1,0 +1,18 @@
+$ devset init --git ../profiles.git --tag v1 --path p
+     Created a.toml
+    Finished 1 change
+    Fetching ../profiles.git
+[exit 0]
+$ devset add q --git ../profiles.git --tag v3 --path q
+  Conflicted a.toml  conflicting changes
+    Withheld q.toml  would create
+    Finished 1 conflict; 1 change withheld by `on-conflict = "apply-none"`
+    Fetching ../profiles.git
+help: resolve the files in .devset/conflicts/, then run `devset update --continue`;
+      or take the update back with `devset update --abort`
+[exit 1]
+$ devset update --continue
+      Merged a.toml
+     Created q.toml
+    Finished 2 changes
+[exit 0]

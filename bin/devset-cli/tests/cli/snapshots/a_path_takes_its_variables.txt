@@ -1,0 +1,15 @@
+$ devset init --path ../p/book
+     Created docs/book.toml
+    Finished 1 change
+note: answered book_dir = "docs", the default
+  |
+  = help: pass `--var book_dir=…` to choose another
+[exit 0]
+$ devset apply --var book_dir=site
+     Removed docs/book.toml
+     Created site/book.toml
+    Finished 2 changes
+[exit 0]
+$ devset apply --var book_dir=../out
+error: ../p/book/profile.toml: [files."{{ book_dir }}/book.toml"] is "../out/book.toml" once answered, which is not a path in the target: invalid path "../out/book.toml": empty, `.` or `..` component
+[exit 2]

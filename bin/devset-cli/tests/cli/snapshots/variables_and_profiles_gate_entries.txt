@@ -1,0 +1,25 @@
+$ devset init p/project --path ../p
+     Created LICENSE-MIT
+    Finished 1 change
+note: answered license = "MIT", the default
+  |
+  = help: pass `--var license=…` to choose another
+[exit 0]
+$ devset apply --var license=MIT OR Apache-2.0
+     Created LICENSE-APACHE
+    Finished 1 change
+[exit 0]
+$ devset add p/lint
+     Created lint.md
+     Created lint.toml
+    Finished 2 changes
+[exit 0]
+$ devset apply --var license=Apache-2.0
+     Removed LICENSE-MIT  (license is "Apache-2.0")
+    Finished 1 change
+[exit 0]
+$ devset explain LICENSE-MIT
+LICENSE-MIT
+    p/project  file  owned  off: license is "Apache-2.0"
+        when license is one of ["MIT", "MIT OR Apache-2.0"]: "Apache-2.0"
+[exit 0]

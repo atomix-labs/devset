@@ -14,7 +14,7 @@ $ devset update
     Fetching ../profiles.git
 [exit 0]
 $ devset status
-p 1.0.0  ../profiles.git branch main path p  @3f7357a
+p/p 1.0.0  @3f7357a
 
 Local changes, kept:
     edited     deny.toml  merge

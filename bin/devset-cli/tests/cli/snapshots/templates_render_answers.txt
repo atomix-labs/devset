@@ -24,7 +24,7 @@ $ devset apply --var cpu=x86-64-v3
     Finished 1 change
 [exit 0]
 $ devset status
-p 1.0.0  ../p
+p/p 1.0.0
 
 All 2 files match the profile.
 [exit 0]

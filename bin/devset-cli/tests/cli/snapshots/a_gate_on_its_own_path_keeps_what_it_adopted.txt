@@ -1,0 +1,10 @@
+$ devset init --path ../p/editor
+     Adopted .editorconfig
+    Finished 1 change
+[exit 0]
+$ devset apply
+    Finished up to date
+[exit 0]
+$ devset apply
+    Finished up to date
+[exit 0]

@@ -18,8 +18,8 @@ members = ["a"]
 [workspace.lints.rust]
 unsafe_code = "forbid"
 $ devset status --exit-code
-old 1.0.0  ../old
-new 1.0.0  ../new
+old/old 1.0.0
+new/new 1.0.0
 
 All 2 files match the profile.
 [exit 0]

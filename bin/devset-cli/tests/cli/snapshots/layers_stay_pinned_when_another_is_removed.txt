@@ -1,5 +1,5 @@
 $ devset remove a
-    Removing layer a  ../profiles.git branch main path a
+    Removing layer a/a
      Removed a.toml
     Finished 1 change
 [exit 0]

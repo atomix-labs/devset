@@ -1,18 +1,18 @@
 $ devset init --path ../profiles
-error: ../profiles is not a profile: it has no profile.toml
+error: ../profiles holds 2 profiles; name the one to add
   |
-  = help: these are profiles: ../profiles/base and ../profiles/rust; name one with `--path`
+  = help: its profiles are base and rust
 [exit 2]
 $ devset init --path ../profiles/rust/files
-error: ../profiles/rust/files is not a profile: it has no profile.toml
+error: ../profiles/rust/files holds no profile: no profile.toml in it
   |
-  = help: ../profiles/rust is a profile: name it with `--path ../profiles/rust`
+  = help: a source holds profiles, each a directory with a profile.toml; `devset new --profile <dir>` starts one
 [exit 2]
-$ devset init --git ../profiles.git
+$ devset init rsut --git ../profiles.git
     Fetching ../profiles.git
-error: ../profiles.git is not a profile: it has no profile.toml
+error: ../profiles.git has no profile named rsut
   |
-  = help: rust is a profile: name it with `--path rust`
+  = help: did you mean `rust`?
 [exit 2]
 $ devset init --git ../profiles.git --branch nope
     Fetching ../profiles.git
@@ -31,15 +31,35 @@ error: template t.txt uses `nmae`, which no profile declares
 $ devset init --path 
 error: invalid source: `path` is empty
 [exit 2]
-$ devset init --path ../profiles/base
-error: two layers are named rust: ../profiles/rust and ../profiles/base
+$ devset init --path ../twins
+error: two profiles in ../twins are named rust: one and two
   |
-  = help: a layer's name picks it in `from` and `devset update`: rename one profile, or remove one layer with `devset remove`
+  = help: rename one of them: a name tells profiles apart in a source
+[exit 2]
+$ devset init --path ../book --features mermiad
+error: profile book has no feature mermiad
+  |
+  = help: did you mean `mermaid`?
+[exit 2]
+$ devset add book
+error: which source is book in? name it as `source/book`
+  |
+  = help: the target names no source: `devset add <source>/book --git <url>`, or `--path <dir>`
+[exit 2]
+$ devset status
+error: no source is named nope: the layer nope/rust names it
+  |
+  = help: the target names no source: add one with `--git <url>` or `--path <dir>`
 [exit 2]
 $ devset status
 error: merge driver `tool %X %A`: placeholders are %O, %A, %B, %P and %%
- --> .devset/config.toml:5:10
+ --> .devset/config.toml:8:10
   |
-5 | driver = "tool %X %A"
+8 | driver = "tool %X %A"
   |          ^^^^^^^^^^^^
+[exit 2]
+$ devset status
+error: .devset/config.toml is written for devset 0.1: its layers name locations, not profiles
+  |
+  = help: name each source once in [sources], and each layer as `profile = "source/name"`; BREAKING-CHANGES.md in devset's repository shows how
 [exit 2]

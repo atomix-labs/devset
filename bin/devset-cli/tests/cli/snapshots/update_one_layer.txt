@@ -11,7 +11,7 @@ $ devset init --git ../profiles.git --path b
 $ devset update nope
 error: no layer is named nope
   |
-  = help: the layers are a and b
+  = help: the layers and sources are a, b, a and b
 [exit 2]
 $ devset update b
      Updated b.txt

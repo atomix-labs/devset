@@ -5,13 +5,13 @@ use core::fmt;
 use std::io::{self, Write};
 
 use anstyle::Style;
-use clap_cargo::style::{GOOD, LITERAL, WARN};
+use clap_cargo::style::{GOOD, LITERAL};
 use devset_core::Survey;
 use devset_core::resolve::{Applied, Layer};
 use devset_core::survey::Entry;
 
 use super::json::StatusJson;
-use super::{Standing, State, files, in_sync, suggestions};
+use super::{Heading, Standing, State, files, in_sync, suggestions};
 use crate::shell::Shell;
 
 /// A `status` section: its heading, that heading while an update is unfinished, its standings.
@@ -44,6 +44,12 @@ pub(crate) fn status(shell: &Shell, survey: &Survey, json: bool, verbose: bool) 
         return writeln!(out);
     }
     let resolved = survey.resolved();
+    if resolved.layers().is_empty() {
+        writeln!(out, "The target applies no profile yet.")?;
+        drop(out);
+        return shell
+            .help("add one: `devset add <source>/<profile> --git <url>`, or `--path <dir>`");
+    }
     headings(&mut out, resolved.layers(), verbose)?;
     if verbose {
         writeln!(out, "  merge driver: {}", resolved.settings().driver)?;
@@ -80,11 +86,12 @@ pub(crate) fn status(shell: &Shell, survey: &Survey, json: bool, verbose: bool) 
                 Standing::Conflict => format!("  → .devset/conflicts/{path}"),
                 Standing::Local | Standing::InSync => String::new(),
             };
-            // A part is named after its layer already.
+            // A part is named after its layer already; what its gates turned off says why.
             let layer = resolved
                 .provider(entry)
                 .filter(|_| layered && entry.part.is_none())
-                .map(|layer| format!("  ({layer})"));
+                .map(|layer| format!("  ({layer})"))
+                .or_else(|| entry.gate.as_ref().map(|why| format!("  ({why})")));
             let layer = layer.unwrap_or_default();
             let row = format!(
                 "    {style}{state:<9}{style:#}  {name:<width$}  {policy:<5}{action}{layer}"
@@ -102,31 +109,33 @@ pub(crate) fn status(shell: &Shell, survey: &Survey, json: bool, verbose: bool) 
 /// Writes each layer's heading. Unless `verbose`, a required layer applied as it is goes on a
 /// `requires` line under the configured layer that brings it in.
 fn headings(out: &mut impl Write, layers: &[Layer], verbose: bool) -> io::Result<()> {
-    let folded = |layer: &Layer| {
-        !verbose && layer.required_by().is_some() && layer.applied() == Applied::Current
-    };
+    let folded =
+        |layer: &Layer| !verbose && !layer.configured() && layer.applied() == Applied::Current;
     // The configured layer a required one comes from, however deep.
     let root = |layer: &Layer| {
         let mut at = layer;
         for _ in layers {
-            let Some(by) = at.required_by() else { break };
-            let Some(parent) = layers.iter().find(|l| l.meta().name == by) else {
+            if at.configured() {
+                break;
+            }
+            let Some(by) = at.required_by().first() else { break };
+            let Some(parent) = layers.iter().find(|l| l.name() == by) else {
                 break;
             };
             at = parent;
         }
-        at.meta().name.clone()
+        at.name().clone()
     };
     for layer in layers.iter().filter(|layer| !folded(layer)) {
         writeln!(out, "{}", Heading(layer))?;
-        if layer.required_by().is_some() {
+        if !layer.configured() {
             continue;
         }
-        let name = &layer.meta().name;
+        let name = layer.name();
         let required: Vec<&str> = layers
             .iter()
             .filter(|l| folded(l) && root(l) == *name)
-            .map(|l| l.meta().name.as_str())
+            .map(|l| l.name().as_str())
             .collect();
         if !required.is_empty() {
             writeln!(out, "{}", wrapped("  requires ", &required))?;
@@ -166,32 +175,6 @@ impl fmt::Display for Emphasis<'_> {
 /// `text` styled as a command, backticks kept so it stands out without colour too.
 fn literal(text: &str) -> String {
     format!("{LITERAL}`{text}`{LITERAL:#}")
-}
-
-/// A layer's one-line summary: name, version, source, commit, and whether it is applied.
-struct Heading<'a>(&'a Layer);
-
-impl fmt::Display for Heading<'_> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let (layer, bold) = (self.0, Style::new().bold());
-        write!(f, "{bold}{}{bold:#}", layer.meta().name)?;
-        if let Some(version) = &layer.meta().version {
-            write!(f, " {version}")?;
-        }
-        write!(f, "  {}", layer.source())?;
-        if let Some(rev) = layer.rev() {
-            write!(f, "  @{}", rev.short())?;
-        }
-        if let Some(by) = layer.required_by() {
-            write!(f, "  {WARN}(required by {by}){WARN:#}")?;
-        }
-        match layer.applied() {
-            Applied::Current => {},
-            Applied::Changed => write!(f, "  {WARN}(changed since it was applied){WARN:#}")?,
-            Applied::Never => write!(f, "  {WARN}(not applied yet){WARN:#}")?,
-        }
-        Ok(())
-    }
 }
 
 #[cfg(test)]

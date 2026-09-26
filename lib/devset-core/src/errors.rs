@@ -8,6 +8,7 @@ use std::io;
 use camino::Utf8PathBuf;
 use thiserror::Error;
 
+use crate::name::{FeatureName, ProfileName, ProfileRef, SourceName};
 use crate::part::Scope;
 use crate::path::RelPath;
 use crate::source::Oid;
@@ -36,6 +37,9 @@ pub enum Error {
     /// A string is not a [`RelPath`].
     #[error(transparent)]
     Path(#[from] PathError),
+    /// A string is not a name.
+    #[error(transparent)]
+    Name(#[from] NameError),
     /// A source is misconfigured, or git failed on it.
     #[error(transparent)]
     Source(#[from] SourceError),
@@ -79,6 +83,18 @@ pub struct ParseError {
 pub struct PathError {
     /// The rejected input.
     pub(crate) path: String,
+    /// The rule it breaks.
+    pub(crate) rule: &'static str,
+}
+
+/// Why a string is not the name of a profile, a source, a feature or a scaffold.
+#[derive(Debug, Error, Clone, PartialEq, Eq)]
+#[error("invalid {kind} name {name:?}: {rule}")]
+pub struct NameError {
+    /// What it would name: `profile`, `source`, `feature`, `scaffold`, or `layer`.
+    pub(crate) kind: &'static str,
+    /// The rejected input.
+    pub(crate) name: String,
     /// The rule it breaks.
     pub(crate) rule: &'static str,
 }
@@ -159,29 +175,91 @@ pub enum SourceError {
 #[derive(Debug, Error, Clone, PartialEq, Eq)]
 #[non_exhaustive]
 pub enum ProfileError {
-    /// The source has no `profile.toml`.
-    #[error("{location} is not a profile: it has no profile.toml")]
-    NotAProfile {
+    /// A source holds no profile at all.
+    #[error("{location} holds no profile: no profile.toml in it")]
+    NoProfiles {
         /// The source, as configured.
         location: String,
-        /// The directories that do hold one, as `path` would name them.
-        profiles: Vec<String>,
+    },
+    /// A source holds no profile of the name asked for.
+    #[error("{location} has no profile named {name}")]
+    NotInSource {
+        /// The source, as users know it.
+        location: String,
+        /// The name asked for.
+        name: ProfileName,
+        /// Every profile it holds.
+        profiles: Vec<ProfileName>,
+    },
+    /// Two profiles in one source have one name, which must tell them apart.
+    #[error("two profiles in {location} are named {name}: {first} and {second}")]
+    SameNameInSource {
+        /// The source, as users know it.
+        location: String,
+        /// The name.
+        name: ProfileName,
+        /// The first one's directory in the source.
+        first: String,
+        /// The second one's.
+        second: String,
+    },
+    /// A manifest says something of itself that does not hold.
+    #[error("{file}: {message}")]
+    Manifest {
+        /// The manifest, as users know it.
+        file: String,
+        /// What is wrong, and where in it.
+        message: String,
     },
     /// The profile's `devset` requirement excludes this build.
     #[error("profile {profile} requires devset {requires}; this is {version}", version = crate::VERSION)]
     Incompatible {
         /// The profile's name.
-        profile: String,
+        profile: ProfileName,
         /// Its requirement.
         requires: String,
     },
-    /// `[files]` lists a path that `files/` does not hold.
+    /// `[files]` lists a path, or a starter, that `files/` does not hold.
     #[error("profile {profile} lists {path}, but files/{path} does not exist")]
     MissingPayload {
         /// The profile's name.
-        profile: String,
-        /// The listed path.
+        profile: ProfileName,
+        /// The listed path, as written.
         path: RelPath,
+    },
+    /// A profile is asked for a feature it does not declare.
+    #[error("profile {profile} has no feature {feature}")]
+    UnknownFeature {
+        /// The profile.
+        profile: ProfileName,
+        /// The feature asked for.
+        feature: FeatureName,
+        /// Who asked: the target, or a requiring profile.
+        by: String,
+        /// Every feature it declares.
+        known: Vec<FeatureName>,
+    },
+    /// Two of a profile's paths name one file once their variables are answered.
+    #[error("profile {profile} lists {path} twice: as {first} and as {second}")]
+    SamePath {
+        /// The profile.
+        profile: ProfileName,
+        /// The path both render to.
+        path: RelPath,
+        /// The first, as written.
+        first: RelPath,
+        /// The second, as written.
+        second: RelPath,
+    },
+    /// A path, or a glob, in `when.exists` or a scaffold's `unless` cannot be read.
+    #[error("profile {profile}: {pattern:?} is not a path or a glob in the target: {reason}")]
+    Pattern {
+        /// The profile.
+        profile: ProfileName,
+        /// The pattern, variables answered.
+        pattern: String,
+        /// Why not.
+        reason: String,
     },
     /// Several layers provide one path, and the target has not chosen.
     #[error("{path} is provided by {}", list(layers))]
@@ -189,17 +267,25 @@ pub enum ProfileError {
         /// The path.
         path: RelPath,
         /// Every layer providing it.
-        layers: Vec<String>,
+        layers: Vec<ProfileName>,
     },
-    /// An override's `from` names a layer that does not provide the path.
+    /// Several layers would start one file the target lacks, and the target has not chosen.
+    #[error("{path} is started by {}", list(layers))]
+    Starters {
+        /// The path.
+        path: RelPath,
+        /// Every layer that would start it.
+        layers: Vec<ProfileName>,
+    },
+    /// An override's `from` names a layer that does not list the path.
     #[error("{from} does not provide {path}")]
     NotProvided {
         /// The path.
         path: RelPath,
         /// The layer named.
-        from: String,
+        from: ProfileName,
         /// The layers that do provide it.
-        layers: Vec<String>,
+        layers: Vec<ProfileName>,
     },
     /// Two paths name one file on a case-insensitive filesystem.
     #[error("{first} and {second} are the same file on case-insensitive filesystems")]
@@ -209,33 +295,19 @@ pub enum ProfileError {
         /// The path that folds onto it.
         second: RelPath,
     },
-    /// Requirements lead back to a profile already being expanded.
-    #[error("requirements form a cycle: {}", chain.join(" → "))]
+    /// Requirements lead back to a profile that requires them.
+    #[error("requirements form a cycle: {}", list_chain(chain))]
     Cycle {
-        /// Each source on the way round, the repeated one last.
-        chain: Vec<String>,
-    },
-    /// Requirements nest deeper than devset follows.
-    #[error("requirements nest too deep: {}", chain.join(" → "))]
-    TooDeep {
-        /// Each source on the way down.
-        chain: Vec<String>,
+        /// Each profile on the way round, the repeated one last.
+        chain: Vec<ProfileName>,
     },
     /// One profile is required at two refs, which would provide one set of files twice.
-    #[error("{first} and {second} are one profile at two refs")]
+    #[error("{first} and {second} are one source at two refs")]
     Diverged {
         /// The source met first.
         first: String,
         /// The source met second.
         second: String,
-    },
-    /// A sibling requirement points outside the requiring profile's source.
-    #[error("profile {profile} requires {path}, which is outside its source")]
-    Escapes {
-        /// The requiring profile's name.
-        profile: String,
-        /// The requirement, as written.
-        path: String,
     },
     /// Keys are owned in a file devset does not read as TOML, JSON or YAML.
     #[error("{path} is not read as TOML, JSON or YAML, so a profile cannot own its keys")]
@@ -257,27 +329,27 @@ pub enum ProfileError {
         /// The key, as people write it.
         key: String,
         /// The layer met first.
-        first: String,
+        first: ProfileName,
         /// The layer that overlaps it.
-        second: String,
+        second: ProfileName,
     },
     /// Layers own one file in different scopes: one whole and another in part, or one by keys
-    /// and another by a block.
+    /// and another by a block. A whole `once` file may start one that others own parts of.
     #[error("{path} is owned in different scopes: {}", scopes(layers))]
     Scopes {
         /// The file.
         path: RelPath,
         /// Each layer, with its scope.
-        layers: Vec<(String, Scope)>,
+        layers: Vec<(ProfileName, Scope)>,
     },
-    /// Two layers' profiles have one name, which must tell layers apart.
+    /// Two active profiles have one name, which must tell layers apart.
     #[error("two layers are named {name}: {first} and {second}")]
     SameName {
         /// The name.
-        name: String,
-        /// The first layer's source.
+        name: ProfileName,
+        /// The first one's source.
         first: String,
-        /// The second layer's source.
+        /// The second one's.
         second: String,
     },
     /// Two layers set one setting differently, and the target does not decide.
@@ -286,9 +358,9 @@ pub enum ProfileError {
         /// The setting, as `table.key`.
         key: String,
         /// The layer that set it first.
-        first: String,
+        first: ProfileName,
         /// The layer that disagrees.
-        second: String,
+        second: ProfileName,
     },
 }
 
@@ -310,19 +382,66 @@ pub enum TargetError {
         /// The enclosing target's root.
         root: Utf8PathBuf,
     },
+    /// `config.toml` is devset 0.1's: its layers name locations, not profiles.
+    #[error(
+        ".devset/config.toml is written for devset 0.1: its layers name locations, not profiles"
+    )]
+    OldConfig,
+    /// A layer, or a command, names a source `[sources]` does not.
+    #[error("no source is named {name}{}", naming(layers))]
+    NoSuchSource {
+        /// The name asked for.
+        name: SourceName,
+        /// Every source's name.
+        sources: Vec<SourceName>,
+        /// The layers `config.toml` names it for.
+        layers: Vec<ProfileRef>,
+    },
+    /// `[sources]` already names another source so.
+    #[error("the source {name} is already {location}")]
+    SourceExists {
+        /// The name.
+        name: SourceName,
+        /// The source it names, as configured.
+        location: String,
+    },
+    /// A profile is named without its source, and the target names several, or none.
+    #[error("which source is {profile} in? name it as `source/{profile}`")]
+    WhichSource {
+        /// The profile.
+        profile: ProfileName,
+        /// Every source the target names.
+        sources: Vec<SourceName>,
+    },
+    /// A source holds several profiles, and none was named.
+    #[error("{location} holds {} profiles; name the one to add", profiles.len())]
+    Ambiguous {
+        /// The source, as configured.
+        location: String,
+        /// Every profile it holds.
+        profiles: Vec<ProfileName>,
+    },
     /// `config.toml` already lists the layer.
     #[error("the layer {layer} is already applied")]
     DuplicateLayer {
-        /// The layer's source.
-        layer: String,
+        /// The layer's profile.
+        layer: ProfileName,
     },
-    /// No layer's profile has the name asked for.
+    /// No layer, and no source, has the name asked for.
     #[error("no layer is named {name}")]
     NoSuchLayer {
         /// The name asked for.
         name: String,
-        /// Every layer's name.
-        layers: Vec<String>,
+        /// Every layer's name, and every source's.
+        names: Vec<String>,
+    },
+    /// A scaffold named on the command line is no active profile's.
+    #[error("no scaffold is named {name}")]
+    NoSuchScaffold {
+        /// The name asked for, `profile/group`.
+        name: String,
+        /// Every active profile's scaffolds.
+        scaffolds: Vec<String>,
     },
     /// A path named on the command line is not a file devset manages.
     #[error("{path} is not a file devset manages")]
@@ -336,9 +455,9 @@ pub enum TargetError {
     #[error("{name} is required by {by}, not configured by this target")]
     Required {
         /// The layer asked for.
-        name: String,
+        name: ProfileName,
         /// The profile that requires it.
-        by: String,
+        by: ProfileName,
     },
     /// `config.toml` overrides a path no layer provides.
     #[error(".devset/config.toml overrides {path}, which no layer provides")]
@@ -376,6 +495,9 @@ pub enum VarError {
         /// The rejected input.
         name: String,
     },
+    /// A variable is named `devset`, which templates see the target's profiles under.
+    #[error("the variable name `devset` is reserved: templates see the target's profiles under it")]
+    Reserved,
     /// The target answers a variable no layer declares.
     #[error("no profile declares a variable named {name}")]
     Unknown {
@@ -486,8 +608,22 @@ pub(crate) fn list<T: Display>(items: impl IntoIterator<Item = T>) -> String {
 }
 
 /// Each layer and its scope: "`file` by base and `keys` by lints".
-fn scopes(layers: &[(String, Scope)]) -> String {
+fn scopes(layers: &[(ProfileName, Scope)]) -> String {
     list(layers.iter().map(|(layer, scope)| format!("`{scope}` by {layer}")))
+}
+
+/// `: the layers a/b and a/c name it`, when `layers` is not empty.
+fn naming(layers: &[ProfileRef]) -> String {
+    match layers {
+        [] => String::new(),
+        [one] => format!(": the layer {one} names it"),
+        _ => format!(": the layers {} name it", list(layers)),
+    }
+}
+
+/// Each profile of a cycle, arrowed: `a → b → a`.
+fn list_chain(chain: &[ProfileName]) -> String {
+    chain.iter().map(ProfileName::as_str).collect::<Vec<_>>().join(" → ")
 }
 
 /// `n` and `noun`, pluralised.

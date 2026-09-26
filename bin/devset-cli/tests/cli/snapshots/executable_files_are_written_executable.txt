@@ -8,7 +8,7 @@ $ devset apply
     Finished 1 change
 [exit 0]
 $ devset status --exit-code
-tools 1.0.0  ../tools
+tools/tools 1.0.0
 
 All 2 files match the profile.
 [exit 0]

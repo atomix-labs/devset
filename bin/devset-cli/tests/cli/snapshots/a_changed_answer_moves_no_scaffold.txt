@@ -1,0 +1,16 @@
+$ devset init --path ../p/book
+     Created docs/book.toml
+    Finished 1 change
+note: answered book_dir = "docs", the default
+  |
+  = help: pass `--var book_dir=…` to choose another
+[exit 0]
+$ devset apply --var book_dir=site
+   Untracked docs/book.toml
+    Finished 1 change
+[exit 0]
+$ devset explain site/book.toml
+site/book.toml
+    book/book  file  once  off: scaffold book/book wrote it at docs/book.toml
+        scaffold book/book: written
+[exit 0]

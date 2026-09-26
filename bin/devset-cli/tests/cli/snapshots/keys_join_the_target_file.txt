@@ -12,7 +12,7 @@ module_name_repetitions = "allow"
 unwrap_used = "warn"
 pedantic = { level = "deny", priority = -1 }
 $ devset status --exit-code
-lints 1.0.0  ../lints
+lints/lints 1.0.0
 
 Drifted — `devset apply --force` restores:
     edited     Cargo.toml [keys: lints]  owned  restore
@@ -42,12 +42,12 @@ module_name_repetitions = "allow"
 unwrap_used = "deny"
 pedantic = { level = "deny", priority = -1 }
 $ devset status --exit-code
-lints 1.0.0  ../lints
+lints/lints 1.0.0
 
 1 file matches the profile.
 [exit 0]
 --- .devset/state.toml
-version = 1
+version = 2
 
 [parts."Cargo.toml".lints]
 scope = "keys"

@@ -1,6 +1,6 @@
 //! Deciding what committing does to each path, merges included.
 
-use alloc::collections::BTreeSet;
+use alloc::collections::{BTreeMap, BTreeSet};
 
 use serde_json::Value;
 
@@ -8,12 +8,13 @@ use crate::digest::{Fingerprint, is_binary};
 use crate::errors::{MergeError, Result, list};
 use crate::format::Format;
 use crate::merge::{Driver, Merged, has_markers};
+use crate::name::ScaffoldId;
 use crate::part::{Key, Leaves, Shape, decode, display, encode, merge, overlap};
 use crate::path::RelPath;
 use crate::profile::{OnConflict, Policy};
 use crate::resolve::{Portion, Resolved};
 use crate::survey::{Entry, Survey, released};
-use crate::target::{Target, read_optional};
+use crate::target::{Scaffold, Target, read_optional};
 use crate::tree::Tree;
 
 /// How far a plan may go.
@@ -141,6 +142,8 @@ pub struct Step {
 pub struct Plan {
     /// Where the profile's bytes come from.
     pub(crate) resolved: Resolved,
+    /// What was decided of every active scaffold, for `state.toml`.
+    pub(crate) scaffolds: BTreeMap<ScaffoldId, Scaffold>,
     /// Every path, in order.
     pub(crate) steps: Vec<Step>,
     /// Merge results, clean or conflicted, by path.
@@ -174,7 +177,8 @@ impl Plan {
 /// Decides every path of `survey` under `mode`, running the merges it needs.
 ///
 /// A file with parts is composed: each part spliced into it, merged where it needs merging, and
-/// the whole checked. A conflict in one part holds the whole file back.
+/// the whole checked. A conflict in one part holds the whole file back. A file that is absent
+/// starts from its starter: a whole `once` file another layer provides, or a part's own.
 ///
 /// # Errors
 /// - [`MergeError::Unresolved`], conflicts wait under [`Mode::Apply`] or [`Mode::Force`].
@@ -185,7 +189,7 @@ impl Plan {
 /// - [`Error::Parse`](crate::Error::Parse), a part cannot be written into its file: a key it sets
 ///   lies under one the file holds as a value.
 pub fn plan(survey: Survey, mode: Mode, target: &Target) -> Result<Plan> {
-    let Survey { resolved, entries } = survey;
+    let Survey { resolved, entries, scaffolds, .. } = survey;
     let mut unresolved: Vec<RelPath> =
         entries.iter().filter(|e| e.conflict).map(|e| e.path.clone()).collect();
     unresolved.dedup();
@@ -216,7 +220,7 @@ pub fn plan(survey: Survey, mode: Mode, target: &Target) -> Result<Plan> {
     let Planner { merged, gone, .. } = planner;
     let conflicted = steps.iter().any(|step| step.action == Action::Conflict);
     let held = conflicted && resolved.settings().on_conflict == OnConflict::ApplyNone;
-    Ok(Plan { resolved, steps, merged, gone, held })
+    Ok(Plan { resolved, scaffolds, steps, merged, gone, held })
 }
 
 /// Plans a file at a time, gathering the bytes merges and parts write.
@@ -270,22 +274,52 @@ impl<'a> Planner<'a> {
         if entries.first().is_some_and(|entry| entry.conflict) {
             return self.resolution(entries);
         }
+        let provided = |entry: &Entry| entry.want.is_some();
+        let parted = entries.iter().any(|entry| entry.part.is_some() && provided(entry));
+        // A layer that owns the whole file decides all of it, a dropped part there left; a whole
+        // `once` file is a starter, which the parts compose with.
+        let owner = entries.iter().any(|entry| {
+            entry.part.is_none() && entry.want.is_some_and(|want| want.policy != Policy::Once)
+        });
+        // A whole entry still provided keeps the file, whatever parts leave it.
+        let kept = entries.iter().any(|entry| entry.part.is_none() && provided(entry));
         let mut steps = Vec::with_capacity(entries.len());
         let mut parts = Vec::new();
-        // A layer that owns the whole file decides all of it: a dropped part there is left.
-        let whole = entries.iter().any(|entry| entry.part.is_none() && entry.want.is_some());
+        let mut start = None;
         for entry in entries {
             match (&entry.part, entry.want) {
+                (None, Some(_)) if parted => {
+                    let action = entry.action(self.mode);
+                    if action == Action::Write {
+                        start = Some(self.resolved.payload(&entry)?.to_vec());
+                    }
+                    steps.push(Step { entry, action, note: None });
+                },
+                (None, None) if parted => {
+                    // The parts take the file over: it stays, whatever its last owner left.
+                    let action = entry.action(self.mode);
+                    let action = if action == Action::Remove { Action::Untrack } else { action };
+                    steps.push(Step { entry, action, note: None });
+                },
                 (None, _) => steps.push(self.whole(entry)?),
-                (Some(_), None) if whole => {
+                (Some(_), None) if owner => {
                     steps.push(Step { entry, action: Action::Untrack, note: None });
                 },
                 (Some(_), _) => parts.push(entry),
             }
         }
         if !parts.is_empty() {
-            steps.extend(self.parts(parts)?);
+            steps.extend(self.parts(parts, start, kept)?);
             steps.sort_by(|a, b| a.entry.part.cmp(&b.entry.part));
+        }
+        // A starter is written composed with its parts, or not at all.
+        if steps.iter().any(|step| step.action == Action::Conflict) {
+            for step in
+                steps.iter_mut().filter(|s| s.entry.part.is_none() && s.action == Action::Write)
+            {
+                step.action = Action::Conflict;
+                step.note = Some("waits for the conflict in another part of the file".to_owned());
+            }
         }
         Ok(steps)
     }
@@ -338,13 +372,25 @@ impl<'a> Planner<'a> {
 
     /// Steps for the parts of one file: each spliced in, merged where it needs merging, then
     /// the whole file checked, and each part read back.
-    fn parts(&mut self, entries: Vec<Entry>) -> Result<Vec<Step>> {
+    ///
+    /// An absent file starts from `start`, a whole starter being written, or else from the part's
+    /// own starter. A starter written anew takes every part again, one deleted with the file
+    /// included; and a file a whole entry `kept` is never deleted for the parts it loses.
+    fn parts(
+        &mut self, entries: Vec<Entry>, start: Option<Vec<u8>>, kept: bool,
+    ) -> Result<Vec<Step>> {
         let resolved = self.resolved;
         let Some(path) = entries.first().map(|entry| entry.path.clone()) else {
             return Ok(Vec::new());
         };
         let label = path.as_str();
-        let disk = read_optional(&path.under(self.target.root()))?.unwrap_or_default();
+        let found = read_optional(&path.under(self.target.root()))?;
+        let starter = || {
+            let mut own = entries.iter().filter(|entry| entry.want.is_some());
+            own.find_map(|entry| resolved.portion(entry)?.starter.clone())
+        };
+        let recreated = found.is_none() && start.is_some();
+        let disk = found.unwrap_or_else(|| start.or_else(starter).unwrap_or_default());
         let mut file = disk.clone();
         let mut steps = Vec::with_capacity(entries.len());
         let mut written: Vec<(usize, &Shape, Vec<u8>)> = Vec::new();
@@ -357,14 +403,19 @@ impl<'a> Planner<'a> {
             .flat_map(|entry| entry.keys.iter().cloned())
             .collect();
         for entry in entries {
-            let Some(portion) = resolved.portion(&entry) else {
+            let Some(portion) = entry.want.and_then(|_| resolved.portion(&entry)) else {
                 let taken = self.take_out(&mut file, &entry, &claimed, label)?;
                 let action = if taken.is_some() { Action::Remove } else { Action::Untrack };
                 removed.extend(taken.map(|(shape, keys)| (steps.len(), shape, keys)));
                 steps.push(Step { entry, action, note: None });
                 continue;
             };
-            let Decision { action, content, note, clash } = self.decide(&entry, portion, &disk)?;
+            let decision = if recreated && entry.action(self.mode) == Action::Keep {
+                Decision::of(Action::Write, Some(resolved.payload(&entry)?.to_vec()), None)
+            } else {
+                self.decide(&entry, portion, &disk)?
+            };
+            let Decision { action, content, note, clash } = decision;
             clashes.extend(clash);
             if let Some(content) = content {
                 file = portion.splice(&file, &content, &entry.keys, label)?;
@@ -381,7 +432,7 @@ impl<'a> Planner<'a> {
         let conflicted = marked || trouble.is_some();
         if !conflicted {
             // A file that held nothing but the parts removed from it goes with them.
-            if !removed.is_empty() && file.trim_ascii().is_empty() {
+            if !removed.is_empty() && !kept && file.trim_ascii().is_empty() {
                 self.gone.insert(path);
             } else {
                 self.merged.put(path, &file);
@@ -461,7 +512,9 @@ impl<'a> Planner<'a> {
         if entry.action(self.mode) != Action::Remove {
             return Ok(None);
         }
-        let Some(shape) = released(self.target, entry) else {
+        // A part its gates turned off keeps the shape its profile gives it.
+        let shape = self.resolved.portion(entry).map(|portion| portion.shape.clone());
+        let Some(shape) = shape.or_else(|| released(self.resolved, self.target, entry)) else {
             return Ok(None);
         };
         let mut keys = entry.keys.clone();
@@ -604,6 +657,8 @@ mod tests {
             recorded: record.map(|_| policy),
             found: found.map(fp),
             conflict: false,
+            gate: None,
+            present: found.is_some(),
             keys: BTreeSet::new(),
         }
     }

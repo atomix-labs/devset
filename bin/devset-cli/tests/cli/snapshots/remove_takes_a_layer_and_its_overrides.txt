@@ -14,24 +14,28 @@ error: no layer is named teem
   = help: did you mean `team`?
 [exit 2]
 $ devset remove team --dry-run
-       Would remove layer team  ../team
+       Would remove layer team/team
        Would remove override [files."t.toml"]
        Would update shared.toml
        Would untrack t.toml
     Finished dry run: 2 changes, nothing written
 [exit 0]
 $ devset remove team
-    Removing layer team  ../team
+    Removing layer team/team
     Removing override [files."t.toml"]
      Updated shared.toml
    Untracked t.toml
     Finished 2 changes
 [exit 0]
 --- .devset/config.toml
+[sources]
+base = { path = "../base" }
+team = { path = "../team" }
+
 [[layers]]
-path = "../base"
+profile = "base/base"
 $ devset status -v
-base 1.0.0  ../base
+base/base 1.0.0
   merge driver: builtin
 
 In sync:

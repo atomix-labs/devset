@@ -11,13 +11,14 @@ use serde::Serialize;
 
 use crate::digest::Digest;
 use crate::errors::{Result, TargetError};
+use crate::name::ScaffoldId;
 use crate::path::RelPath;
 use crate::plan::{Action, Plan, Step};
 use crate::resolve::Resolved;
 use crate::rollback::{Location, Undo};
 use crate::target::{
-    ANSWERS, BASE, CONFIG, CONFLICTS, LOCK, Lock, Locked, PENDING, Record, STATE, State, Target,
-    read_optional,
+    ANSWERS, BASE, CONFIG, CONFLICTS, LOCK, Lock, Locked, PENDING, Record, STATE, Scaffold, State,
+    Target, read_optional,
 };
 use crate::tree::Tree;
 
@@ -46,8 +47,8 @@ const GITATTRIBUTES: &str = "base/** -diff -text\n";
 ///   written.
 /// - [`Error::Io`](crate::Error::Io), a write fails; the next run repairs what it left.
 pub fn commit(plan: Plan, target: &Target) -> Result<Vec<Step>> {
-    let Plan { resolved, steps, merged, gone, held } = plan;
-    let writes = Writes::decide(&resolved, &steps, &merged, &gone)?;
+    let Plan { resolved, scaffolds, steps, merged, gone, held } = plan;
+    let writes = Writes::decide(&resolved, scaffolds, &steps, &merged, &gone)?;
     let _guard = lock(target)?;
     writes.perform(target, &steps, held)?;
     Ok(steps)
@@ -78,7 +79,8 @@ struct Writes<'a> {
 impl<'a> Writes<'a> {
     /// What committing `steps` writes.
     fn decide(
-        resolved: &'a Resolved, steps: &'a [Step], merged: &'a Tree, gone: &'a BTreeSet<RelPath>,
+        resolved: &'a Resolved, scaffolds: BTreeMap<ScaffoldId, Scaffold>, steps: &'a [Step],
+        merged: &'a Tree, gone: &'a BTreeSet<RelPath>,
     ) -> Result<Self> {
         let mut records = BTreeMap::new();
         let (mut files, mut blobs, mut sidecars) = (Vec::new(), Vec::new(), Vec::new());
@@ -90,8 +92,12 @@ impl<'a> Writes<'a> {
                 (Action::Untrack | Action::Remove, _) => {},
                 (Action::Write | Action::Record | Action::Merge, Some(want)) => {
                     let payload = resolved.payload(entry)?;
-                    // A written part is in its composed file, among the merged.
-                    if step.action == Action::Write && entry.part.is_none() {
+                    // A written part, or a starter written with its parts, is in its composed
+                    // file, among the merged.
+                    if step.action == Action::Write
+                        && entry.part.is_none()
+                        && !merged.contains(path)
+                    {
                         files.push((path, payload));
                     }
                     blobs.push((want.fingerprint.exact, payload));
@@ -120,16 +126,17 @@ impl<'a> Writes<'a> {
             }
         }
         let locked = resolved.layers().iter().map(|layer| Locked {
-            name: Some(layer.meta().name.clone()),
+            name: layer.name().clone(),
             rev: layer.rev().cloned(),
             digest: layer.digest(),
             source: layer.source().clone(),
+            features: Locked::features(layer.features()),
         });
         let lock = to_toml(&Lock::new(locked.collect()))?;
         let answers = resolved.answers();
         let answers = if answers.is_empty() { None } else { Some(to_toml(answers)?) };
         let live = records.values().map(|record| record.fingerprint.exact).collect();
-        let state = to_toml(&State::new(records))?;
+        let state = to_toml(&State::new(records, scaffolds))?;
         let removals = gone.iter().collect();
         let executable = steps
             .iter()
@@ -154,6 +161,8 @@ impl<'a> Writes<'a> {
             Some(answers) => write_if_changed(&dir.join(ANSWERS), answers.as_bytes())?,
             None => remove_if_present(&dir.join(ANSWERS))?,
         }
+        // The layers a command added or removed are the target's, withheld update or not.
+        write_if_changed(&dir.join(CONFIG), target.config_text().as_bytes())?;
         if held {
             return write(&target.unfinished().join(PENDING), self.lock.as_bytes());
         }
@@ -174,7 +183,6 @@ impl<'a> Writes<'a> {
             }
         }
         write_if_changed(&dir.join(".gitattributes"), GITATTRIBUTES.as_bytes())?;
-        write_if_changed(&dir.join(CONFIG), target.config_text().as_bytes())?;
         write_if_changed(&dir.join(LOCK), self.lock.as_bytes())?;
         write_if_changed(&dir.join(STATE), self.state.as_bytes())?;
 
@@ -201,6 +209,8 @@ impl<'a> Writes<'a> {
         }
         let answers = self.answers.as_deref().map(str::as_bytes);
         undo.record(target, &Location::Record(ANSWERS), answers)?;
+        let config = Some(target.config_text().as_bytes());
+        undo.record(target, &Location::Record(CONFIG), config)?;
         if !held {
             for &(path, bytes) in &self.files {
                 undo.record(target, &Location::File(path.clone()), Some(bytes))?;
@@ -208,8 +218,6 @@ impl<'a> Writes<'a> {
             for &path in &self.removals {
                 undo.record(target, &Location::File(path.clone()), None)?;
             }
-            let config = Some(target.config_text().as_bytes());
-            undo.record(target, &Location::Record(CONFIG), config)?;
             undo.record(target, &Location::Record(LOCK), Some(self.lock.as_bytes()))?;
             undo.record(target, &Location::Record(STATE), Some(self.state.as_bytes()))?;
         }

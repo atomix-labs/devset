@@ -1,0 +1,10 @@
+$ devset init --path ../p/rust
+     Created crates.md
+     Created crates/hello/Cargo.toml
+     Created notes.xyz [block: rust]
+    Finished 3 changes
+[exit 0]
+$ devset apply
+     Removed notes.xyz [block: rust]  (feature notes is off)
+    Finished 1 change
+[exit 0]

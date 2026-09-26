@@ -4,7 +4,7 @@ $ devset init --path ../profile
     Finished 2 changes
 [exit 0]
 $ devset status
-demo 1.0.0  ../profile  (changed since it was applied)
+profile/demo 1.0.0  (changed since it was applied)
 
 Pending — `devset apply` will:
     unchanged  a.toml  owned  update

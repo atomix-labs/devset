@@ -44,23 +44,34 @@ fn refusals() {
 fn mistakes_are_named_with_their_fix() {
     let sb = Sandbox::new();
     sb.profile("profiles/rust", "rust", &[("a.toml", "owned", "a\n")]);
-    sb.profile("profiles/base", "rust", &[("b.toml", "owned", "b\n")]);
+    sb.profile("profiles/base", "base", &[("b.toml", "owned", "b\n")]);
+    sb.profile("twins/one", "rust", &[]);
+    sb.profile("twins/two", "rust", &[]);
+    sb.profile("book", "book", &[]);
+    sb.extend("book", "[features]\ndefault = [\"katex\"]\nkatex = []\nmermaid = []\n");
     sb.publish("rust", "rust", &[("a.toml", "owned", "a\n")], "v1");
     sb.profile("t", "t", &[("t.txt", "owned", "hi {{ nmae }}\n")]);
     let manifest = sb.read("t/profile.toml").replace("policy = \"owned\"\n", "template = true\n");
     sb.write("t/profile.toml", &format!("{manifest}\n[vars.name]\ndefault = \"x\"\n"));
     let mut log = sb.devset("r1", &["init", "--path", "../profiles"]);
     log += &sb.devset("r2", &["init", "--path", "../profiles/rust/files"]);
-    log += &sb.devset("r3", &["init", "--git", "../profiles.git"]);
+    log += &sb.devset("r3", &["init", "rsut", "--git", "../profiles.git"]);
     log += &sb.devset("r4", &["init", "--git", "../profiles.git", "--branch", "nope"]);
     log += &sb.devset("r5", &["init", "--path", "../t"]);
     log += &sb.devset("r6", &["init", "--path", ""]);
-    sb.devset("r7", &["init", "--path", "../profiles/rust"]);
-    log += &sb.devset("r7", &["init", "--path", "../profiles/base"]);
+    log += &sb.devset("r7", &["init", "--path", "../twins"]);
+    log += &sb.devset("r8", &["init", "--path", "../book", "--features", "mermiad"]);
+    sb.devset("r9", &["init"]);
+    log += &sb.devset("r9", &["add", "book"]);
+    sb.write("r10/.devset/config.toml", "[[layers]]\nprofile = \"nope/rust\"\n");
+    log += &sb.devset("r10", &["status"]);
     sb.write(
-        "r8/.devset/config.toml",
-        "[[layers]]\npath = \"../profiles/rust\"\n\n[merge]\ndriver = \"tool %X %A\"\n",
+        "r11/.devset/config.toml",
+        "[sources]\np = { path = \"../profiles\" }\n\n[[layers]]\nprofile = \"p/rust\"\n\n\
+         [merge]\ndriver = \"tool %X %A\"\n",
     );
-    log += &sb.devset("r8", &["status"]);
+    log += &sb.devset("r11", &["status"]);
+    sb.write("r12/.devset/config.toml", "[[layers]]\npath = \"../profiles/rust\"\n");
+    log += &sb.devset("r12", &["status"]);
     sb.assert(&log, snapbox::file!["snapshots/mistakes_are_named_with_their_fix.txt"]);
 }

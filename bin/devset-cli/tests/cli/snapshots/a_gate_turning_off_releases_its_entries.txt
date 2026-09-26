@@ -1,0 +1,28 @@
+$ devset init p/rust --path ../p
+     Created book.toml
+     Created fmt.toml
+     Created guide.md
+    Finished 3 changes
+[exit 0]
+$ devset status
+p/rust 1.0.0  (changed since it was applied)
+
+Pending — `devset apply` will:
+    dropped    book.toml         remove  (feature docs is off)
+    dropped    guide.md          untrack  (feature docs is off)
+[exit 0]
+$ devset apply --dry-run
+       Would remove book.toml  (feature docs is off)
+       Would untrack guide.md  (feature docs is off)
+    Finished dry run: 2 changes, nothing written
+[exit 0]
+$ devset apply
+     Removed book.toml  (feature docs is off)
+   Untracked guide.md  (feature docs is off)
+    Finished 2 changes
+[exit 0]
+$ devset status --exit-code
+p/rust 1.0.0
+
+1 file matches the profile.
+[exit 0]

@@ -1,19 +1,20 @@
 $ devset status
 error: no devset target in [ROOT] or any parent
   |
-  = help: start one: `devset init --path <profile>` or `devset init --git <url>`
+  = help: start one: `devset init`, or `devset new <dir>`, with a first layer if you like
 [exit 2]
 $ devset init --tag v1
 error: the following required arguments were not provided:
   --git <GIT>
-  --path <PATH>
 
-Usage: devset init --git <GIT> --tag <TAG> --path <PATH>
+Usage: devset init --git <GIT> --tag <TAG> [LAYER]
 
 For more information, try '--help'.
 [exit 2]
 $ devset init --path ../nope
-error: ../nope is not a profile: it has no profile.toml
+error: ../nope holds no profile: no profile.toml in it
+  |
+  = help: a source holds profiles, each a directory with a profile.toml; `devset new --profile <dir>` starts one
 [exit 2]
 $ devset init --path ../reserved
 error: invalid path ".git/hooks/pre-commit": reserved component
@@ -25,10 +26,10 @@ error: invalid path ".git/hooks/pre-commit": reserved component
 $ devset init --path ../missing
 error: profile missing lists gone.toml, but files/gone.toml does not exist
   |
-  = help: add files/gone.toml to the profile, or remove its [files] entry
+  = help: add files/gone.toml to the profile, or remove what lists it
 [exit 2]
 $ devset init --path ../typo
-error: unknown field `polcy`, expected one of `policy`, `validate`, `template`, `scope`, `comment`, `executable`
+error: unknown field `polcy`, expected one of `policy`, `validate`, `template`, `scope`, `comment`, `executable`, `scaffold`, `starter`, `when`
  --> ../typo/profile.toml:5:1
   |
 5 | polcy = "once"
@@ -37,7 +38,7 @@ error: unknown field `polcy`, expected one of `policy`, `validate`, `template`, 
 $ devset init --path ../newer
 error: profile newer requires devset >=99; this is [..]
   |
-  = help: upgrade devset, or pin the profile to an older version
+  = help: upgrade devset, or pin the source to an older version
 [exit 2]
 $ devset init --path ../fold
 error: README.md and readme.md are the same file on case-insensitive filesystems
@@ -49,7 +50,7 @@ $ devset init --path ../ok
     Finished 1 change
 [exit 0]
 $ devset init --path ../ok
-error: the layer ../ok is already applied
+error: the layer ok is already applied
 [exit 2]
 $ devset init --path ../clash
 error: a.toml is provided by ok and clash

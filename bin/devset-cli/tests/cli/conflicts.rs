@@ -162,3 +162,32 @@ fn conflicts_without_a_merge() {
         .unwrap();
     sb.assert(&log, snapbox::file!["snapshots/conflicts_without_a_merge.txt"]);
 }
+
+#[test]
+fn a_layer_added_while_conflicts_are_withheld_stays() {
+    let sb = Sandbox::new();
+    sb.publish("p", "p", &[("a.toml", "merge", "x = 1\n")], "v1");
+    sb.profile("work/q", "q", &[("q.toml", "owned", "q = 1\n")]);
+    sb.release("v2");
+    let mut log =
+        sb.devset("repo", &["init", "--git", "../profiles.git", "--tag", "v1", "--path", "p"]);
+    let config = sb.read("repo/.devset/config.toml");
+    sb.write(
+        "repo/.devset/config.toml",
+        &format!("{config}\n[merge]\non-conflict = \"apply-none\"\n"),
+    );
+    sb.write("repo/a.toml", "x = 2\n");
+    sb.publish("p", "p", &[("a.toml", "merge", "x = 3\n")], "v3");
+    let config = sb.read("repo/.devset/config.toml").replace("tag = \"v1\"", "tag = \"v3\"");
+    sb.write("repo/.devset/config.toml", &config);
+    log +=
+        &sb.devset("repo", &["add", "q", "--git", "../profiles.git", "--tag", "v3", "--path", "q"]);
+    assert!(sb.read("repo/.devset/config.toml").contains("q/q"), "the layer is the target's");
+    sb.write("repo/.devset/conflicts/a.toml", "x = 23\n");
+    log += &sb.devset("repo", &["update", "--continue"]);
+    assert!(sb.path("repo/q.toml").exists(), "and applied once the conflict is resolved");
+    sb.assert(
+        &log,
+        snapbox::file!["snapshots/a_layer_added_while_conflicts_are_withheld_stays.txt"],
+    );
+}

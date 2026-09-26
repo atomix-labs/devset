@@ -17,8 +17,8 @@ $ devset init --path ../node
 node_modules/
 # <<< devset: node <<<
 $ devset status --exit-code
-rust 1.0.0  ../rust
-node 1.0.0  ../node
+rust/rust 1.0.0
+node/node 1.0.0
 
 1 file matches the profile.
 [exit 0]

@@ -1,0 +1,41 @@
+$ devset init p/rust --path ../p --features docs
+     Created api.js
+     Created book.toml
+     Created ci.yml
+     Created katex.css
+     Created pages.yml
+     Created rustfmt.toml
+    Finished 6 changes
+[exit 0]
+$ devset status
+p/book 1.0.0  [api, katex]  (required by rust)  (changed since it was applied)
+p/rust 1.0.0  (changed since it was applied)
+
+Pending — `devset apply` will:
+    dropped    ci.yml            remove
+    dropped    pages.yml         untrack
+[exit 0]
+$ devset apply
+     Removed ci.yml
+   Untracked pages.yml
+    Finished 2 changes
+[exit 0]
+$ devset add p/book --no-default-features --features links
+     Created lychee.toml
+    Finished 1 change
+warning: profile rust turns on the default features of book, which its layer switches off
+  |
+  = help: `devset features book` shows what is on, and why
+[exit 0]
+$ devset features book
+p/book 1.0.0  [api, katex, links]
+    api    <- rust
+    katex  <- default, book/api
+    links  <- target
+    off: pages
+[exit 0]
+$ devset add p/ci --features nihgtly
+error: profile ci has no feature nihgtly
+  |
+  = help: did you mean `nightly`?
+[exit 2]

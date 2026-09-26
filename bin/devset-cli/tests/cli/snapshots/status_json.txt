@@ -3,12 +3,16 @@ $ devset status --json
   "layers": [
     {
       "name": "demo",
+      "profile": "profile/demo",
+      "features": [],
+      "configured": true,
+      "required_by": [],
       "version": "1.0.0",
       "source": {
         "path": "../profile"
       },
       "rev": null,
-      "digest": "9293fbebba2360d9143d2859bafa1fffb1c0a1c47e8e0de98f01141bbd1b2eac",
+      "digest": "bcaeabae8f3e942f5e0117659ebc4e86d2b6d7c6692c1add84fa5dbb114feed7",
       "applied": "current"
     }
   ],
@@ -21,7 +25,8 @@ $ devset status --json
       "policy": "owned",
       "state": "edited",
       "apply": null,
-      "force": "restore"
+      "force": "restore",
+      "gate": null
     },
     {
       "path": "b.toml",
@@ -31,7 +36,8 @@ $ devset status --json
       "policy": "merge",
       "state": "unchanged",
       "apply": null,
-      "force": null
+      "force": null,
+      "gate": null
     }
   ],
   "settings": {

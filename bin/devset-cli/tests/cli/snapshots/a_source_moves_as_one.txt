@@ -1,4 +1,4 @@
-$ devset init --git ../profiles.git --branch main --path profiles/rust
+$ devset init acme/rust --git ../profiles.git --branch main
      Created a.toml
      Created r.toml
     Finished 2 changes
@@ -13,7 +13,7 @@ $ devset update rust
     Fetching ../profiles.git
 [exit 0]
 $ devset status
-rust 1.0.0  ../profiles.git branch main path profiles/rust  @484ba6e
+acme/rust 1.0.0  @8049a61
   requires a
 
 All 2 files match the profile.

@@ -1,0 +1,25 @@
+$ devset init p/zeta --path ../p
+     Created book.toml [keys: zeta]
+    Finished 1 change
+[exit 0]
+$ devset add p/alpha
+error: book.toml is started by zeta and alpha
+  |
+  = help: choose one in .devset/config.toml:
+              [files."book.toml"]
+              from = "zeta"   # or "alpha"
+[exit 2]
+$ devset apply --force
+     Created book.toml [keys: alpha]
+    Restored book.toml [keys: zeta]
+    Finished 2 changes
+[exit 0]
+--- book.toml
+[book]
+title = "alpha's"
+
+[alpha]
+on = true
+
+[zeta]
+on = true

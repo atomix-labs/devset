@@ -4,23 +4,32 @@
 //! its record, and the merge drivers a layer suggests.
 
 mod diff;
+mod explain;
+mod features;
 mod json;
+mod list;
 mod log;
 mod status;
 
 use alloc::collections::BTreeMap;
+use core::fmt;
 use std::io;
 
 use anstyle::{AnsiColor, Style};
+use clap_cargo::style::WARN;
 use derive_more::Display;
+use devset_core::name::FeatureName;
 use devset_core::plan::Action;
 use devset_core::profile::MergeSpec;
-use devset_core::resolve::Suggestion;
+use devset_core::resolve::{Applied, Layer, Suggestion, Warning};
 use devset_core::survey::{Drift, Entry};
 use devset_core::{RelPath, Survey};
 use serde::Serialize;
 
 pub(crate) use self::diff::diff;
+pub(crate) use self::explain::explain;
+pub(crate) use self::features::features;
+pub(crate) use self::list::list;
 pub(crate) use self::log::{Wrote, applied, dropped, rollback, rolled_back};
 pub(crate) use self::status::status;
 use crate::shell::Shell;
@@ -205,6 +214,57 @@ pub(crate) fn suggestions(shell: &Shell, suggestions: &[Suggestion]) -> io::Resu
         shell.note(&text, Some(&help))?;
     }
     Ok(())
+}
+
+/// Tells the user what the graph settled that they may not expect.
+pub(crate) fn warnings(shell: &Shell, warnings: &[Warning]) -> io::Result<()> {
+    for warning in warnings {
+        match warning {
+            Warning::DefaultsOn { profile, by } => shell.warn(
+                &format!(
+                    "profile {by} turns on the default features of {profile}, which its layer \
+                     switches off"
+                ),
+                Some(&format!("`devset features {profile}` shows what is on, and why")),
+            )?,
+        }
+    }
+    Ok(())
+}
+
+/// A layer's one-line summary: `source/name`, version, where an unnamed source is, commit,
+/// features, and whether it is applied.
+pub(crate) struct Heading<'a>(pub(crate) &'a Layer);
+
+impl fmt::Display for Heading<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let (layer, bold) = (self.0, Style::new().bold());
+        write!(f, "{bold}{}{bold:#}", layer.qualified())?;
+        if let Some(version) = &layer.meta().version {
+            write!(f, " {version}")?;
+        }
+        if layer.source_name().is_none() {
+            write!(f, "  {}", layer.source())?;
+        }
+        if let Some(rev) = layer.rev() {
+            write!(f, "  @{}", rev.short())?;
+        }
+        if !layer.features().is_empty() {
+            let features: Vec<&str> = layer.features().keys().map(FeatureName::as_str).collect();
+            write!(f, "  [{}]", features.join(", "))?;
+        }
+        if !layer.configured()
+            && let Some(by) = layer.required_by().first()
+        {
+            write!(f, "  {WARN}(required by {by}){WARN:#}")?;
+        }
+        match layer.applied() {
+            Applied::Current => {},
+            Applied::Changed => write!(f, "  {WARN}(changed since it was applied){WARN:#}")?,
+            Applied::Never => write!(f, "  {WARN}(not applied yet){WARN:#}")?,
+        }
+        Ok(())
+    }
 }
 
 /// `text` on new lines, each indented.

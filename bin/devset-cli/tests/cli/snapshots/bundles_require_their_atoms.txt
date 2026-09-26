@@ -1,12 +1,12 @@
-$ devset init --path ../profiles/both
+$ devset init profiles/both --path ../profiles
      Created a.toml
      Created b.toml
     Finished 2 changes
 [exit 0]
 $ devset status -v
-a 1.0.0  ../profiles/a  (required by both)
-b 1.0.0  ../profiles/b  (required by both)
-both 1.0.0  ../profiles/both
+profiles/a 1.0.0  (required by both)
+profiles/b 1.0.0  (required by both)
+profiles/both 1.0.0
   merge driver: builtin
 
 In sync:
@@ -16,15 +16,35 @@ In sync:
 All 2 files match the profile.
 [exit 0]
 --- .devset/config.toml
+# devset applies the profiles below to this directory, and keeps them up to date.
+# The manual: https://atomix-labs.github.io/devset/
+#
+# Where profiles come from, each named once: a git repository at a ref, or a directory.
+#
+#   [sources]
+#   atxp = { git = "https://github.com/atomix-labs/atxp", tag = "v0.4.0" }
+#
+# The profiles to apply, in order, by source and name, with the features to turn on.
+#
+#   [[layers]]
+#   profile  = "atxp/rust"
+#   features = ["docs"]
+
+[sources]
+profiles = { path = "../profiles" }
+
 [[layers]]
-path = "../profiles/both"
-$ devset update a
-error: a is required by both, not configured by this target
-  |
-  = help: name both, which brings it in
-[exit 2]
+profile = "profiles/both"
 $ devset remove a
 error: a is required by both, not configured by this target
   |
-  = help: name both, which brings it in
+  = help: remove both, which brings it in
 [exit 2]
+$ devset add profiles/a
+    Finished up to date
+[exit 0]
+$ devset remove a
+    Removing layer profiles/a
+    Finished up to date
+note: a stays active: both requires it
+[exit 0]
