@@ -43,6 +43,10 @@ keys it adds to the same tables.
 - **A key the profile adds or changes** is written as its payload writes it, an
   array of tables with its comments; a file the part creates is the payload as
   written.
+- **A TOML key that joins a table the file holds** takes the table's alignment:
+  where the file aligns its entries, as taplo does, the group the key joins is
+  aligned again, comments and all; where it spaces each key by one, so is the
+  new one.
 - **A file that already holds some of the keys** is adopted key by key: its
   values are kept, and the keys it lacks are written.
 - **An update merges key by key**, and a conflict marks only the keys both sides

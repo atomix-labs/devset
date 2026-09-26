@@ -1,9 +1,12 @@
 //! TOML keys: read through `toml`, written through `toml_edit`, so comments and layout survive.
 
 use alloc::collections::BTreeSet;
+use core::slice;
 
 use serde_json::Value;
-use toml_edit::{Array, ArrayOfTables, DocumentMut, InlineTable, Item, Table, TableLike};
+use toml_edit::{
+    Array, ArrayOfTables, DocumentMut, InlineTable, Item, RawString, Table, TableLike,
+};
 
 use super::keys::{Key, Written, display, lookup};
 use super::{Edit, Failure};
@@ -58,12 +61,20 @@ fn collect(
 }
 
 /// `text` with each edit made, in order; a key the payload writes as an array of tables is written
-/// as one, and a value the payload gives is written in the payload's layout, comments and all.
+/// as one, and a value the payload gives is written in the payload's layout, comments and all. A
+/// key that joins a table the file holds takes its alignment.
 pub(super) fn apply(text: &str, edits: &[Edit<'_>], payload: &Written) -> Result<String, Failure> {
     let mut doc: DocumentMut =
         text.parse().map_err(|e: toml_edit::TomlError| (e.span(), e.message().to_owned()))?;
     // The payload as written, and its values; a payload that does not parse lends no layout.
     let source = payload.source.parse::<DocumentMut>().ok().zip(semantic(&payload.source).ok());
+    // Whether the file aligns its entries, as taplo's `align_entries` does; where none of its
+    // groups says, the payload's layout does.
+    let aligns = aligned(doc.as_table())
+        .or_else(|| source.as_ref().and_then(|(written, _)| aligned(written.as_table())))
+        .unwrap_or(false);
+    let file = doc.clone();
+    let mut joined = Vec::new();
     for &(key, value) in edits {
         match value {
             Some(value) => {
@@ -71,10 +82,17 @@ pub(super) fn apply(text: &str, edits: &[Edit<'_>], payload: &Written) -> Result
                     .as_ref()
                     .filter(|(_, values)| lookup(values, key) == Some(value))
                     .and_then(|(written, _)| layout(written, key));
-                set(&mut doc, key, value, payload.tables.contains(key), styled)?;
+                if set(&mut doc, key, value, payload.tables.contains(key), styled)?
+                    && holds(&file, key)
+                {
+                    joined.push(key);
+                }
             },
             None => remove(doc.as_table_mut(), key),
         }
+    }
+    for key in joined {
+        align(&mut doc, key, aligns);
     }
     Ok(doc.to_string())
 }
@@ -109,12 +127,14 @@ fn layout<'a>(doc: &'a DocumentMut, key: &[String]) -> Option<Styled<'a>> {
 /// writing of the value, the value is written as the payload writes it, and a new key is spaced as
 /// the payload spaces it; a key the file holds keeps the file's spacing. An array of tables is the
 /// payload's whole, comments and all.
+///
+/// Returns whether it wrote `key` new, as a value of a table.
 fn set(
     doc: &mut DocumentMut, key: &[String], value: &Value, as_tables: bool,
     styled: Option<Styled<'_>>,
-) -> Result<(), Failure> {
+) -> Result<bool, Failure> {
     let Some((leaf, parents)) = key.split_last() else {
-        return Ok(());
+        return Ok(false);
     };
     let mut table: &mut dyn TableLike = doc.as_table_mut();
     let mut standard = true;
@@ -146,23 +166,210 @@ fn set(
     } else {
         Item::Value(toml_value(value).map_err(failed)?)
     };
+    let value = standard && new.is_value();
     // Replaced in place, so the key keeps the comments above it, and the value those after it.
     match (table.get_mut(leaf), new) {
         (Some(Item::Value(old)), Item::Value(mut new)) => {
             *new.decor_mut() = old.decor().clone();
             *old = new;
+            Ok(false)
         },
-        (Some(item), new) => *item = new,
-        (None, new) => match styled {
-            Some(Styled::Value(written, _)) => {
-                table.entry_format(written).or_insert(new);
-            },
-            Some(Styled::Tables(_)) | None => {
-                table.insert(leaf, new);
-            },
+        (Some(item), new) => {
+            *item = new;
+            Ok(false)
+        },
+        (None, new) => {
+            match styled {
+                Some(Styled::Value(written, _)) => {
+                    table.entry_format(written).or_insert(new);
+                },
+                Some(Styled::Tables(_)) | None => {
+                    table.insert(leaf, new);
+                },
+            }
+            Ok(value)
         },
     }
-    Ok(())
+}
+
+/// Whether `doc` holds, with a value in it, the table `key` is set in.
+fn holds(doc: &DocumentMut, key: &[String]) -> bool {
+    let Some((_, parents)) = key.split_last() else {
+        return false;
+    };
+    let mut table: &dyn TableLike = doc.as_table();
+    for segment in parents {
+        match table.get(segment) {
+            Some(Item::Table(inner)) => table = inner,
+            Some(_) | None => return false,
+        }
+    }
+    table.iter().any(|(_, item)| item.is_value())
+}
+
+/// One line of a table's entries: the path to its value through any dotted keys, and its layout.
+struct Line {
+    /// The keys, from the table to the value.
+    path: Vec<String>,
+    /// The width of the keys as written, dots included.
+    width: usize,
+    /// The spaces between the keys and `=`.
+    pad: usize,
+    /// The width of what follows `=` up to any comment.
+    value: usize,
+    /// Whether a blank line or a comment line comes before it, which starts a group.
+    starts: bool,
+    /// Whether its value spans lines.
+    spans: bool,
+    /// Whether a comment ends it.
+    comment: bool,
+}
+
+/// Every line of `table`'s own entries, in order: each value, and each value under a dotted key.
+fn lines(table: &dyn TableLike) -> Vec<Line> {
+    let mut out = Vec::new();
+    collect_lines(table, &mut Vec::new(), 0, None, &mut out);
+    out
+}
+
+/// The lines under `table`, reached through `path`, whose keys so far are `width` wide; `starts`
+/// is what a key on the way said of a group starting.
+fn collect_lines(
+    table: &dyn TableLike, path: &mut Vec<String>, width: usize, starts: Option<bool>,
+    out: &mut Vec<Line>,
+) {
+    let text = |raw: Option<&RawString>| raw.and_then(RawString::as_str).map(str::to_owned);
+    for (name, item) in table.iter() {
+        let (Some(key), Item::Value(value)) = (table.key(name), item) else { continue };
+        let width = width.saturating_add(key.display_repr().chars().count());
+        // The blank or comment lines above a line are the first decor a key on the way has.
+        let starts = starts.or_else(|| text(key.leaf_decor().prefix()).map(|p| p.contains('\n')));
+        path.push(name.to_owned());
+        if let toml_edit::Value::InlineTable(inner) = value
+            && inner.is_dotted()
+        {
+            collect_lines(inner, path, width.saturating_add(1), starts, out);
+        } else {
+            let mut bare = value.clone();
+            bare.decor_mut().clear();
+            let repr = bare.to_string();
+            let lead = text(value.decor().prefix()).map_or(1, |p| p.chars().count());
+            out.push(Line {
+                path: path.clone(),
+                width,
+                pad: text(key.leaf_decor().suffix()).map_or(1, |s| s.chars().count()),
+                value: lead.saturating_add(repr.chars().count()),
+                starts: starts.unwrap_or(false),
+                spans: repr.contains('\n'),
+                comment: text(value.decor().suffix()).is_some_and(|s| s.contains('#')),
+            });
+        }
+        path.pop();
+    }
+}
+
+/// `lines` in groups, as taplo aligns them: a blank or comment line starts the next.
+fn groups(lines: &[Line]) -> impl Iterator<Item = &[Line]> {
+    lines.chunk_by(|_, next| !next.starts)
+}
+
+/// Whether the document aligns its entries: `Some(true)` where a group of keys of different
+/// widths shares one column for `=`, `Some(false)` where such groups space each key by one, `None`
+/// where no group says.
+fn aligned(table: &dyn TableLike) -> Option<bool> {
+    let lines = lines(table);
+    let nested = table.iter().flat_map(|(_, item)| match item {
+        Item::Table(inner) => vec![aligned(inner)],
+        Item::ArrayOfTables(tables) => tables.iter().map(|inner| aligned(inner)).collect(),
+        Item::None | Item::Value(_) => Vec::new(),
+    });
+    groups(&lines).map(group_aligned).chain(nested).fold(None, |so_far, next| {
+        if so_far == Some(true) || next == Some(true) { Some(true) } else { so_far.or(next) }
+    })
+}
+
+/// What one group says of alignment, as [`aligned`] reads it. A group of one width says nothing,
+/// and nor does one with a value over several lines, which taplo never aligns.
+fn group_aligned(group: &[Line]) -> Option<bool> {
+    let widths: BTreeSet<usize> = group.iter().map(|line| line.width).collect();
+    if widths.len() < 2 || group.iter().any(|line| line.spans) {
+        return None;
+    }
+    let columns: BTreeSet<usize> =
+        group.iter().map(|line| line.width.saturating_add(line.pad)).collect();
+    if columns.len() == 1 {
+        Some(true)
+    } else {
+        group.iter().all(|line| line.pad == 1).then_some(false)
+    }
+}
+
+/// Aligns the group `key` joined in its table, as taplo's `align_entries` and `align_comments`
+/// would: every key of the group padded to the widest, and every comment to the longest line.
+/// Where the file does not align entries, or a value of the group spans lines, `key` is spaced by
+/// one, and nothing else moves.
+fn align(doc: &mut DocumentMut, key: &[String], aligns: bool) {
+    let Some((leaf, parents)) = key.split_last() else {
+        return;
+    };
+    let mut table: &mut dyn TableLike = doc.as_table_mut();
+    for segment in parents {
+        let Some(inner) = table.get_mut(segment).and_then(Item::as_table_like_mut) else {
+            return;
+        };
+        table = inner;
+    }
+    let lines = lines(table);
+    let Some(at) = lines.iter().position(|line| line.path.as_slice() == [leaf.clone()]) else {
+        return;
+    };
+    let start = lines.get(..=at).and_then(|up| up.iter().rposition(|l| l.starts)).unwrap_or(0);
+    let end = lines
+        .get(at.saturating_add(1)..)
+        .and_then(|rest| rest.iter().position(|l| l.starts))
+        .map_or(lines.len(), |n| at.saturating_add(1).saturating_add(n));
+    let Some(group) = lines.get(start..end) else {
+        return;
+    };
+    if !aligns || group.iter().any(|line| line.spans) {
+        pad(table, slice::from_ref(leaf), 1, None);
+        return;
+    }
+    let widest = group.iter().map(|line| line.width).max().unwrap_or(0);
+    // Keys, one space, `=`, then the value.
+    let length = |line: &Line| widest.saturating_add(2).saturating_add(line.value);
+    let longest = group.iter().map(length).max().unwrap_or(0);
+    for line in group {
+        let comment = line.comment.then(|| longest.saturating_add(1).saturating_sub(length(line)));
+        pad(table, &line.path, widest.saturating_sub(line.width).saturating_add(1), comment);
+    }
+}
+
+/// Spaces the value at `path` in `table`: `spaces` between its keys and `=`, and, where `comment`
+/// says, that many before its comment.
+fn pad(table: &mut dyn TableLike, path: &[String], spaces: usize, comment: Option<usize>) {
+    let Some((first, rest)) = path.split_first() else {
+        return;
+    };
+    if !rest.is_empty() {
+        if let Some(inner) = table
+            .get_mut(first)
+            .and_then(Item::as_value_mut)
+            .and_then(toml_edit::Value::as_inline_table_mut)
+        {
+            pad(inner, rest, spaces, comment);
+        }
+        return;
+    }
+    let Some((mut key, item)) = table.get_key_value_mut(first) else {
+        return;
+    };
+    key.leaf_decor_mut().set_suffix(" ".repeat(spaces));
+    if let (Some(before), Some(value)) = (comment, item.as_value_mut()) {
+        let suffix = value.decor().suffix().and_then(RawString::as_str).unwrap_or_default();
+        let text = format!("{}{}", " ".repeat(before), suffix.trim_start());
+        value.decor_mut().set_suffix(text);
+    }
 }
 
 /// Whether `value` is an array of tables: a non-empty array of objects, no datetime among them.

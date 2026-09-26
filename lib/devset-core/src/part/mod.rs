@@ -379,6 +379,52 @@ mod tests {
     }
 
     #[test]
+    fn toml_keys_take_the_alignment_of_the_table_they_join() {
+        let shape = keys("Cargo.toml");
+        let out = splice(
+            &shape,
+            "[package]\nname    = \"x\"\nversion = \"1\"\n\n[lints]\nworkspace = true\n",
+            "[package]\ndescription = \"d\"\n",
+        );
+        assert!(
+            out.starts_with(
+                "[package]\nname        = \"x\"\nversion     = \"1\"\ndescription = \"d\"\n"
+            ),
+            "a key joining an aligned group realigns it, as taplo would: {out}"
+        );
+        let out = splice(&shape, "[a]\nx = 1\nlong = 2\n", "[a]\nmedium = 3\nz      = 4\n");
+        assert_eq!(
+            out, "[a]\nx = 1\nlong = 2\nmedium = 3\nz = 4\n",
+            "a file that spaces its keys by one keeps doing so, whatever the payload does"
+        );
+        let out = splice(&shape, "[a]\nx = 1\n", "[a]\nlonger = 2\nz      = 3\n");
+        assert_eq!(
+            out, "[a]\nx      = 1\nlonger = 2\nz      = 3\n",
+            "a file no group of which says takes the payload's alignment"
+        );
+    }
+
+    #[test]
+    fn toml_keys_realign_the_comments_of_their_group() {
+        let shape = keys("Cargo.toml");
+        let out = splice(
+            &shape,
+            "[a]\nx        = 1     # one\nlong_key = \"abc\" # two\n",
+            "[a]\nlongest_key = 3\n",
+        );
+        assert_eq!(
+            out, "[a]\nx           = 1     # one\nlong_key    = \"abc\" # two\nlongest_key = 3\n",
+            "comments line up after the longest line: {out}"
+        );
+        let file = "[a]\nk = [\n    \"a\",\n    \"b\",\n]\nlonger = 2\n\n[b]\nx    = 1\nlong = 2\n";
+        let out = splice(&shape, file, "[a]\nz = 3\n");
+        assert!(
+            out.starts_with("[a]\nk = [\n    \"a\",\n    \"b\",\n]\nlonger = 2\nz = 3\n"),
+            "a group with a value over several lines is aligned by no one: {out}"
+        );
+    }
+
+    #[test]
     fn toml_tables_are_created_and_pruned() {
         let shape = keys("Cargo.toml");
         let out = splice(
