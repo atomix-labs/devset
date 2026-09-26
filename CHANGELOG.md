@@ -3,6 +3,19 @@
 Every release, newest first, written by [git-cliff](https://git-cliff.org) from the commits.
 [BREAKING-CHANGES.md](BREAKING-CHANGES.md) says how to move across a breaking change.
 
+## [0.1.3](https://github.com/atomix-labs/devset/releases/tag/v0.1.3) - 2026-09-26
+
+### Documentation
+
+- [523df14](https://github.com/atomix-labs/devset/commit/523df14b1ce4cbbdccd9c9f229cd77f10f15cc2a) Link the README's documents in full, as crates.io resolves links from the crate
+
+### Miscellaneous
+
+- [13f52ca](https://github.com/atomix-labs/devset/commit/13f52cac28aac10867de3f94b7960d96a556f844) *(devset-cli)* Drop the homepage its documentation link repeats
+- [7502786](https://github.com/atomix-labs/devset/commit/750278600426903db5634552a4cdc55562254c2f) Take atxp v0.3.2
+
+**Full Changelog**: <https://github.com/atomix-labs/devset/compare/v0.1.2...v0.1.3>
+
 ## [0.1.2](https://github.com/atomix-labs/devset/releases/tag/v0.1.2) - 2026-09-25
 
 ### Features
