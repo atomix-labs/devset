@@ -3,6 +3,24 @@
 Every release, newest first, written by [git-cliff](https://git-cliff.org) from the commits.
 [BREAKING-CHANGES.md](BREAKING-CHANGES.md) says how to move across a breaking change.
 
+## [0.2.0](https://github.com/atomix-labs/devset/releases/tag/v0.2.0) - 2026-09-26
+
+### Features
+
+- [9a70f9c](https://github.com/atomix-labs/devset/commit/9a70f9c328ffc3e6363ddacd8f67cc0b6170ce66) *(release)* Serve a one-line installer with the manual, and attach it to releases
+- [2bc2eee](https://github.com/atomix-labs/devset/commit/2bc2eee75972e46e501e3b7e2ed044484b368bf7) Compose profiles as crates **breaking**
+
+### Documentation
+
+- [0f235c2](https://github.com/atomix-labs/devset/commit/0f235c214ebe89c12456f80039382fa856cecbd2) Write the repository's documents for profiles as crates
+- [20e6ef4](https://github.com/atomix-labs/devset/commit/20e6ef40465dedccf98596d8131e0115771c47ad) Cover sources, features, gates and scaffolds in the manual
+
+### Miscellaneous
+
+- [08618eb](https://github.com/atomix-labs/devset/commit/08618ebf54cc345ad5f9f2a9552682fa760ff2b6) Take atxp v0.3.3, attesting release archives
+
+**Full Changelog**: <https://github.com/atomix-labs/devset/compare/v0.1.3...v0.2.0>
+
 ## [0.1.3](https://github.com/atomix-labs/devset/releases/tag/v0.1.3) - 2026-09-26
 
 ### Documentation

@@ -18,7 +18,7 @@ Pin devset in the repository's [mise](https://mise.jdx.dev) configuration, so
 every machine and every job runs the same version:
 
 ```sh
-mise use github:atomix-labs/devset@0.1.3
+mise use github:atomix-labs/devset@0.2.0
 ```
 
 Then a GitHub Actions job installs it with the rest of the repository's tools:
