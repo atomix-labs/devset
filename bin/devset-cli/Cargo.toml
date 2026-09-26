@@ -7,7 +7,6 @@ rust-version.workspace = true
 license.workspace      = true
 authors.workspace      = true
 repository.workspace   = true
-homepage.workspace     = true
 documentation          = "https://atomix-labs.github.io/devset/"
 readme                 = "../../README.md"
 keywords.workspace     = true
