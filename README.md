@@ -102,12 +102,12 @@ MIT: see [LICENSE][license].
 [Manual]: https://atomix-labs.github.io/devset/
 [getting started]: https://atomix-labs.github.io/devset/getting-started.html
 [parts]: https://atomix-labs.github.io/devset/parts.html
-[Changelog]: CHANGELOG.md
-[Breaking Changes]: BREAKING-CHANGES.md
-[Architecture]: ARCHITECTURE.md
-[Contributing]: CONTRIBUTING.md
-[Release]: RELEASE.md
-[Security]: SECURITY.md
+[Changelog]: https://github.com/atomix-labs/devset/blob/main/CHANGELOG.md
+[Breaking Changes]: https://github.com/atomix-labs/devset/blob/main/BREAKING-CHANGES.md
+[Architecture]: https://github.com/atomix-labs/devset/blob/main/ARCHITECTURE.md
+[Contributing]: https://github.com/atomix-labs/devset/blob/main/CONTRIBUTING.md
+[Release]: https://github.com/atomix-labs/devset/blob/main/RELEASE.md
+[Security]: https://github.com/atomix-labs/devset/blob/main/SECURITY.md
 [Report a bug]: https://github.com/atomix-labs/devset/issues/new?template=bug_report.md
 [Request a feature]: https://github.com/atomix-labs/devset/issues/new?template=feature_request.md
 [ci]: https://github.com/atomix-labs/devset/actions/workflows/check.yml
@@ -117,5 +117,5 @@ MIT: see [LICENSE][license].
 [crates]: https://crates.io/crates/devset-cli
 [crates badge]: https://img.shields.io/crates/v/devset-cli?style=flat-square
 [docs.rs]: https://docs.rs/devset-core
-[license]: LICENSE
+[license]: https://github.com/atomix-labs/devset/blob/main/LICENSE
 [license badge]: https://img.shields.io/github/license/atomix-labs/devset?style=flat-square
