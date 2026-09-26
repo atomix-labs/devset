@@ -58,7 +58,7 @@ fn collect(
 }
 
 /// `text` with each edit made, in order; a key the payload writes as an array of tables is written
-/// as one, and a value the payload gives is written in the payload's layout.
+/// as one, and a value the payload gives is written in the payload's layout, comments and all.
 pub(super) fn apply(text: &str, edits: &[Edit<'_>], payload: &Written) -> Result<String, Failure> {
     let mut doc: DocumentMut =
         text.parse().map_err(|e: toml_edit::TomlError| (e.span(), e.message().to_owned()))?;
@@ -79,18 +79,26 @@ pub(super) fn apply(text: &str, edits: &[Edit<'_>], payload: &Written) -> Result
     Ok(doc.to_string())
 }
 
-/// How `doc` writes the plain value at `key`: the key, with the space around it, and the value.
-fn layout<'a>(
-    doc: &'a DocumentMut, key: &[String],
-) -> Option<(&'a toml_edit::Key, &'a toml_edit::Value)> {
+/// How a payload writes a leaf.
+#[derive(Clone, Copy)]
+enum Styled<'a> {
+    /// A plain value: the key, with the space around it, and the value.
+    Value(&'a toml_edit::Key, &'a toml_edit::Value),
+    /// An array of tables, each with its comments and the space around its keys.
+    Tables(&'a ArrayOfTables),
+}
+
+/// How `doc` writes the leaf at `key`.
+fn layout<'a>(doc: &'a DocumentMut, key: &[String]) -> Option<Styled<'a>> {
     let (leaf, parents) = key.split_last()?;
     let mut table: &dyn TableLike = doc.as_table();
     for segment in parents {
         table = table.get(segment)?.as_table_like()?;
     }
     match table.get_key_value(leaf)? {
-        (written, Item::Value(value)) => Some((written, value)),
-        (_, Item::None | Item::Table(_) | Item::ArrayOfTables(_)) => None,
+        (written, Item::Value(value)) => Some(Styled::Value(written, value)),
+        (_, Item::ArrayOfTables(tables)) => Some(Styled::Tables(tables)),
+        (_, Item::None | Item::Table(_)) => None,
     }
 }
 
@@ -99,10 +107,11 @@ fn layout<'a>(
 /// An array of objects keeps the form the file gives it, or else the payload's: an array of
 /// tables, `[[key]]`, when `as_tables`, and inline otherwise. With `styled`, the payload's own
 /// writing of the value, the value is written as the payload writes it, and a new key is spaced as
-/// the payload spaces it; a key the file holds keeps the file's spacing.
+/// the payload spaces it; a key the file holds keeps the file's spacing. An array of tables is the
+/// payload's whole, comments and all.
 fn set(
     doc: &mut DocumentMut, key: &[String], value: &Value, as_tables: bool,
-    styled: Option<(&toml_edit::Key, &toml_edit::Value)>,
+    styled: Option<Styled<'_>>,
 ) -> Result<(), Failure> {
     let Some((leaf, parents)) = key.split_last() else {
         return Ok(());
@@ -128,8 +137,11 @@ fn set(
         Some(Item::None | Item::Table(_)) | None => as_tables,
     };
     let new = if standard && form && tables(value) {
-        Item::ArrayOfTables(array_of_tables(value).map_err(failed)?)
-    } else if let Some((_, written)) = styled {
+        Item::ArrayOfTables(match styled {
+            Some(Styled::Tables(written)) => unplaced(written.clone()),
+            Some(Styled::Value(..)) | None => array_of_tables(value).map_err(failed)?,
+        })
+    } else if let Some(Styled::Value(_, written)) = styled {
         Item::Value(written.clone())
     } else {
         Item::Value(toml_value(value).map_err(failed)?)
@@ -142,10 +154,10 @@ fn set(
         },
         (Some(item), new) => *item = new,
         (None, new) => match styled {
-            Some((written, _)) => {
+            Some(Styled::Value(written, _)) => {
                 table.entry_format(written).or_insert(new);
             },
-            None => {
+            Some(Styled::Tables(_)) | None => {
                 table.insert(leaf, new);
             },
         },
@@ -162,6 +174,24 @@ fn tables(value: &Value) -> bool {
 /// Whether `value` is a datetime in `toml`'s JSON form.
 fn datetime(value: &Value) -> bool {
     value.as_object().is_some_and(|object| object.len() == 1 && object.contains_key(DATETIME))
+}
+
+/// `tables` without their places in the payload, so each follows the table before it in the file.
+fn unplaced(mut tables: ArrayOfTables) -> ArrayOfTables {
+    tables.iter_mut().for_each(unplace);
+    tables
+}
+
+/// `table` and the tables in it without their places in the document they came from.
+fn unplace(table: &mut Table) {
+    table.set_position(None);
+    for (_, item) in table.iter_mut() {
+        match item {
+            Item::Table(inner) => unplace(inner),
+            Item::ArrayOfTables(inner) => inner.iter_mut().for_each(unplace),
+            Item::None | Item::Value(_) => {},
+        }
+    }
 }
 
 /// Each object of `value` as a table of an array of tables.

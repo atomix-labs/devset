@@ -40,8 +40,9 @@ keys it adds to the same tables.
 - **Values are compared after parsing**, so reformatting is never drift, and
   only the keys that change are rewritten: comments and layout elsewhere in the
   file survive.
-- **A key the profile adds** is written as its payload writes it; a file the
-  part creates is the payload as written.
+- **A key the profile adds or changes** is written as its payload writes it, an
+  array of tables with its comments; a file the part creates is the payload as
+  written.
 - **A file that already holds some of the keys** is adopted key by key: its
   values are kept, and the keys it lacks are written.
 - **An update merges key by key**, and a conflict marks only the keys both sides

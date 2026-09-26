@@ -136,7 +136,7 @@ impl Syntax {
     }
 
     /// A document with each edit made, in order, as `payload` writes each: a value the payload
-    /// gives keeps the payload's layout, and TOML its arrays of tables.
+    /// gives keeps the payload's layout, and TOML its arrays of tables, comments and all.
     fn apply(self, text: &str, edits: &[Edit<'_>], payload: &Written) -> Parsed<String> {
         match self {
             Self::Toml => toml::apply(text, edits, payload),
@@ -413,6 +413,22 @@ unsafe_code = \"deny\"
             out.contains("[tools.taplo.\"platforms.linux-x64\"]\nurl = "),
             "with its sub-tables as tables: {out}"
         );
+    }
+
+    #[test]
+    fn toml_arrays_of_tables_keep_the_payload_layout() {
+        let shape = keys("taplo.toml");
+        let rules = "# Ours, sorted.\n[[rule]]\ninclude = [\"**/Cargo.toml\"]\nkeys    = [\"dependencies\"]\n\n[rule.formatting]\nreorder_keys = true\n\n# Theirs.\n[[rule]]\ninclude = [\"x.toml\"]\n";
+        let payload = format!("[formatting]\nalign_entries = true\n\n{rules}");
+        let file = "exclude = [\"target/**\"]\n\n[formatting]\nalign_entries = false\n\n[[rule]]\ninclude = [\"**/Cargo.toml\"]\nkeys = [\"dependencies\"]\n\n[rule.formatting]\nreorder_keys = true\n";
+        let out = splice(&shape, file, &payload);
+        assert!(
+            out.ends_with(&format!("align_entries = true\n\n{rules}")),
+            "an array of tables the file holds is rewritten as the payload writes it: {out}"
+        );
+        assert!(out.starts_with("exclude = [\"target/**\"]\n"), "and the file's own keys stay");
+        let out = splice(&shape, "[formatting]\nalign_entries = true\n", &payload);
+        assert!(out.ends_with(rules), "as is one the file lacks: {out}");
     }
 
     #[test]
