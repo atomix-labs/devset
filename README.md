@@ -1,7 +1,21 @@
 # devset
 
-[![CI][ci badge]][ci] [![Release][release badge]][releases]
-[![crates.io][crates badge]][crates] [![License][license badge]][license]
+<!-- >>> devset: project >>> -->
+
+[![CI][c1]][c2] [![crates.io][r1]][r2] [![docs.rs][d1]][d2] [![Book][b1]][b2]
+
+[c1]: https://img.shields.io/github/actions/workflow/status/atomix-labs/devset/check.yml?branch=main&style=flat-square&label=check
+[c2]: https://github.com/atomix-labs/devset/actions/workflows/check.yml
+[r1]: https://img.shields.io/crates/v/devset-core?style=flat-square
+[r2]: https://crates.io/crates/devset-core
+[d1]: https://img.shields.io/docsrs/devset-core?style=flat-square
+[d2]: https://docs.rs/devset-core
+[b1]: https://img.shields.io/badge/book-read-blue?style=flat-square
+[b2]: https://atomix-labs.github.io/devset/
+
+<!-- <<< devset: project <<< -->
+
+[![Release][release badge]][releases] [![License][license badge]][license]
 
 [Manual] · [Changelog] · [Breaking Changes] · [Architecture] · [Contributing] ·
 [Report a bug] · [Request a feature]
@@ -130,12 +144,9 @@ MIT: see [LICENSE][license].
 [Security]: https://github.com/atomix-labs/devset/blob/main/SECURITY.md
 [Report a bug]: https://github.com/atomix-labs/devset/issues/new?template=bug_report.md
 [Request a feature]: https://github.com/atomix-labs/devset/issues/new?template=feature_request.md
-[ci]: https://github.com/atomix-labs/devset/actions/workflows/check.yml
-[ci badge]: https://img.shields.io/github/actions/workflow/status/atomix-labs/devset/check.yml?branch=main&style=flat-square&logo=github&label=check
+[crates]: https://crates.io/crates/devset-cli
 [releases]: https://github.com/atomix-labs/devset/releases
 [release badge]: https://img.shields.io/github/v/release/atomix-labs/devset?style=flat-square&sort=semver
-[crates]: https://crates.io/crates/devset-cli
-[crates badge]: https://img.shields.io/crates/v/devset-cli?style=flat-square
 [docs.rs]: https://docs.rs/devset-core
 [license]: https://github.com/atomix-labs/devset/blob/main/LICENSE
 [license badge]: https://img.shields.io/github/license/atomix-labs/devset?style=flat-square

@@ -1,15 +1,8 @@
 [files]
-# What a tool writes: devset's records, the locks with their checksums, the book mdBook builds, and
-# vendored or minified code, as dprint leaves them out too.
-extend-exclude = [
-    ".devset/",
-    "*.lock",
-    "docs/book/",
-    "docs/theme/",
-    "docs/vendor/",
-    "*.min.css",
-    "*.min.js",
-]
+# What a tool writes: devset's records, the locks with their checksums, and minified code, as dprint
+# leaves them out too; and what is vendored, which is upstream's. What git ignores, typos leaves out
+# already.
+extend-exclude = [".devset/", "*.lock", "*.min.css", "*.min.js", "vendor/"]
 
 [default]
 # A commit id is no word, and changelogs and status lines carry them: `54ba0dc` is not `ba`.

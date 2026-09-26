@@ -36,42 +36,55 @@ release-docs:
     rm docs/src/ci.md.bak
 
 # >>> devset: just >>>
-# Each atom's recipes, where the atom is applied.
-import? '.just/actionlint.just'
-import? '.just/ansible-lint.just'
+# Each active profile's recipes.
+import? '.just/agents.just'
 import? '.just/cargo-binaries.just'
 import? '.just/cargo-bump.just'
 import? '.just/cargo-deny.just'
 import? '.just/cargo-hack.just'
-import? '.just/cargo-machete.just'
-import? '.just/cargo-shear.just'
-import? '.just/cargo-workspace-lints.just'
-import? '.just/clippy.just'
-import? '.just/committed.just'
-import? '.just/conftest.just'
-import? '.just/crates-io.just'
+import? '.just/cargo-manifest.just'
+import? '.just/cargo-nextest.just'
+import? '.just/cargo-profiles.just'
+import? '.just/cargo-publish.just'
+import? '.just/cargo-unused.just'
+import? '.just/cargo-workspace.just'
+import? '.just/devset.just'
 import? '.just/dprint.just'
-import? '.just/git-cliff.just'
-import? '.just/lints-nightly.just'
+import? '.just/editorconfig.just'
+import? '.just/git-attributes.just'
+import? '.just/git-changelog.just'
+import? '.just/git-commits.just'
+import? '.just/git-ignore.just'
+import? '.just/github-automation.just'
+import? '.just/github-bump.just'
+import? '.just/github-ci.just'
+import? '.just/github-dependabot.just'
+import? '.just/github-nightly.just'
+import? '.just/github-release.just'
+import? '.just/github-templates.just'
+import? '.just/github-watch.just'
+import? '.just/github-workflow-lint.just'
+import? '.just/just.just'
 import? '.just/lychee.just'
-import? '.just/manifest-lint.just'
+import? '.just/markdown.just'
 import? '.just/mdbook.just'
 import? '.just/mise.just'
-import? '.just/msrv.just'
-import? '.just/nextest.just'
-import? '.just/profile-pins.just'
-import? '.just/ruff.just'
-import? '.just/rumdl.just'
+import? '.just/project.just'
+import? '.just/python.just'
+import? '.just/rust.just'
+import? '.just/rust-clippy.just'
+import? '.just/rust-doc.just'
+import? '.just/rust-fmt.just'
+import? '.just/rust-lints.just'
+import? '.just/rust-msrv.just'
 import? '.just/rust-toolchain.just'
-import? '.just/rustdoc.just'
-import? '.just/rustfmt.just'
-import? '.just/rustup.just'
-import? '.just/shellcheck.just'
+import? '.just/setup.just'
+import? '.just/shell.just'
+import? '.just/spelling.just'
 import? '.just/suppressions.just'
-import? '.just/taplo.just'
-import? '.just/typos.just'
-import? '.just/yamllint.just'
-import? '.just/zizmor.just'
+import? '.just/toml.just'
+import? '.just/vscode.just'
+import? '.just/yaml.just'
 
 # Runs every `check-*` recipe, as CI does, and names each that fails.
 check: (_each "check")
@@ -79,11 +92,14 @@ check: (_each "check")
 # Runs every `fix-*` recipe.
 fix: (_each "fix")
 
-# Runs every `bump-*` recipe: each moves what its atom pins, and reports to $BUMP_REPORT_DIR.
+# Runs every `bump-*` recipe: each moves what its profile pins, and reports to $BUMP_REPORT_DIR.
 bump: (_each "bump")
 
 # Runs every `nightly-*` recipe: the checks too slow for every change.
 nightly: (_each "nightly")
+
+# Runs every `test-*` recipe: the suites too slow for `just check`, which CI runs beside it.
+test: (_each "test")
 
 # Runs every `setup-*` recipe: what a checkout needs before it builds. `mise bootstrap` runs it.
 setup: (_each "setup")
@@ -113,4 +129,5 @@ _each verb:
         echo "failed: ${failed[*]}" >&2
         exit 1
     fi
+
 # <<< devset: just <<<

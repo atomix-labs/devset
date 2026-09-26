@@ -1,10 +1,22 @@
-# >>> devset: gitignore >>>
-# Local state: tools' caches, Claude Code's per-developer settings, notes.
-/.rumdl_cache/
-__pycache__/
-.claude/*
-!.claude/skills/
-!.claude/settings.local.json.example
+# What git leaves out. Each profile ignores its own output in a block of its own; the
+# repository adds its own lines outside them.
+
+# >>> devset: cargo-profiles >>>
+*.profraw
+perf.data*
+flamegraph.svg
+# <<< devset: cargo-profiles <<<
+
+# >>> devset: cargo-workspace >>>
+target/
+**/*.rs.bk
+*.pdb
+# <<< devset: cargo-workspace <<<
+
+# >>> devset: git-ignore >>>
+# Local state: Claude Code's per-developer settings, notes. Its shared settings, hooks and skills
+# are committed.
+.claude/settings.local.json
 /.mcp.json
 /.annotations.json
 .notes/
@@ -25,19 +37,22 @@ Thumbs.db
 *.pem
 *.key
 /.secrets/
-# <<< devset: gitignore <<<
+# <<< devset: git-ignore <<<
 
-# >>> devset: gitignore-rust >>>
-target/
-**/*.rs.bk
-*.pdb
-*.profraw
-perf.data*
-flamegraph.svg
-# <<< devset: gitignore-rust <<<
-# devset's own Claude Code settings, shared by everyone who works on it.
-!.claude/settings.json
+# >>> devset: markdown >>>
+/.rumdl_cache/
+# <<< devset: markdown <<<
 
 # >>> devset: mdbook >>>
 /docs/book/
+# Where the API preprocessor links the API into the book's source as it builds.
+/docs/src/api
 # <<< devset: mdbook <<<
+
+# >>> devset: python >>>
+__pycache__/
+# <<< devset: python <<<
+
+# >>> devset: cargo-binaries >>>
+/dist/
+# <<< devset: cargo-binaries <<<

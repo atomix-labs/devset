@@ -33,8 +33,12 @@ also builds on the `rust-version` it declares, which `just check-msrv` checks.
 Keep each pull request to one change: a feature, a fix, or a refactor, not a mix
 of them.
 
+<!-- >>> devset: git-commits >>> -->
+
+## Commits
+
 Commits follow [Conventional Commits](https://www.conventionalcommits.org),
-which `check-committed` holds every commit of a branch to:
+which `just check-git-commits` holds every commit of a branch to:
 
 ```text
 type(scope): subject
@@ -42,14 +46,16 @@ type(scope): subject
 
 - The **type** is `feat`, `fix`, `refactor`, `docs`, `perf`, `test`, `build`,
   `ci`, `chore`, `style` or `revert`.
-- The **scope** is the crate the commit changes, `devset-core` or `devset-cli`,
-  or the part of the repository that is neither: `docs`, `ci` or `release`. A
-  change across both crates has no scope.
 - The **subject** is imperative, lower case, with no closing period: it is the
-  line the changelog shows, so it says what changed for someone reading it
-  there.
+  line the changelog shows.
 - A breaking change adds `!` after the scope, and a `BREAKING CHANGE:` footer
   saying what to do.
+
+<!-- <<< devset: git-commits <<< -->
+
+A commit's scope is the crate it changes, `devset-core` or `devset-cli`, or the
+part of the repository that is neither: `docs`, `ci` or `release`. A change
+across both crates has no scope.
 
 A change is **breaking** when someone who takes it must act. For devset, that is
 a change to:
@@ -65,7 +71,15 @@ A breaking change also adds its entry to
 [BREAKING-CHANGES.md](BREAKING-CHANGES.md), under the release that will carry
 it.
 
+<!-- >>> devset: project >>> -->
+
 ## Checks
+
+Run `just check` before you open a pull request: CI runs the same checks, and
+names each that fails. `just fix` fixes what a formatter or linter can, and
+`just --list` shows every recipe.
+
+<!-- <<< devset: project <<< -->
 
 ```sh
 just check         # formatting, lints, tests, the docs and the book, as CI runs them

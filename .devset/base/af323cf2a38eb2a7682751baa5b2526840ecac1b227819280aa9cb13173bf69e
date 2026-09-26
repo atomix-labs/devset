@@ -1,0 +1,3 @@
+["hooks","Stop"]	[{"hooks":[{"command":"\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/check.sh","timeout":600,"type":"command"}]}]
+["permissions","allow"]	["Bash(just check*)","Bash(just fix*)","Bash(just --list)","Bash(devset status*)","Bash(devset diff*)","Bash(devset explain*)","Bash(devset features*)"]
+["permissions","deny"]	["Bash(just publish*)","Bash(just bump*)"]

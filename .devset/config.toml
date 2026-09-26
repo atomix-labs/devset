@@ -1,31 +1,32 @@
-[[layers]]
-git  = "https://github.com/atomix-labs/atxp"
-tag  = "v0.3.3"
-path = "profiles/rust"
+# devset applies the profiles below to this directory, and keeps them up to date.
+# The manual: https://atomix-labs.github.io/devset/
+#
+# Where profiles come from, each named once: a git repository at a ref, or a directory.
+#
+#   [sources]
+#   atxp = { git = "https://github.com/atomix-labs/atxp", tag = "v0.4.0" }
+#
+# The profiles to apply, in order, by source and name, with the features to turn on.
+#
+#   [[layers]]
+#   profile  = "atxp/rust"
+#   features = ["docs"]
 
-# devset builds on stable too, its releases ship the `devset` binary, and its crates go to crates.io.
-[[layers]]
-git  = "https://github.com/atomix-labs/atxp"
-tag  = "v0.3.3"
-path = "profiles/msrv"
-
-[[layers]]
-git  = "https://github.com/atomix-labs/atxp"
-tag  = "v0.3.3"
-path = "profiles/cargo-binaries"
-
-[[layers]]
-git  = "https://github.com/atomix-labs/atxp"
-tag  = "v0.3.3"
-path = "profiles/crates-io"
-
-# The manual, built and deployed to Pages, and every document's links checked.
-[[layers]]
-git  = "https://github.com/atomix-labs/atxp"
-tag  = "v0.3.3"
-path = "profiles/mdbook"
+[sources]
+atxp = { git = "https://github.com/atomix-labs/atxp", tag = "v0.6.2" }
 
 [[layers]]
-git  = "https://github.com/atomix-labs/atxp"
-tag  = "v0.3.3"
-path = "profiles/lychee"
+profile = "atxp/rust"
+features = ["docs", "agents", "publish", "binaries", "oss", "nightly"]
+
+[[layers]]
+profile = "atxp/rust-msrv"
+
+[[layers]]
+profile = "atxp/python"
+
+[[layers]]
+profile = "atxp/vscode"
+
+[[layers]]
+profile = "atxp/suppressions"

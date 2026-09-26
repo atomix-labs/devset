@@ -4,6 +4,35 @@ description = "Versioned file bundles, applied to a directory and updated withou
 language    = "en"
 
 [output.html]
-git-repository-url = "https://github.com/atomix-labs/devset"
-edit-url-template  = "https://github.com/atomix-labs/devset/edit/main/docs/{path}"
-site-url           = "/devset/"
+git-repository-url   = "https://github.com/atomix-labs/devset"
+edit-url-template    = "https://github.com/atomix-labs/devset/edit/main/docs/{path}"
+site-url             = "/devset/"
+default-theme        = "rust"
+preferred-dark-theme = "ayu"
+
+# What the book loads: its look, and what each feature brings.
+additional-css = [
+    "vendor/katex/katex.min.css",
+    "theme/prompt.css",
+    "theme/width.css",
+    "theme/details.css",
+]
+additional-js = ["api-link.js"]
+
+[output.html.fold]
+enable = true
+level  = 1
+
+[output.html.search]
+enable          = true
+limit-results   = 30
+use-boolean-and = true
+
+[preprocessor.katex]
+after  = ["links"]
+no-css = true
+
+[preprocessor.rustdoc-links]
+unstable-features = true
+base-url          = "/api"
+fail-on-warnings  = "always"

@@ -1,5 +1,3 @@
-# Workspace Cargo build configuration.
-
 # CPU floors every realistic machine of each architecture meets, so a build runs wherever it is
 # copied, and a cache CI runners share never holds an instruction another runner lacks. A build
 # tuned to this machine sets RUSTFLAGS="-C target-cpu=native", which replaces them.
@@ -20,4 +18,5 @@ rustflags = ["-C", "target-cpu=apple-m1"]
 frequency = "always"
 
 [resolver]
+# A bump takes the newest release the workspace's `rust-version` builds.
 incompatible-rust-versions = "fallback"

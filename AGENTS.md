@@ -19,11 +19,25 @@ which owns every sentence a person reads.
 | Cutting a release                                   | [RELEASE.md](RELEASE.md)                   |
 | Migrating across a breaking change                  | [BREAKING-CHANGES.md](BREAKING-CHANGES.md) |
 
+<!-- >>> devset: agents >>> -->
+
+## Before You Commit
+
+Run `just check`: CI runs the same checks, and names each that fails. `just fix`
+fixes what a formatter or linter can, and `just --list` shows every recipe.
+
+## Managed Files
+
+Profiles, applied by devset, manage some of the files here. `devset status`
+names each, and whether a local change to it is kept or is drift; `devset
+explain <file>` says which profile owns what in it. What a profile owns changes
+with the profile, on `devset update`. Never edit `.devset/`.
+
+<!-- <<< devset: agents <<< -->
+
 ## Commands
 
 ```sh
-just check                                 # everything CI runs; green before any push
-just fix                                   # every formatter and fixer
 SNAPSHOTS=overwrite cargo test --test cli  # rewrite the end-to-end snapshots a change meant to change
 just fix-docs                              # after changing a command's help or a schema
 ```
@@ -47,3 +61,40 @@ just fix-docs                              # after changing a command's help or 
 - **The house style.** Markdown wrapped at 80, title-case headings, no em
   dashes; every item documented, private ones too; a fix comes with the test
   that fails without it.
+
+<!-- >>> devset: cargo-deny >>> -->
+
+## Dependencies
+
+`just check-cargo-deny` holds every dependency to `deny.toml`: its advisories,
+its licence, its source, and the bans. A failure names a choice for the
+maintainer, between a newer version, another crate, and an exception with its
+reason: ask before adding an exception or allowing another licence.
+
+<!-- <<< devset: cargo-deny <<< -->
+
+<!-- >>> devset: git-commits >>> -->
+
+## Commits
+
+`just check-git-commits` holds every commit of a branch to Conventional Commits:
+`type(scope): subject`, the subject imperative and lower case, with no closing
+period, since it is the line the changelog shows. A breaking change adds `!`
+after the scope, and a footer that starts `BREAKING CHANGE:` and says what to
+do.
+
+<!-- <<< devset: git-commits <<< -->
+
+<!-- >>> devset: mdbook >>> -->
+
+## The Book
+
+`just check-mdbook` lints the book, builds it and runs its examples. Its pages
+are Markdown under the `src/` of its directory, each listed in `SUMMARY.md`, and
+a preview rebuilds on every save:
+
+```sh
+mdbook serve docs
+```
+
+<!-- <<< devset: mdbook <<< -->
