@@ -187,8 +187,8 @@ exact = "0e36063a555ba5185d36127a496eb749ed2d5b85b56152090cc962f100b8131e"
 canonical = "0e36063a555ba5185d36127a496eb749ed2d5b85b56152090cc962f100b8131e"
 
 [files.".github/workflows/release.yml"]
-exact = "08c74a6ca3eb251bbe492991b1c436c2f543cf29d3dd34f009cf40d4fc7365e1"
-canonical = "08c74a6ca3eb251bbe492991b1c436c2f543cf29d3dd34f009cf40d4fc7365e1"
+exact = "af7a1aa376624c1cd14e12a5c4d5cdaa8c9ac2091f1e8759a3d550d76818e4da"
+canonical = "af7a1aa376624c1cd14e12a5c4d5cdaa8c9ac2091f1e8759a3d550d76818e4da"
 
 [files.".github/workflows/watch.yml"]
 exact = "51beac8abe7056cba86bd93d9dde1993c4ea9854ea820dc3f6c2e8a659ea51e0"
