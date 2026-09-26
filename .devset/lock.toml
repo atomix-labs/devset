@@ -2,520 +2,520 @@ version = 1
 
 [[layers]]
 name = "editorconfig"
-rev = "e6ad7b6e0caaa06120adeaebcdf63e0c4835d288"
+rev = "b4bebf6bd947d58b68a82efbe67af1f6d86f2338"
 digest = "3053772865162fecf372b01c23669cd4f211743fd3feb2ef09f5871eff4cab84"
 
 [layers.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.3.2"
+tag = "v0.3.3"
 path = "profiles/editorconfig"
 
 [[layers]]
 name = "gitattributes"
-rev = "e6ad7b6e0caaa06120adeaebcdf63e0c4835d288"
+rev = "b4bebf6bd947d58b68a82efbe67af1f6d86f2338"
 digest = "769b4c0321a9448e0a11daf7f00593c8ea97d77a6e0a8a260d131fd325748533"
 
 [layers.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.3.2"
+tag = "v0.3.3"
 path = "profiles/gitattributes"
 
 [[layers]]
 name = "gitignore"
-rev = "e6ad7b6e0caaa06120adeaebcdf63e0c4835d288"
+rev = "b4bebf6bd947d58b68a82efbe67af1f6d86f2338"
 digest = "650cd60c9627814b58733a87fa25d21b6380530db2be97f2add0667055d2540f"
 
 [layers.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.3.2"
+tag = "v0.3.3"
 path = "profiles/gitignore"
 
 [[layers]]
 name = "gitignore-rust"
-rev = "e6ad7b6e0caaa06120adeaebcdf63e0c4835d288"
+rev = "b4bebf6bd947d58b68a82efbe67af1f6d86f2338"
 digest = "cc6c4a62dd6822e0ebe40704b084074fffae5eed871871be60c7b73601f23032"
 
 [layers.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.3.2"
+tag = "v0.3.3"
 path = "profiles/gitignore-rust"
 
 [[layers]]
 name = "mise"
-rev = "e6ad7b6e0caaa06120adeaebcdf63e0c4835d288"
+rev = "b4bebf6bd947d58b68a82efbe67af1f6d86f2338"
 digest = "13c084aca2613cc34874253cedc8a03877b04208f35ab92c8b867c47f6e1d72a"
 
 [layers.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.3.2"
+tag = "v0.3.3"
 path = "profiles/mise"
 
 [[layers]]
 name = "just"
-rev = "e6ad7b6e0caaa06120adeaebcdf63e0c4835d288"
+rev = "b4bebf6bd947d58b68a82efbe67af1f6d86f2338"
 digest = "e35d02ea9d361f175a2119ea46a491fa7d4656c4a8685060d9d04d288540bc48"
 
 [layers.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.3.2"
+tag = "v0.3.3"
 path = "profiles/just"
 
 [[layers]]
 name = "setup"
-rev = "e6ad7b6e0caaa06120adeaebcdf63e0c4835d288"
+rev = "b4bebf6bd947d58b68a82efbe67af1f6d86f2338"
 digest = "e99f3713ca6e07fb620e523910198953912b7c0e619207a081c4ec8d28546976"
 
 [layers.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.3.2"
+tag = "v0.3.3"
 path = "profiles/setup"
 
 [[layers]]
 name = "rustup"
-rev = "e6ad7b6e0caaa06120adeaebcdf63e0c4835d288"
+rev = "b4bebf6bd947d58b68a82efbe67af1f6d86f2338"
 digest = "4ff098cc070ecbf76ca2c2f1c9fe70cdadf076df2f3b6788d84ac00f08a8e7e2"
 
 [layers.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.3.2"
+tag = "v0.3.3"
 path = "profiles/rustup"
 
 [[layers]]
 name = "rust-toolchain"
-rev = "e6ad7b6e0caaa06120adeaebcdf63e0c4835d288"
+rev = "b4bebf6bd947d58b68a82efbe67af1f6d86f2338"
 digest = "206408b7939872f1b937582fd34230db8e16cc3bbb3f59f43311a87c35fbe3c6"
 
 [layers.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.3.2"
+tag = "v0.3.3"
 path = "profiles/rust-toolchain"
 
 [[layers]]
 name = "github-ci"
-rev = "e6ad7b6e0caaa06120adeaebcdf63e0c4835d288"
+rev = "b4bebf6bd947d58b68a82efbe67af1f6d86f2338"
 digest = "ed1e4ef215337757e6e34f4965d1e1efe3d6c4f27e68bad1ed2078148dbcd71b"
 
 [layers.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.3.2"
+tag = "v0.3.3"
 path = "profiles/github-ci"
 
 [[layers]]
 name = "github-watch"
-rev = "e6ad7b6e0caaa06120adeaebcdf63e0c4835d288"
+rev = "b4bebf6bd947d58b68a82efbe67af1f6d86f2338"
 digest = "d45ab8f560d8da3cf8a60fab4140b6b3d9b784a8cd33469f9995916f431a6df5"
 
 [layers.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.3.2"
+tag = "v0.3.3"
 path = "profiles/github-watch"
 
 [[layers]]
 name = "github-nightly"
-rev = "e6ad7b6e0caaa06120adeaebcdf63e0c4835d288"
+rev = "b4bebf6bd947d58b68a82efbe67af1f6d86f2338"
 digest = "052fd6f22fa4fdcc403706d1d9dc0be70ddf334b71c599922d1e70f2f0abf691"
 
 [layers.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.3.2"
+tag = "v0.3.3"
 path = "profiles/github-nightly"
 
 [[layers]]
 name = "github-bump"
-rev = "e6ad7b6e0caaa06120adeaebcdf63e0c4835d288"
+rev = "b4bebf6bd947d58b68a82efbe67af1f6d86f2338"
 digest = "df9c1b609c848d10b60ea33b76edca333bfe150fd328447b61b99012abc716c2"
 
 [layers.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.3.2"
+tag = "v0.3.3"
 path = "profiles/github-bump"
 
 [[layers]]
 name = "git-cliff"
-rev = "e6ad7b6e0caaa06120adeaebcdf63e0c4835d288"
+rev = "b4bebf6bd947d58b68a82efbe67af1f6d86f2338"
 digest = "97d7ac459418b59c5ff75ca353f4dfcf8126e3c4d4588c29dac4c58ce5952fb7"
 
 [layers.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.3.2"
+tag = "v0.3.3"
 path = "profiles/git-cliff"
 
 [[layers]]
 name = "github-release"
-rev = "e6ad7b6e0caaa06120adeaebcdf63e0c4835d288"
-digest = "af0d799598d347b6436e867eba298cc92f5a7c1049d3ef0e7fe51b0ef1abfb89"
+rev = "b4bebf6bd947d58b68a82efbe67af1f6d86f2338"
+digest = "5b4912868f99ceedd949c813660996657053e488d9fc987589f40b6d4b0dd631"
 
 [layers.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.3.2"
+tag = "v0.3.3"
 path = "profiles/github-release"
 
 [[layers]]
 name = "dependabot"
-rev = "e6ad7b6e0caaa06120adeaebcdf63e0c4835d288"
+rev = "b4bebf6bd947d58b68a82efbe67af1f6d86f2338"
 digest = "6eeeb83927f9077afec663512c13572e7eb6829ba5bcbabda7d63e3f9a944dd8"
 
 [layers.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.3.2"
+tag = "v0.3.3"
 path = "profiles/dependabot"
 
 [[layers]]
 name = "automation"
-rev = "e6ad7b6e0caaa06120adeaebcdf63e0c4835d288"
+rev = "b4bebf6bd947d58b68a82efbe67af1f6d86f2338"
 digest = "9f29b4ad6a11a241f177742e7e6b6bfc28893aad392bf065cc543aab6fee19ff"
 
 [layers.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.3.2"
+tag = "v0.3.3"
 path = "profiles/automation"
 
 [[layers]]
 name = "committed"
-rev = "e6ad7b6e0caaa06120adeaebcdf63e0c4835d288"
+rev = "b4bebf6bd947d58b68a82efbe67af1f6d86f2338"
 digest = "6f4ef91ab827cb6fa20d8cb725c0a1ef795127d1c34399e40ff45aa674b9f565"
 
 [layers.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.3.2"
+tag = "v0.3.3"
 path = "profiles/committed"
 
 [[layers]]
 name = "typos"
-rev = "e6ad7b6e0caaa06120adeaebcdf63e0c4835d288"
+rev = "b4bebf6bd947d58b68a82efbe67af1f6d86f2338"
 digest = "4a845713ce85af4c9718d0cadb470f1bea46c84095344e0ff8b37164014c942c"
 
 [layers.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.3.2"
+tag = "v0.3.3"
 path = "profiles/typos"
 
 [[layers]]
 name = "clippy"
-rev = "e6ad7b6e0caaa06120adeaebcdf63e0c4835d288"
+rev = "b4bebf6bd947d58b68a82efbe67af1f6d86f2338"
 digest = "944c0c7ab700d783d0294bbc93821261fc0e17a00736a447c9b2e97b1a3816b5"
 
 [layers.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.3.2"
+tag = "v0.3.3"
 path = "profiles/clippy"
 
 [[layers]]
 name = "rustdoc"
-rev = "e6ad7b6e0caaa06120adeaebcdf63e0c4835d288"
+rev = "b4bebf6bd947d58b68a82efbe67af1f6d86f2338"
 digest = "3aef3f90fdf02204df98f1855a5cd8cde3abd910c5f916d2397be980cedf6e10"
 
 [layers.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.3.2"
+tag = "v0.3.3"
 path = "profiles/rustdoc"
 
 [[layers]]
 name = "rustfmt"
-rev = "e6ad7b6e0caaa06120adeaebcdf63e0c4835d288"
+rev = "b4bebf6bd947d58b68a82efbe67af1f6d86f2338"
 digest = "437e7d7b6460e9eb1393fd56da895af5d63927b584ef2fdfd4b1c23eec09f125"
 
 [layers.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.3.2"
+tag = "v0.3.3"
 path = "profiles/rustfmt"
 
 [[layers]]
 name = "lints"
-rev = "e6ad7b6e0caaa06120adeaebcdf63e0c4835d288"
+rev = "b4bebf6bd947d58b68a82efbe67af1f6d86f2338"
 digest = "ca5c23b256ade4250546cbf8ef062534664884ee2355ec23dbb08368aec5ed51"
 
 [layers.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.3.2"
+tag = "v0.3.3"
 path = "profiles/lints"
 
 [[layers]]
 name = "lints-nightly"
-rev = "e6ad7b6e0caaa06120adeaebcdf63e0c4835d288"
+rev = "b4bebf6bd947d58b68a82efbe67af1f6d86f2338"
 digest = "ec070c1727330039b16f8380416d2242286959ab202dd76488e18c041774bbab"
 
 [layers.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.3.2"
+tag = "v0.3.3"
 path = "profiles/lints-nightly"
 
 [[layers]]
 name = "cargo-profiles"
-rev = "e6ad7b6e0caaa06120adeaebcdf63e0c4835d288"
+rev = "b4bebf6bd947d58b68a82efbe67af1f6d86f2338"
 digest = "dd7ca6a4d849d3f1230e024dd6e7f81a2577c2bb600a8252b044db455e37e6b8"
 
 [layers.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.3.2"
+tag = "v0.3.3"
 path = "profiles/cargo-profiles"
 
 [[layers]]
 name = "cargo-deny"
-rev = "e6ad7b6e0caaa06120adeaebcdf63e0c4835d288"
+rev = "b4bebf6bd947d58b68a82efbe67af1f6d86f2338"
 digest = "a94eb9d69a29cee963d33c1e141d0bd789598fb39e1d691a18cd7cfed45d69a9"
 
 [layers.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.3.2"
+tag = "v0.3.3"
 path = "profiles/cargo-deny"
 
 [[layers]]
 name = "cargo-machete"
-rev = "e6ad7b6e0caaa06120adeaebcdf63e0c4835d288"
+rev = "b4bebf6bd947d58b68a82efbe67af1f6d86f2338"
 digest = "6c8d954f0e6925c2e5b165efe5c519649fdae69f0806803a187f7ef424befdf5"
 
 [layers.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.3.2"
+tag = "v0.3.3"
 path = "profiles/cargo-machete"
 
 [[layers]]
 name = "cargo-shear"
-rev = "e6ad7b6e0caaa06120adeaebcdf63e0c4835d288"
+rev = "b4bebf6bd947d58b68a82efbe67af1f6d86f2338"
 digest = "7f6fea65c605f127ff25fbc5d0226236a67a2b5eb76fc48ac0ceeb7097d38af4"
 
 [layers.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.3.2"
+tag = "v0.3.3"
 path = "profiles/cargo-shear"
 
 [[layers]]
 name = "cargo-workspace-lints"
-rev = "e6ad7b6e0caaa06120adeaebcdf63e0c4835d288"
+rev = "b4bebf6bd947d58b68a82efbe67af1f6d86f2338"
 digest = "f78ba2fd02a9515e4f673303c5a2c9a345fd2dc6c13b060ebccecadb38a1e193"
 
 [layers.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.3.2"
+tag = "v0.3.3"
 path = "profiles/cargo-workspace-lints"
 
 [[layers]]
 name = "cargo-hack"
-rev = "e6ad7b6e0caaa06120adeaebcdf63e0c4835d288"
+rev = "b4bebf6bd947d58b68a82efbe67af1f6d86f2338"
 digest = "a3f677bf114a043cfd9850c29f619f97f28a99d2662db5a87f5434f2db1e78be"
 
 [layers.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.3.2"
+tag = "v0.3.3"
 path = "profiles/cargo-hack"
 
 [[layers]]
 name = "cargo-bump"
-rev = "e6ad7b6e0caaa06120adeaebcdf63e0c4835d288"
+rev = "b4bebf6bd947d58b68a82efbe67af1f6d86f2338"
 digest = "43e3d8798070bb7ad09c3a8ceb9762ddc00a8efbbaac358b0b3245c75e1b7ced"
 
 [layers.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.3.2"
+tag = "v0.3.3"
 path = "profiles/cargo-bump"
 
 [[layers]]
 name = "manifest-lint"
-rev = "e6ad7b6e0caaa06120adeaebcdf63e0c4835d288"
+rev = "b4bebf6bd947d58b68a82efbe67af1f6d86f2338"
 digest = "994173510312a51d42c5f7df9d1e19be489d0b548cb0493828db8061370e017d"
 
 [layers.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.3.2"
+tag = "v0.3.3"
 path = "profiles/manifest-lint"
 
 [[layers]]
 name = "nextest"
-rev = "e6ad7b6e0caaa06120adeaebcdf63e0c4835d288"
+rev = "b4bebf6bd947d58b68a82efbe67af1f6d86f2338"
 digest = "ff4e7eed9978e357a1924363e4d3318fc52739aa12dd34af89f0036fbe509106"
 
 [layers.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.3.2"
+tag = "v0.3.3"
 path = "profiles/nextest"
 
 [[layers]]
 name = "taplo"
-rev = "e6ad7b6e0caaa06120adeaebcdf63e0c4835d288"
+rev = "b4bebf6bd947d58b68a82efbe67af1f6d86f2338"
 digest = "0a4baa89971ebd2e9c90cb0ebf1c0c55ab2a9e1a9149029fa2a27cd278c87e97"
 
 [layers.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.3.2"
+tag = "v0.3.3"
 path = "profiles/taplo"
 
 [[layers]]
 name = "dprint"
-rev = "e6ad7b6e0caaa06120adeaebcdf63e0c4835d288"
+rev = "b4bebf6bd947d58b68a82efbe67af1f6d86f2338"
 digest = "63e461c2681418dc0d89853449bc6a33a87253857ae5e0a032b207ba8aced373"
 
 [layers.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.3.2"
+tag = "v0.3.3"
 path = "profiles/dprint"
 
 [[layers]]
 name = "rumdl"
-rev = "e6ad7b6e0caaa06120adeaebcdf63e0c4835d288"
+rev = "b4bebf6bd947d58b68a82efbe67af1f6d86f2338"
 digest = "50022eedffc612f4e0bc888b90f4544a53dc4797f4a82ca10a8294d36cbcc703"
 
 [layers.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.3.2"
+tag = "v0.3.3"
 path = "profiles/rumdl"
 
 [[layers]]
 name = "ruff"
-rev = "e6ad7b6e0caaa06120adeaebcdf63e0c4835d288"
+rev = "b4bebf6bd947d58b68a82efbe67af1f6d86f2338"
 digest = "86e44aa99fc31e6b9e997ab55b0a3a8dc1bbdc3fb44471aa29a584a0f9eb0828"
 
 [layers.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.3.2"
+tag = "v0.3.3"
 path = "profiles/ruff"
 
 [[layers]]
 name = "yamllint"
-rev = "e6ad7b6e0caaa06120adeaebcdf63e0c4835d288"
+rev = "b4bebf6bd947d58b68a82efbe67af1f6d86f2338"
 digest = "ec7619e9fdf19fb48ecb13450adf766882bdf52b53e8ac9b92274bf7bd77bec8"
 
 [layers.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.3.2"
+tag = "v0.3.3"
 path = "profiles/yamllint"
 
 [[layers]]
 name = "shellcheck"
-rev = "e6ad7b6e0caaa06120adeaebcdf63e0c4835d288"
+rev = "b4bebf6bd947d58b68a82efbe67af1f6d86f2338"
 digest = "2b7bb2311a37955cc4f0dd4a5dc6ffa057d567e2925fe44fe2dca98bcec674d6"
 
 [layers.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.3.2"
+tag = "v0.3.3"
 path = "profiles/shellcheck"
 
 [[layers]]
 name = "actionlint"
-rev = "e6ad7b6e0caaa06120adeaebcdf63e0c4835d288"
+rev = "b4bebf6bd947d58b68a82efbe67af1f6d86f2338"
 digest = "b5d0ada4eef2552eb2597b409a40e55264c704d49f52fbc97e4524c7d6b7260d"
 
 [layers.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.3.2"
+tag = "v0.3.3"
 path = "profiles/actionlint"
 
 [[layers]]
 name = "zizmor"
-rev = "e6ad7b6e0caaa06120adeaebcdf63e0c4835d288"
+rev = "b4bebf6bd947d58b68a82efbe67af1f6d86f2338"
 digest = "22646a76fc73ddec52f6093a6cad8c1949e740c0505c63ecb38476addf9c9545"
 
 [layers.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.3.2"
+tag = "v0.3.3"
 path = "profiles/zizmor"
 
 [[layers]]
 name = "conftest"
-rev = "e6ad7b6e0caaa06120adeaebcdf63e0c4835d288"
+rev = "b4bebf6bd947d58b68a82efbe67af1f6d86f2338"
 digest = "f02c8bf6cbc33c2e84f9d5ab8751adcd93211bcf7b558f684b9189210cbff4ca"
 
 [layers.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.3.2"
+tag = "v0.3.3"
 path = "profiles/conftest"
 
 [[layers]]
 name = "policies"
-rev = "e6ad7b6e0caaa06120adeaebcdf63e0c4835d288"
+rev = "b4bebf6bd947d58b68a82efbe67af1f6d86f2338"
 digest = "6ff3bfd53b2b67fba37201a2fc694529428bed4575b31418c12f3c59fda72fb6"
 
 [layers.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.3.2"
+tag = "v0.3.3"
 path = "profiles/policies"
 
 [[layers]]
 name = "suppressions"
-rev = "e6ad7b6e0caaa06120adeaebcdf63e0c4835d288"
+rev = "b4bebf6bd947d58b68a82efbe67af1f6d86f2338"
 digest = "6f73365a922de22b17431401ba6a44dcd2c4dc361e63ad99c3b1c6f89989bf2a"
 
 [layers.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.3.2"
+tag = "v0.3.3"
 path = "profiles/suppressions"
 
 [[layers]]
 name = "vscode-rust"
-rev = "e6ad7b6e0caaa06120adeaebcdf63e0c4835d288"
+rev = "b4bebf6bd947d58b68a82efbe67af1f6d86f2338"
 digest = "4b363c4af0701c9b02b5fde137c0baf57944a001a78f68c15267591a91478e4c"
 
 [layers.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.3.2"
+tag = "v0.3.3"
 path = "profiles/vscode-rust"
 
 [[layers]]
 name = "claude-skills"
-rev = "e6ad7b6e0caaa06120adeaebcdf63e0c4835d288"
+rev = "b4bebf6bd947d58b68a82efbe67af1f6d86f2338"
 digest = "cdbc453eface8b6e7cd16f9df567dcdeb9937e71d7afa6041f29430269705534"
 
 [layers.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.3.2"
+tag = "v0.3.3"
 path = "profiles/claude-skills"
 
 [[layers]]
 name = "rust"
-rev = "e6ad7b6e0caaa06120adeaebcdf63e0c4835d288"
+rev = "b4bebf6bd947d58b68a82efbe67af1f6d86f2338"
 digest = "2eca34b2bb2e812891a2dce7fea5f70979b7390d3216b6e8bfd1d0f3117b9b0c"
 
 [layers.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.3.2"
+tag = "v0.3.3"
 path = "profiles/rust"
 
 [[layers]]
 name = "msrv"
-rev = "e6ad7b6e0caaa06120adeaebcdf63e0c4835d288"
+rev = "b4bebf6bd947d58b68a82efbe67af1f6d86f2338"
 digest = "b30773816a228577859784d0d3adc7854b150ecc016ca3893aa7478f19946baf"
 
 [layers.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.3.2"
+tag = "v0.3.3"
 path = "profiles/msrv"
 
 [[layers]]
 name = "cargo-binaries"
-rev = "e6ad7b6e0caaa06120adeaebcdf63e0c4835d288"
+rev = "b4bebf6bd947d58b68a82efbe67af1f6d86f2338"
 digest = "164f17a27d65577151e9cbe5471356ce5e596b8337d6be36bad02e022e2dae9b"
 
 [layers.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.3.2"
+tag = "v0.3.3"
 path = "profiles/cargo-binaries"
 
 [[layers]]
 name = "crates-io"
-rev = "e6ad7b6e0caaa06120adeaebcdf63e0c4835d288"
-digest = "baa5960fbe002d86adac97c0ffa7169b3323761b606fee9e476a097969e9b9e7"
+rev = "b4bebf6bd947d58b68a82efbe67af1f6d86f2338"
+digest = "ecc39535f806e01884441625488027001b752ff54cd6ab506d439c6ae929fdc6"
 
 [layers.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.3.2"
+tag = "v0.3.3"
 path = "profiles/crates-io"
 
 [[layers]]
 name = "mdbook"
-rev = "e6ad7b6e0caaa06120adeaebcdf63e0c4835d288"
+rev = "b4bebf6bd947d58b68a82efbe67af1f6d86f2338"
 digest = "5a16c7a517ead8d6175d9e11a6091bbc938b8e53f4d163ea54ce41fae83c12b4"
 
 [layers.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.3.2"
+tag = "v0.3.3"
 path = "profiles/mdbook"
 
 [[layers]]
 name = "lychee"
-rev = "e6ad7b6e0caaa06120adeaebcdf63e0c4835d288"
+rev = "b4bebf6bd947d58b68a82efbe67af1f6d86f2338"
 digest = "3bfbefedce20f15bc2813953c1e7668c9e6b6637cb672ae84d9bf2bcc0d2a2df"
 
 [layers.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.3.2"
+tag = "v0.3.3"
 path = "profiles/lychee"
