@@ -135,8 +135,8 @@ impl Syntax {
             .collect())
     }
 
-    /// A document with each edit made, in order, as `payload` writes each: TOML and YAML keep the
-    /// layout of a value the payload gives, and TOML its arrays of tables.
+    /// A document with each edit made, in order, as `payload` writes each: a value the payload
+    /// gives keeps the payload's layout, and TOML its arrays of tables.
     fn apply(self, text: &str, edits: &[Edit<'_>], payload: &Written) -> Parsed<String> {
         match self {
             Self::Toml => toml::apply(text, edits, payload),
@@ -443,6 +443,36 @@ unsafe_code = \"deny\"
         );
         assert!(out.contains("\"editor.formatOnSave\": true"), "an owned key is set");
         assert!(out.contains("\"editor.tabSize\": 2"), "a nested key is added");
+    }
+
+    #[test]
+    fn json_new_keys_keep_the_payload_layout() {
+        let shape = keys("dprint.json");
+        let payload = "{\n  \"includes\": [\"**/*.md\"],\n  \"markdown\": { \"lineWidth\": 80, \"textWrap\": \"always\" }\n}\n";
+        let out = splice(
+            &shape,
+            "{\n  \"lineWidth\": 100,\n  \"includes\": [\"**/*.json\"]\n}\n",
+            payload,
+        );
+        assert!(
+            out.contains("\n  \"markdown\": { \"lineWidth\": 80, \"textWrap\": \"always\" }\n"),
+            "a key the file lacks is written whole, as the payload writes it: {out}"
+        );
+        assert!(
+            out.contains("\n  \"includes\": [\"**/*.md\"],\n"),
+            "and a value the file holds is replaced as the payload writes it: {out}"
+        );
+        let out = splice(&shape, "{\n  \"markdown\": { \"ours\": true }\n}\n", payload);
+        assert!(
+            out.contains("\"ours\": true") && out.contains("\"textWrap\": \"always\""),
+            "an object the file holds keeps its own keys beside the payload's: {out}"
+        );
+        let plugins = "{\n    \"plugins\": [\n        \"a\",\n        \"b\"\n    ]\n}\n";
+        let out = splice(&shape, "{\n  \"lineWidth\": 100\n}\n", plugins);
+        assert!(
+            out.contains("\n  \"plugins\": [\n      \"a\",\n      \"b\"\n  ]\n"),
+            "a value on several lines moves from the payload's indent to the file's: {out}"
+        );
     }
 
     #[test]
