@@ -13,9 +13,13 @@ breaking.
 
 ## What a Release Ships
 
-A GitHub Release, with the release's section of the changelog as its notes and
-the `devset` binary for each platform, archived as
-`devset-<version>-<target>.tar.xz` with a `.sha256` beside it:
+A GitHub Release, with the release's section of the changelog as its notes, the
+installer, `install.sh`, and the `devset` binary for each platform, archived as
+`devset-<version>-<target>.tar.xz` with a `.sha256` beside it. Every file it
+attaches carries a build attestation, which the installer checks where the
+GitHub CLI is logged in, and `gh attestation verify <file> --repo
+atomix-labs/devset` checks anywhere. Releases are immutable: once published, a
+release's files and tag cannot change.
 
 | Target                       | Built on           | Linked      |
 | ---------------------------- | ------------------ | ----------- |
@@ -52,11 +56,12 @@ Then both crates, `devset-core` and `devset-cli`, are published to
 4. Commit it as `chore(release): vx.y.z`, which the changelog leaves out; sign
    the tag, `git tag -s vx.y.z`; push the branch and the tag.
 5. The tag starts `release.yml`: `just package` builds the archives on each
-   platform, the GitHub Release is published with the notes and every archive
-   attached, and `just publish` publishes both crates to crates.io.
-6. Download an archive, check it against its `.sha256`, and run `devset
-   --version`; `cargo install --locked devset-cli` installs the same version
-   from crates.io.
+   platform, and puts the installer beside them; every file is attested, the
+   GitHub Release is published with the notes and every file attached, and `just
+   publish` publishes both crates to crates.io.
+6. Install the release with the installer, from the manual, into a scratch
+   directory, and run `devset --version`; `gh attestation verify` an archive;
+   `cargo install --locked devset-cli` installs the same version from crates.io.
 
 ## Crates.io
 

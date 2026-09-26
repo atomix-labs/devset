@@ -6,17 +6,25 @@
 [Manual] · [Changelog] · [Breaking Changes] · [Architecture] · [Contributing] ·
 [Report a bug] · [Request a feature]
 
-devset applies a versioned bundle of files to a directory, records exactly what
-it wrote, and updates it later without destroying local edits.
+devset applies versioned bundles of files to a directory, records exactly what
+it wrote, and updates them later without destroying local edits.
 
-Keep formatter settings, lint rules, dependency policy, editor settings and CI
-workflows in one place, shared by every repository, while each keeps the local
-content it needs. [atxp] is a collection of such bundles for Rust repositories.
+Keep formatter settings, lint rules, dependency policy, editor settings, CI
+workflows and documentation scaffolds in one place, shared by every repository,
+while each keeps the local content it needs. Profiles compose as crates do, with
+requirements and features, and do real work: they scaffold what a project lacks,
+wire up what it has, and keep their parts in sync. [atxp] is a collection of
+them for Rust repositories.
 
 ## Install
 
+```sh
+curl --proto '=https' --tlsv1.2 -fsSL https://atomix-labs.github.io/devset/install.sh | sh
+```
+
 A static binary for Linux, on x86-64 and Arm, and one for macOS on Apple
-silicon, with every [release][releases]; or a build from [crates.io][crates]:
+silicon, checked against its release's checksum and build attestation. The same
+binaries, or a build from [crates.io][crates]:
 
 ```sh
 mise use -g github:atomix-labs/devset   # the release's binary
@@ -29,36 +37,49 @@ The package is `devset-cli`; the binary is `devset`.
 
 ## Quick Start
 
-A profile is a directory: `profile.toml`, which says how devset manages each
-file, and `files/`, which holds them as a repository should have them.
+A target names its sources once, and applies profiles from them by name, with
+the features it wants:
+
+```sh
+devset new hello atxp/rust --git https://github.com/atomix-labs/atxp --tag v0.4.0 --features docs
+cd hello
+devset add atxp/mdbook --features katex
+```
+
+A profile is a directory in a source: `profile.toml`, which says how devset
+manages each file, and when, and `files/`, which holds them as a repository
+should have them.
 
 ```toml
-# ../profiles/base/profile.toml
 [profile]
 name = "base"
+
+[features]
+default = ["deny"]
+deny    = []
 
 [files.".editorconfig"]      # owned: the profile's, so an edit is drift
 
 [files."deny.toml"]
 policy = "merge"             # the repository's edits are kept, and merged
+when   = { features = ["deny"] }
 ```
 
-In a repository, apply it, and later take its changes:
-
-```console
-$ devset init --path ../profiles/base
-     Created .editorconfig
-     Created deny.toml
-    Finished 2 changes
-```
+Then, in CI and later:
 
 ```sh
 devset status --exit-code     # in CI: fails when a file has drifted
-devset update                 # later: takes the profile's changes, merging your edits
+devset update                 # later: takes the sources' changes, merging your edits
 ```
 
 ## What It Does
 
+- **Composes like crates.** Sources are named once; profiles require others by
+  name, and offer features that unify across every requirer, as Cargo's do.
+- **Does real work.** A scaffold writes starter files once, where the project
+  has none of its own; a gate applies an entry only when a feature is on, a
+  profile is there, or a file will exist; a starter and every profile's part of
+  a file are written in one run.
 - **Tracks what it wrote.** `.devset/` records every file's bytes, so devset
   tells a local edit from a profile's change, and a reformatted file from an
   edited one.
@@ -69,15 +90,14 @@ devset update                 # later: takes the profile's changes, merging your
 - **Merges safely.** An update merges three ways against the bytes devset wrote,
   checks that a merged TOML, JSON or YAML file still parses with no duplicate
   key, and leaves a conflict beside the file, never in it.
-- **Composes.** Profiles layer, and require one another, so a team builds on a
-  shared collection instead of copying it.
 - **Runs nothing.** A profile is data: devset never runs a program a profile
   names.
 
 ## Documentation
 
-- [The manual][Manual]: getting started, profiles, parts, templates, composing,
-  updating and merging, settings, state, CI, and every command.
+- [The manual][Manual]: getting started, profiles, parts, templates, gates and
+  scaffolds, composing and designing profiles, updating and merging, settings,
+  state, CI, and every command.
 - [ARCHITECTURE.md][Architecture]: how devset is built, from the crates to the
   chain every command runs.
 - [CONTRIBUTING.md][Contributing]: how to change devset, the commit convention,

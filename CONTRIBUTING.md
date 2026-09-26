@@ -56,8 +56,8 @@ a change to:
 
 - a command or a flag, removed, renamed, or doing something else;
 - output others parse: `status --json`, and the exit codes;
-- a file people write, `profile.toml` or `.devset/config.toml`, where a file
-  that worked no longer does;
+- a file people write, `profile.toml`, `collection.toml` or
+  `.devset/config.toml`, where a file that worked no longer does;
 - what `.devset/` records, where a target's state must be written again;
 - `devset-core`'s public API.
 
