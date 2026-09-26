@@ -3,6 +3,14 @@
 Every release, newest first, written by [git-cliff](https://git-cliff.org) from the commits.
 [BREAKING-CHANGES.md](BREAKING-CHANGES.md) says how to move across a breaking change.
 
+## [0.2.2](https://github.com/atomix-labs/devset/releases/tag/v0.2.2) - 2026-09-26
+
+### Bug Fixes
+
+- [a1125ad](https://github.com/atomix-labs/devset/commit/a1125ade26261616f6b539e219ad5a2dc3eaca8a) *(devset-core)* Write an array of TOML tables as its payload writes it
+
+**Full Changelog**: <https://github.com/atomix-labs/devset/compare/v0.2.1...v0.2.2>
+
 ## [0.2.1](https://github.com/atomix-labs/devset/releases/tag/v0.2.1) - 2026-09-26
 
 ### Bug Fixes
