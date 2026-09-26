@@ -8,6 +8,25 @@ check-docs:
 fix-docs:
     mise exec -- python3 scripts/docs.py fix
 
+# Puts the installer, which the manual serves too, among what a release attaches.
+package-installer:
+    mkdir -p dist
+    cp docs/src/install.sh dist/install.sh
+
+# Installs the latest release and a pinned one with the installer, into a scratch directory, and
+# takes one away again; the network's, so nightly.
+nightly-installer:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    dir=$(mktemp -d)
+    trap 'rm -rf "$dir"' EXIT
+    sh docs/src/install.sh -b "$dir"
+    "$dir/devset" --version
+    sh docs/src/install.sh -v 0.1.3 -b "$dir"
+    [[ $("$dir/devset" --version) == "devset 0.1.3" ]]
+    sh docs/src/install.sh --uninstall -b "$dir"
+    [[ ! -e $dir/devset ]]
+
 # Points the manual's pinned install at v$RELEASE_VERSION.
 release-docs:
     #!/usr/bin/env bash
