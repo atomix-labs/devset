@@ -433,6 +433,16 @@ pub enum TargetError {
         /// The layer's profile.
         layer: ProfileName,
     },
+    /// A feature to turn off that the layer does not list.
+    #[error("the layer {layer} does not list the feature {feature}")]
+    NotListed {
+        /// The layer's profile.
+        layer: ProfileName,
+        /// The feature.
+        feature: FeatureName,
+        /// The features the layer lists.
+        listed: Vec<FeatureName>,
+    },
     /// No layer, and no source, has the name asked for.
     #[error("no layer is named {name}")]
     NoSuchLayer {

@@ -139,6 +139,21 @@ atxp/rust  [docs]
     docs  <- target
 ```
 
+`devset add` changes a layer's features as `cargo add` changes a dependency's:
+on a profile the target already applies, `--features` turns more on, and
+`--no-default-features` and `--default-features` switch its defaults. A profile
+active only because another requires it becomes a layer of its own when you add
+features to it.
+
+`devset remove <layer> --features` turns off features the layer lists, and keeps
+the layer; a feature a requirer or the defaults turn on stays on, and devset
+says which.
+
+```sh
+devset add atxp/mdbook --features mermaid
+devset remove mdbook --features mermaid
+```
+
 devset refuses a graph that cannot hold: a cycle of requirements, a profile
 named twice from two sources, or listed as two layers, one source at two refs,
 and two required profiles that provide the same file.

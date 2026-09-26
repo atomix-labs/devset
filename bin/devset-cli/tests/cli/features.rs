@@ -76,3 +76,28 @@ fn a_feature_turned_off_releases_what_it_added() {
     log += &sb.devset("repo", &["add", "p/ci", "--features", "nihgtly"]);
     sb.assert(&log, snapbox::file!["snapshots/a_feature_turned_off_releases_what_it_added.txt"]);
 }
+
+#[test]
+fn add_and_remove_change_a_layers_features() {
+    let sb = Sandbox::new();
+    source(&sb);
+    let mut log = sb.devset("repo", &["init", "p/rust", "--path", "../p"]);
+    log += &sb.devset("repo", &["add", "p/rust", "--features", "docs"]);
+    assert!(sb.path("repo/pages.yml").exists(), "a feature added to a layer applies");
+    log += &sb.devset("repo", &["add", "p/rust", "--features", "docs"]);
+    log += &sb.devset("repo", &["add", "p/rust"]);
+    log += &sb.devset("repo", &["remove", "rust", "--features", "nightly"]);
+    log += &sb.devset("repo", &["remove", "rust", "--features", "docs"]);
+    assert!(!sb.path("repo/pages.yml").exists(), "and a feature removed from it goes");
+    write!(log, "--- .devset/config.toml\n{}", sb.read("repo/.devset/config.toml")).unwrap();
+
+    log += &sb.devset("book", &["init", "p/book", "--path", "../p"]);
+    log += &sb.devset("book", &["add", "p/book", "--no-default-features"]);
+    assert!(!sb.path("book/katex.css").exists(), "its default features go");
+    log += &sb.devset("book", &["remove", "book", "--features", "katex"]);
+    log += &sb.devset("book", &["add", "p/book", "--default-features", "--features", "katex"]);
+    log += &sb.devset("book", &["remove", "book", "--features", "katex"]);
+    assert!(sb.path("book/katex.css").exists(), "a feature on by default stays on");
+    write!(log, "--- .devset/config.toml\n{}", sb.read("book/.devset/config.toml")).unwrap();
+    sb.assert(&log, snapbox::file!["snapshots/add_and_remove_change_a_layers_features.txt"]);
+}

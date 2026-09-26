@@ -20,7 +20,7 @@ use derive_more::Display;
 use schemars::JsonSchema;
 use serde::de::{self, DeserializeOwned};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
-use toml_edit::{ArrayOfTables, DocumentMut, Item, Table, TomlError, Value, ser};
+use toml_edit::{Array, ArrayOfTables, DocumentMut, Item, Table, TableLike, TomlError, Value, ser};
 
 use crate::digest::{Digest, Fingerprint};
 use crate::errors::{ParseError, Result, TargetError};
@@ -351,6 +351,89 @@ impl Target {
         })
     }
 
+    /// Turns on `features` of the layer that applies the profile named `name`, beside those it
+    /// lists, and its default features on or off where `defaults` says; written by the next
+    /// [`commit`](crate::commit()). Returns what changed: the features it did not list, and the
+    /// defaults, where they change.
+    ///
+    /// # Errors
+    /// - [`TargetError::NoSuchLayer`], no layer applies the profile.
+    /// - [`Error::Parse`](crate::Error::Parse), as [`remove_layer`](Self::remove_layer).
+    pub fn turn_on(
+        &mut self, name: &ProfileName, features: &[FeatureName], defaults: Option<bool>,
+    ) -> Result<(Vec<FeatureName>, Option<bool>)> {
+        let (index, layer) = self.find_layer(name)?;
+        let mut listed = layer.features.clone();
+        let added: Vec<FeatureName> =
+            features.iter().filter(|feature| !listed.contains(feature)).cloned().collect();
+        listed.extend(added.iter().cloned());
+        let defaults = defaults.filter(|&on| on != layer.default_features);
+        if !added.is_empty() || defaults.is_some() {
+            self.edit_layer(index, |table| {
+                set_features(table, &listed);
+                match defaults {
+                    Some(true) => {
+                        table.remove("default-features");
+                    },
+                    Some(false) => {
+                        table.insert("default-features", toml_edit::value(false));
+                    },
+                    None => {},
+                }
+            })?;
+        }
+        Ok((added, defaults))
+    }
+
+    /// Turns off `features` of the layer that applies the profile named `name`: takes them out of
+    /// those it lists; written by the next [`commit`](crate::commit()). The layer stays.
+    ///
+    /// # Errors
+    /// - [`TargetError::NoSuchLayer`], no layer applies the profile.
+    /// - [`TargetError::NotListed`], the layer does not list one of `features`.
+    /// - [`Error::Parse`](crate::Error::Parse), as [`remove_layer`](Self::remove_layer).
+    pub fn turn_off(&mut self, name: &ProfileName, features: &[FeatureName]) -> Result<()> {
+        let (index, layer) = self.find_layer(name)?;
+        if let Some(feature) = features.iter().find(|feature| !layer.features.contains(feature)) {
+            let (feature, listed) = (feature.clone(), layer.features.clone());
+            return Err(TargetError::NotListed { layer: name.clone(), feature, listed }.into());
+        }
+        let listed: Vec<FeatureName> =
+            layer.features.into_iter().filter(|feature| !features.contains(feature)).collect();
+        self.edit_layer(index, |table| set_features(table, &listed))
+    }
+
+    /// The position of the layer that applies the profile named `name`, and the layer.
+    fn find_layer(&self, name: &ProfileName) -> Result<(usize, LayerSpec)> {
+        let layers = &self.config.layers;
+        let found = layers.iter().enumerate().find(|(_, layer)| layer.profile.profile == *name);
+        found.map(|(index, layer)| (index, layer.clone())).ok_or_else(|| {
+            let names = layers.iter().map(|layer| layer.profile.profile.to_string()).collect();
+            TargetError::NoSuchLayer { name: name.to_string(), names }.into()
+        })
+    }
+
+    /// Applies `edit` to the `index`th layer's table in `config.toml`.
+    fn edit_layer(&mut self, index: usize, edit: impl FnOnce(&mut dyn TableLike)) -> Result<()> {
+        self.edit("`layers` must be a list of tables", |doc| {
+            let table: &mut dyn TableLike = match doc.get_mut("layers") {
+                Some(Item::ArrayOfTables(layers)) => match layers.get_mut(index) {
+                    Some(layer) => layer,
+                    None => return false,
+                },
+                Some(Item::Value(Value::Array(layers))) => {
+                    match layers.get_mut(index).and_then(Value::as_inline_table_mut) {
+                        Some(layer) => layer,
+                        None => return false,
+                    }
+                },
+                Some(_) | None => return false,
+            };
+            edit(table);
+            true
+        })
+    }
+
     /// Removes the `[files."path"]` override; written by the next [`commit`](crate::commit()).
     ///
     /// # Errors
@@ -523,6 +606,27 @@ impl Target {
             given: BTreeSet::new(),
             rescaffold: BTreeSet::new(),
         })
+    }
+}
+
+/// Writes `features` as the layer's `features`, in the file's form where it has one; none takes
+/// the key out.
+fn set_features(table: &mut dyn TableLike, features: &[FeatureName]) {
+    if features.is_empty() {
+        table.remove("features");
+        return;
+    }
+    let mut array: Array = features.iter().map(FeatureName::as_str).collect();
+    array.fmt();
+    match table.get_mut("features").and_then(Item::as_value_mut) {
+        Some(value) => {
+            let decor = value.decor().clone();
+            *value = Value::Array(array);
+            *value.decor_mut() = decor;
+        },
+        None => {
+            table.insert("features", toml_edit::value(array));
+        },
     }
 }
 

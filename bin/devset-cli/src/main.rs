@@ -30,7 +30,7 @@ use camino::{Utf8Component, Utf8Path, Utf8PathBuf};
 use clap::{CommandFactory, Parser};
 use clap_cargo::style::GOOD;
 use devset_core::collection::{self, CollectionFile, Listing};
-use devset_core::name::{ProfileName, ProfileRef, SourceName};
+use devset_core::name::{FeatureName, ProfileName, ProfileRef, SourceName};
 use devset_core::profile::{Manifest, VarName};
 use devset_core::source::{Source, SourceSpec};
 use devset_core::target::{Config, LayerSpec};
@@ -85,18 +85,32 @@ fn run(shell: &Shell, command: Command) -> Result<ExitCode, Error> {
         Command::Init { add, answers, dry_run } => {
             start(shell, (&cwd, Utf8Path::new("")), &cache()?, add, answers, dry_run)
         },
-        Command::Add { add, answers, dry_run } => {
+        Command::Add { add, default_features, answers, dry_run } => {
             let mut target = Target::find(&cwd)?;
             let cache = cache()?;
+            let defaults = match (add.no_default_features, default_features) {
+                (true, _) => Some(false),
+                (false, true) => Some(true),
+                (false, false) => None,
+            };
             if let Some(layer) = layer(&mut target, &cache, add, &cwd)? {
-                target.add_layer(layer)?;
+                let applied = target.layer(&layer.profile.profile).map(|l| l.profile.clone());
+                if applied.as_ref() == Some(&layer.profile) {
+                    turn_on(shell, &mut target, &layer, defaults, dry_run)?;
+                } else {
+                    target.add_layer(layer)?;
+                }
             }
             apply(shell, &mut target, &cache, (Refresh::None, Mode::Apply), answers, dry_run)
         },
-        Command::Remove { layer, dry_run } => {
+        Command::Remove { layer, features, dry_run } => {
             let mut target = Target::find(&cwd)?;
             let cache = cache()?;
-            remove(shell, &mut target, &cache, &layer, dry_run)?;
+            if features.is_empty() {
+                remove(shell, &mut target, &cache, &layer, dry_run)?;
+            } else {
+                turn_off(shell, &mut target, &cache, (&layer, &features), dry_run)?;
+            }
             let how = (Refresh::None, Mode::Apply);
             apply(shell, &mut target, &cache, how, Answers::default(), dry_run)
         },
@@ -248,6 +262,71 @@ fn derive(spec: &SourceSpec) -> Result<SourceName, Error> {
     Ok(last.trim_end_matches(".git").parse()?)
 }
 
+/// Turns on the features `layer` names of the layer the target applies already, and its default
+/// features where `defaults` says, reporting each change.
+fn turn_on(
+    shell: &Shell, target: &mut Target, layer: &LayerSpec, defaults: Option<bool>, dry_run: bool,
+) -> Result<(), Error> {
+    let (name, profile) = (&layer.profile.profile, &layer.profile);
+    if layer.features.is_empty() && defaults.is_none() {
+        return Err(TargetError::DuplicateLayer { layer: name.clone() }.into());
+    }
+    let (added, defaults) = target.turn_on(name, &layer.features, defaults)?;
+    let (verb, what) = if dry_run { ("Would", "add ") } else { ("Adding", "") };
+    for feature in &added {
+        shell.status(verb, GOOD, format_args!("{what}feature {feature} to layer {profile}"))?;
+    }
+    if let Some(on) = defaults {
+        let how = if on { "on" } else { "off" };
+        let (verb, what) = if dry_run { ("Would", "turn ") } else { ("Turning", "") };
+        shell.status(verb, GOOD, format_args!("{what}{how} the default features of {profile}"))?;
+    }
+    if added.is_empty() && defaults.is_none() {
+        shell.note(&format!("the layer {profile} already turns these on"), None)?;
+    }
+    Ok(())
+}
+
+/// Turns off `features` of the layer applying the profile `name`, which stays, reporting each; and
+/// notes a feature that stays on, since something else turns it on.
+fn turn_off(
+    shell: &Shell, target: &mut Target, cache: &Cache,
+    (name, features): (&ProfileName, &[FeatureName]), dry_run: bool,
+) -> Result<(), Error> {
+    let profile = match target.layer(name) {
+        Some(layer) => layer.profile.clone(),
+        None => return Err(missing(target, cache, name)),
+    };
+    target.turn_off(name, features)?;
+    let (verb, what) = if dry_run { ("Would", "remove ") } else { ("Removing", "") };
+    for feature in features {
+        shell.status(verb, GOOD, format_args!("{what}feature {feature} from layer {profile}"))?;
+    }
+    // Any error is the apply's that follows to report.
+    let on = resolve(target, cache, Refresh::None)
+        .ok()
+        .and_then(|resolved| resolved.layer(name.as_str()).map(|layer| layer.features().clone()));
+    for feature in features {
+        if let Some(by) = on.as_ref().and_then(|on| on.get(feature)) {
+            let by: Vec<String> = by.iter().map(ToString::to_string).collect();
+            shell.note(&format!("{feature} stays on: {} turns it on", by.join(", ")), None)?;
+        }
+    }
+    Ok(())
+}
+
+/// Why the target has no layer named `name`: a profile requires it, or no layer is named so.
+fn missing(target: &Target, cache: &Cache, name: &ProfileName) -> Error {
+    let required = resolve(target, cache, Refresh::None).ok().and_then(|resolved| {
+        resolved.layer(name.as_str()).and_then(|layer| layer.required_by().first().cloned())
+    });
+    if let Some(by) = required {
+        return TargetError::Required { name: name.clone(), by }.into();
+    }
+    let names = target.config().layers.iter().map(|layer| layer.profile.profile.to_string());
+    TargetError::NoSuchLayer { name: name.to_string(), names: names.collect() }.into()
+}
+
 /// Reports where the target stands; with `exit_code`, fails when `apply --force` would write or
 /// an update is unfinished.
 fn status(
@@ -330,14 +409,7 @@ fn remove(
 ) -> Result<(), Error> {
     let (verb, what) = if dry_run { ("Would", "remove ") } else { ("Removing", "") };
     let Some(layer) = target.layer(name) else {
-        let resolved = resolve(target, cache, Refresh::None)?;
-        if let Some(by) = resolved.layer(name.as_str()).and_then(|l| l.required_by().first()) {
-            return Err(TargetError::Required { name: name.clone(), by: by.clone() }.into());
-        }
-        let names = target.config().layers.iter().map(|l| l.profile.profile.to_string());
-        return Err(
-            TargetError::NoSuchLayer { name: name.to_string(), names: names.collect() }.into()
-        );
+        return Err(missing(target, cache, name));
     };
     let profile = layer.profile.clone();
     target.remove_layer(name)?;

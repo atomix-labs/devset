@@ -80,20 +80,24 @@ Examples:
         #[arg(long)]
         dry_run: bool,
     },
-    /// Add a profile as a layer, and apply it.
+    /// Add a profile as a layer, or features to a layer, and apply it.
     #[command(
         group(ArgGroup::new("what").required(true).multiple(true).args(["layer", "git", "path"])),
         after_help = "\
 Examples:
-  devset add atxp/mdbook                    from a source the target names
-  devset add atxp/mdbook --features katex   with features beside the defaults
+  devset add atxp/mdbook                      from a source the target names
+  devset add atxp/mdbook --features katex     with features beside the defaults
+  devset add atxp/mdbook --features mermaid   a feature, to a layer already applied
   devset add house/deploy --git git@github.com:acme/profiles --branch main
-  devset add --path ../profiles/base        a source holding one profile"
+  devset add --path ../profiles/base          a source holding one profile"
     )]
     Add {
         /// The layer.
         #[command(flatten)]
         add: AddArgs,
+        /// Turn a layer's default features back on.
+        #[arg(long, help_heading = "Features", conflicts_with = "no_default_features")]
+        default_features: bool,
         /// Answers to its variables.
         #[command(flatten)]
         answers: Answers,
@@ -101,14 +105,19 @@ Examples:
         #[arg(long)]
         dry_run: bool,
     },
-    /// Remove a layer: its unchanged files go, and edited ones stay, untracked.
+    /// Remove a layer, or features from one: unchanged files go, edited ones stay.
     #[command(after_help = "\
 Examples:
-  devset remove mdbook             by its profile's name
-  devset remove mdbook --dry-run   what would change")]
+  devset remove mdbook                      by its profile's name
+  devset remove mdbook --features mermaid   a feature, keeping the layer
+  devset remove mdbook --dry-run            what would change")]
     Remove {
         /// The layer, by its profile's name.
         layer: ProfileName,
+        /// Only these features, which the layer lists; the layer stays. Comma-separated or
+        /// repeated.
+        #[arg(long, short = 'F', value_delimiter = ',', help_heading = "Features")]
+        features: Vec<FeatureName>,
         /// Show what would change; write nothing.
         #[arg(long)]
         dry_run: bool,

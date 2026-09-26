@@ -3,7 +3,7 @@
 <!-- reference: written by `just fix-docs` from `devset add --help` -->
 
 ```text
-Add a profile as a layer, and apply it
+Add a profile as a layer, or features to a layer, and apply it
 
 Usage: devset add [OPTIONS] <LAYER|--git <GIT>|--path <PATH>>
 
@@ -26,6 +26,7 @@ Features:
   -F, --features <FEATURES>  Features to turn on, beside the default ones; comma-separated or
                              repeated
       --no-default-features  Leave the profile's default features off
+      --default-features     Turn a layer's default features back on
 
 Variables:
       --var <NAME=VALUE>  Answer a profile variable; repeatable
@@ -37,8 +38,9 @@ Global Options:
       --no-color  Never colour output
 
 Examples:
-  devset add atxp/mdbook                    from a source the target names
-  devset add atxp/mdbook --features katex   with features beside the defaults
+  devset add atxp/mdbook                      from a source the target names
+  devset add atxp/mdbook --features katex     with features beside the defaults
+  devset add atxp/mdbook --features mermaid   a feature, to a layer already applied
   devset add house/deploy --git git@github.com:acme/profiles --branch main
-  devset add --path ../profiles/base        a source holding one profile
+  devset add --path ../profiles/base          a source holding one profile
 ```

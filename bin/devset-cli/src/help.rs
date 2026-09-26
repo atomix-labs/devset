@@ -194,10 +194,23 @@ fn target(error: &TargetError) -> Option<String> {
         TargetError::Required { by, .. } => Some(format!("remove {by}, which brings it in")),
         TargetError::Busy => Some("wait for it to finish".into()),
         TargetError::Concurrent => Some("run the command again".into()),
+        TargetError::DuplicateLayer { layer } => {
+            Some(format!("turn on its features with `devset add {layer} --features <feature>`"))
+        },
         TargetError::LayerTwice { .. } => {
             Some("keep one [[layers]] entry for it, with the features of both".into())
         },
-        TargetError::DuplicateLayer { .. } | _ => None,
+        TargetError::NotListed { layer, feature, listed } => {
+            Some(match (nearest(feature, listed), listed.as_slice()) {
+                (Some(near), _) => format!("did you mean `{near}`?"),
+                (None, []) => format!(
+                    "it lists no features; a default one is turned off with `devset add {layer} \
+                     --no-default-features`"
+                ),
+                (None, _) => format!("it lists {}", list(listed)),
+            })
+        },
+        _ => None,
     }
 }
 

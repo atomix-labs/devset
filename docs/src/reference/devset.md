@@ -10,8 +10,8 @@ Usage: devset [OPTIONS] <COMMAND>
 Commands:
   new          Start a target in a new directory, or a profile or a collection to author
   init         Start a target in the current directory, with a first layer if given
-  add          Add a profile as a layer, and apply it
-  remove       Remove a layer: its unchanged files go, and edited ones stay, untracked
+  add          Add a profile as a layer, or features to a layer, and apply it
+  remove       Remove a layer, or features from one: unchanged files go, edited ones stay
   status       Show where every managed file stands against the profile
   diff         Show, line by line, how files differ from the profile
   apply        Apply the pinned profile without destroying local edits

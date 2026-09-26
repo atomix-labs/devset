@@ -51,6 +51,8 @@ $ devset init --path ../ok
 [exit 0]
 $ devset init --path ../ok
 error: the layer ok is already applied
+  |
+  = help: turn on its features with `devset add ok --features <feature>`
 [exit 2]
 $ devset init --path ../clash
 error: a.toml is provided by ok and clash

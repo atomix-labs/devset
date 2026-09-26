@@ -1,0 +1,99 @@
+$ devset init p/rust --path ../p
+     Created api.js
+     Created book.toml
+     Created katex.css
+     Created rustfmt.toml
+    Finished 4 changes
+[exit 0]
+$ devset add p/rust --features docs
+      Adding feature docs to layer p/rust
+     Created ci.yml
+     Created pages.yml
+    Finished 2 changes
+[exit 0]
+$ devset add p/rust --features docs
+    Finished up to date
+note: the layer p/rust already turns these on
+[exit 0]
+$ devset add p/rust
+error: the layer rust is already applied
+  |
+  = help: turn on its features with `devset add rust --features <feature>`
+[exit 2]
+$ devset remove rust --features nightly
+error: the layer rust does not list the feature nightly
+  |
+  = help: it lists docs
+[exit 2]
+$ devset remove rust --features docs
+    Removing feature docs from layer p/rust
+     Removed ci.yml
+     Removed pages.yml
+    Finished 2 changes
+[exit 0]
+--- .devset/config.toml
+# devset applies the profiles below to this directory, and keeps them up to date.
+# The manual: https://atomix-labs.github.io/devset/
+#
+# Where profiles come from, each named once: a git repository at a ref, or a directory.
+#
+#   [sources]
+#   atxp = { git = "https://github.com/atomix-labs/atxp", tag = "v0.4.0" }
+#
+# The profiles to apply, in order, by source and name, with the features to turn on.
+#
+#   [[layers]]
+#   profile  = "atxp/rust"
+#   features = ["docs"]
+
+[sources]
+p = { path = "../p" }
+
+[[layers]]
+profile = "p/rust"
+$ devset init p/book --path ../p
+     Created book.toml
+     Created katex.css
+    Finished 2 changes
+[exit 0]
+$ devset add p/book --no-default-features
+     Turning off the default features of p/book
+     Removed katex.css  (feature katex is off)
+    Finished 1 change
+[exit 0]
+$ devset remove book --features katex
+error: the layer book does not list the feature katex
+  |
+  = help: it lists no features; a default one is turned off with `devset add book --no-default-features`
+[exit 2]
+$ devset add p/book --default-features --features katex
+      Adding feature katex to layer p/book
+     Turning on the default features of p/book
+     Created katex.css
+    Finished 1 change
+[exit 0]
+$ devset remove book --features katex
+    Removing feature katex from layer p/book
+    Finished up to date
+note: katex stays on: default turns it on
+[exit 0]
+--- .devset/config.toml
+# devset applies the profiles below to this directory, and keeps them up to date.
+# The manual: https://atomix-labs.github.io/devset/
+#
+# Where profiles come from, each named once: a git repository at a ref, or a directory.
+#
+#   [sources]
+#   atxp = { git = "https://github.com/atomix-labs/atxp", tag = "v0.4.0" }
+#
+# The profiles to apply, in order, by source and name, with the features to turn on.
+#
+#   [[layers]]
+#   profile  = "atxp/rust"
+#   features = ["docs"]
+
+[sources]
+p = { path = "../p" }
+
+[[layers]]
+profile = "p/book"
