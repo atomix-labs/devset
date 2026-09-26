@@ -3,6 +3,14 @@
 Every release, newest first, written by [git-cliff](https://git-cliff.org) from the commits.
 [BREAKING-CHANGES.md](BREAKING-CHANGES.md) says how to move across a breaking change.
 
+## [0.2.1](https://github.com/atomix-labs/devset/releases/tag/v0.2.1) - 2026-09-26
+
+### Bug Fixes
+
+- [52539c5](https://github.com/atomix-labs/devset/commit/52539c52e1e4bfae2e92aaedc5377a46b2b00387) *(devset-core)* Write a JSON key a profile adds as its payload writes it
+
+**Full Changelog**: <https://github.com/atomix-labs/devset/compare/v0.2.0...v0.2.1>
+
 ## [0.2.0](https://github.com/atomix-labs/devset/releases/tag/v0.2.0) - 2026-09-26
 
 ### Features
