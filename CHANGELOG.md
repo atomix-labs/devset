@@ -3,6 +3,20 @@
 Every release, newest first, written by [git-cliff](https://git-cliff.org) from the commits.
 [BREAKING-CHANGES.md](BREAKING-CHANGES.md) says how to move across a breaking change.
 
+## [0.3.0](https://github.com/atomix-labs/devset/releases/tag/v0.3.0) - 2026-09-26
+
+### Features
+
+- [b8d1583](https://github.com/atomix-labs/devset/commit/b8d1583a97f23989630b044380137315d108c5a0) *(devset-cli)* Change a layer's features with add and remove
+- [050a7d3](https://github.com/atomix-labs/devset/commit/050a7d344faee6bee71c07727378b70051b1cb83) *(devset-core)* Align a TOML key with the table it joins
+
+### Bug Fixes
+
+- [03de9c1](https://github.com/atomix-labs/devset/commit/03de9c1cb0432781eaf6d54c97a00b91be4999b8) *(devset-core)* Refuse a layer listed twice **breaking**
+- [6e4d306](https://github.com/atomix-labs/devset/commit/6e4d306dbc6e417260fa95cec05260a193fc27c5) *(devset-core)* Fill a block whose markers the target wrote empty
+
+**Full Changelog**: <https://github.com/atomix-labs/devset/compare/v0.2.2...v0.3.0>
+
 ## [0.2.2](https://github.com/atomix-labs/devset/releases/tag/v0.2.2) - 2026-09-26
 
 ### Bug Fixes
