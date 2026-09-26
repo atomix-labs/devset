@@ -427,6 +427,12 @@ pub enum TargetError {
         /// The layer's profile.
         layer: ProfileName,
     },
+    /// `config.toml` lists one layer twice, which a layer's name must tell apart.
+    #[error("`config.toml` lists the layer {layer} twice")]
+    LayerTwice {
+        /// The layer's profile.
+        layer: ProfileName,
+    },
     /// No layer, and no source, has the name asked for.
     #[error("no layer is named {name}")]
     NoSuchLayer {

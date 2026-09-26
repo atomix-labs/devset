@@ -194,6 +194,9 @@ fn target(error: &TargetError) -> Option<String> {
         TargetError::Required { by, .. } => Some(format!("remove {by}, which brings it in")),
         TargetError::Busy => Some("wait for it to finish".into()),
         TargetError::Concurrent => Some("run the command again".into()),
+        TargetError::LayerTwice { .. } => {
+            Some("keep one [[layers]] entry for it, with the features of both".into())
+        },
         TargetError::DuplicateLayer { .. } | _ => None,
     }
 }

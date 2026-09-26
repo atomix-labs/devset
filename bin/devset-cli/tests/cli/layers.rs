@@ -176,3 +176,17 @@ fn requirements_are_refused_when_they_cannot_hold() {
     log += &sb.devset("r4", &["init", "--path", "../lost"]);
     sb.assert(&log, snapbox::file!["snapshots/requirements_are_refused_when_they_cannot_hold.txt"]);
 }
+
+#[test]
+fn a_layer_listed_twice_is_refused() {
+    let sb = Sandbox::new();
+    sb.profile("base", "base", &[("a.toml", "owned", "a\n")]);
+    sb.devset("repo", &["init", "--path", "../base"]);
+    sb.write(
+        "repo/.devset/config.toml",
+        &config(&[("base", "../base")], &["base/base", "base/base"]),
+    );
+    let log = sb.devset("repo", &["status"]);
+    assert!(log.contains("error: `config.toml` lists the layer base twice"), "{log}");
+    assert!(log.contains("keep one [[layers]] entry for it, with the features of both"), "{log}");
+}

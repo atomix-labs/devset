@@ -526,7 +526,8 @@ impl Target {
     }
 }
 
-/// `config.toml`, refused when it is devset 0.1's: its layers named locations.
+/// `config.toml`, refused when it is devset 0.1's, its layers named locations, or when it lists
+/// one layer twice.
 fn read_config(raw: &[u8]) -> Result<Config> {
     let file = label(CONFIG);
     let table: toml::Table = from_toml(raw, &file)?;
@@ -539,7 +540,12 @@ fn read_config(raw: &[u8]) -> Result<Config> {
     if layers.is_some_and(|layers| layers.iter().any(located)) {
         return Err(TargetError::OldConfig.into());
     }
-    from_toml(raw, &file)
+    let config: Config = from_toml(raw, &file)?;
+    let mut named = BTreeSet::new();
+    if let Some(layer) = config.layers.iter().find(|layer| !named.insert(&layer.profile.profile)) {
+        return Err(TargetError::LayerTwice { layer: layer.profile.profile.clone() }.into());
+    }
+    Ok(config)
 }
 
 /// `name` in `.devset/`, as users know it.

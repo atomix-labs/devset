@@ -140,5 +140,5 @@ atxp/rust  [docs]
 ```
 
 devset refuses a graph that cannot hold: a cycle of requirements, a profile
-named twice from two sources, one source at two refs, and two required profiles
-that provide the same file.
+named twice from two sources, or listed as two layers, one source at two refs,
+and two required profiles that provide the same file.

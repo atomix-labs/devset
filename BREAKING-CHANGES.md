@@ -6,11 +6,26 @@ change; this lists only those a user must act on.
 
 ## Summary
 
-| Release | Change                                                           | Who acts                         |
-| ------- | ---------------------------------------------------------------- | -------------------------------- |
-| v0.2.0  | [Profiles are named, in sources](#profiles-are-named-in-sources) | every target, every profile      |
-| v0.2.0  | [`update` moves sources](#update-moves-sources)                  | scripts that run `update <name>` |
-| v0.2.0  | [`devset-core`'s API](#the-api-of-devset-core)                   | callers of the library           |
+| Release | Change                                                              | Who acts                         |
+| ------- | ------------------------------------------------------------------- | -------------------------------- |
+| v0.3.0  | [A layer listed twice is refused](#a-layer-listed-twice-is-refused) | a target that lists one twice    |
+| v0.2.0  | [Profiles are named, in sources](#profiles-are-named-in-sources)    | every target, every profile      |
+| v0.2.0  | [`update` moves sources](#update-moves-sources)                     | scripts that run `update <name>` |
+| v0.2.0  | [`devset-core`'s API](#the-api-of-devset-core)                      | callers of the library           |
+
+## V0.3.0
+
+### A Layer Listed Twice Is Refused
+
+**What changed.** devset refuses a `.devset/config.toml` whose `[[layers]]` name
+one profile twice; it used to take the features of both without a word.
+
+**Why.** A layer is named by its profile, so two entries for one profile, each
+with its own features or `default-features`, say two things of one layer.
+
+**What to do.** Keep one `[[layers]]` entry for the profile, with the features
+of both. `devset add <source>/<profile> --features <feature>` now turns a
+feature on in the one entry.
 
 ## V0.2.0
 
