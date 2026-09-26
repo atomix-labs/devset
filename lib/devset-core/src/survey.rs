@@ -262,7 +262,12 @@ pub fn survey(resolved: Resolved, target: &Target) -> Result<Survey> {
             entry.keys.extend(shape.keys(&base));
         }
         let view = shape.view(bytes, &entry.keys, entry.path.as_str())?;
-        entry.found = view.as_deref().map(Fingerprint::of);
+        // Markers the target wrote with nothing between them place a block devset has yet to
+        // write: it is written there, not adopted as the target's edit.
+        let placed = part.scope == Scope::Block
+            && entry.record.is_none()
+            && view.as_deref().is_some_and(|body| body.trim_ascii().is_empty());
+        entry.found = if placed { None } else { view.as_deref().map(Fingerprint::of) };
     }
     starters(&mut entries);
     let Settled { scaffolds, gated, exists } = gate::settle(&mut entries, &resolved, target)?;

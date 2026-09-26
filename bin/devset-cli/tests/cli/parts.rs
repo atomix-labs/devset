@@ -275,6 +275,22 @@ fn blocks_are_marked_and_stay_where_moved() {
 }
 
 #[test]
+fn empty_markers_place_a_block() {
+    let sb = Sandbox::new();
+    sb.entries("rust", "rust", &[(".gitignore", "scope = \"block\"", "/target\n")]);
+    let placed = "# ours\n# >>> devset: rust >>>\n# <<< devset: rust <<<\n.env\n";
+    sb.write("repo/.gitignore", placed);
+    sb.devset("repo", &["init", "--path", "../rust"]);
+    assert_eq!(
+        sb.read("repo/.gitignore"),
+        "# ours\n# >>> devset: rust >>>\n/target\n# <<< devset: rust <<<\n.env\n",
+        "markers written with nothing between them are filled where they are"
+    );
+    let log = sb.devset("repo", &["status", "--exit-code"]);
+    assert!(log.contains("[exit 0]"), "and the block is in sync: {log}");
+}
+
+#[test]
 fn parts_keep_their_file_valid() {
     let sb = Sandbox::new();
     sb.entries("p", "p", &[("Cargo.toml", "scope = \"block\"", "[workspace]\nresolver = \"3\"\n")]);

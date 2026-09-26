@@ -73,6 +73,9 @@ and `Dockerfile`, or by extension; where it does not, `comment` on the entry
 names it: `#`, `//`, `--`, `;`, `%`, `/*` or `<!--`. The last two close their
 markers, as `<!-- >>> devset: badges >>> -->`.
 
+To place a block before devset first writes it, write its two markers with
+nothing between them: devset fills them where they are.
+
 ## Several Parts in One File
 
 Several layers may own parts of one file, in one scope, so long as no two own
