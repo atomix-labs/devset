@@ -1,51 +1,15 @@
 # Getting Started
 
-This chapter installs devset, applies a first profile to a repository, and shows
-how devset treats an edit to a file it manages.
+This tutorial applies a first profile to a repository, and shows how devset
+treats an edit to a file it manages.
 
 ## Install
 
-On Linux, on x86-64 or Arm, and on macOS on Apple silicon:
+[Install](install.md) has every way to install devset; the shortest:
 
 ```sh
 curl --proto '=https' --tlsv1.2 -fsSL https://atomix-labs.github.io/devset/install.sh | sh
 ```
-
-The script downloads the latest release's static binary for the machine, checks
-it against the release's checksum, and, when the GitHub CLI is installed, its
-build attestation; then it puts `devset` in `~/.local/bin`. It edits no shell
-file, and says so when that directory is not on your `PATH`. Its options:
-
-| Option               | Does                                                                  |
-| -------------------- | --------------------------------------------------------------------- |
-| `-v <version>`       | Installs that release, as `0.2.0`, rather than the latest.            |
-| `-b <dir>`           | Installs into `<dir>`, rather than `$XDG_BIN_HOME` or `~/.local/bin`. |
-| `--uninstall`        | Removes the binary it would install.                                  |
-| `DEVSET_VERSION`     | The environment's way to say `-v`.                                    |
-| `DEVSET_INSTALL_DIR` | The environment's way to say `-b`.                                    |
-| `DEVSET_NO_ATTEST=1` | Skips the attestation check.                                          |
-
-Pass options after `sh -s --`:
-
-```sh
-curl --proto '=https' --tlsv1.2 -fsSL https://atomix-labs.github.io/devset/install.sh | sh -s -- -v 0.2.0 -b /usr/local/bin
-```
-
-The same binaries, other ways:
-
-```sh
-mise use -g github:atomix-labs/devset    # with mise
-cargo binstall devset-cli                # with cargo-binstall
-cargo install --locked devset-cli        # from source, with Rust 1.98 or later
-```
-
-Or download the archive for your machine from the
-[releases](https://github.com/atomix-labs/devset/releases), check it against the
-`.sha256` beside it, and put `devset` on your `PATH`. The package is
-`devset-cli`; the binary it installs is `devset`.
-
-A source in a git repository needs `git` on your `PATH`; a local one needs
-nothing else.
 
 ## A First Target
 
@@ -163,7 +127,10 @@ shows every profile the source holds, and its features.
 
 ## Next
 
-- [Profiles](profiles.md) says what a profile can declare.
-- [Composing Profiles](composing.md) covers sources, requirements and features.
-- [Updating and Merging](updating.md) says what happens when a profile changes.
+- [Write a Profile](write-a-profile.md) goes further: parts of a file, variables
+  and features.
+- [A New Rust Project](new-project.md) and
+  [An Existing Repository](existing-repository.md) apply a whole collection.
 - [In CI](ci.md) makes drift fail a build.
+- [`examples/`](https://github.com/atomix-labs/devset/tree/main/examples) holds
+  each step as an example that runs.

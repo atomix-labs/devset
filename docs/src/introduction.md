@@ -28,6 +28,21 @@ local directory. devset applies profiles to a **target**, the directory it
 manages, and records the bytes it wrote in the target's `.devset/`. That record
 is what lets a later update tell a local edit from a change the profile made.
 
+```mermaid
+flowchart LR
+    subgraph source["A source: a git repository at a tag"]
+        rust["profile rust"]
+        lint["profile lint"]
+    end
+    subgraph target["A target: your repository"]
+        files["its files, some whole, some in part"]
+        state[".devset/: what devset wrote"]
+    end
+    rust -- "a layer" --> files
+    lint -- "a layer" --> files
+    files --- state
+```
+
 Profiles compose as crates do. devset is their cargo:
 
 - A target names each source once, and applies profiles from them as **layers**,
@@ -57,20 +72,8 @@ a profile ships a `mise.toml` or a `justfile` for those, as ordinary files. And
 it changes one target at a time: to change many repositories at once, run it
 from a tool such as [multi-gitter](https://github.com/lindell/multi-gitter).
 
-## Words
+## Next
 
-| Word       | Meaning                                                                        |
-| ---------- | ------------------------------------------------------------------------------ |
-| source     | Where profiles come from: a git repository at a ref, or a directory.           |
-| collection | A source published for others, which may describe itself in `collection.toml`. |
-| profile    | A versioned bundle of files: `profile.toml`, and `files/` beside it.           |
-| target     | The directory devset applies profiles to, a repository or not.                 |
-| layer      | One active profile of a target: configured by it, or required by a profile.    |
-| feature    | An optional, additive capability of a profile.                                 |
-| gate       | An entry's `when`: the conditions under which it applies.                      |
-| scaffold   | A group of starter files, written once when the target has none of its own.    |
-| policy     | How devset treats a file's local edits: `owned`, `merge` or `once`.            |
-| part       | The keys, or the block, a profile owns in a file the target otherwise owns.    |
-| base       | The bytes devset last wrote for a file: what an update merges against.         |
-
-[Getting Started](getting-started.md) applies a first profile.
+[Getting Started](getting-started.md) applies a first profile to a repository;
+[A New Rust Project](new-project.md) starts one from a collection's bundle. The
+[glossary](glossary.md) holds every word the manual uses.

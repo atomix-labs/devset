@@ -142,18 +142,24 @@ for that second part: a repository takes many small profiles, from one source or
 several, each owning whole files, a file's keys, or a block of it, and stays
 current release by release, with drift from them failing CI. A profile is data,
 so taking one runs nothing; projen, by contrast, writes its files from code, and
-owns them whole.
+owns them whole. [Comparison] sets devset beside copier, cruft, projen, chezmoi
+and cargo-generate, row by row.
 
 ## Documentation
 
 | I want to                                   | Read                                    |
 | ------------------------------------------- | --------------------------------------- |
 | try devset on a repository                  | [Getting Started]                       |
-| write a profile                             | [Profiles], [Designing Profiles]        |
-| share profiles across repositories          | [Composing Profiles]                    |
-| take a newer release, or resolve a conflict | [Updating and Merging]                  |
+| start a new Rust project                    | [A New Rust Project]                    |
+| adopt a repository that has its own setup   | [An Existing Repository]                |
+| write a profile                             | [Write a Profile]                       |
+| share profiles across repositories          | [Share a Team's Configuration]          |
+| publish a collection for others             | [Publish a Collection]                  |
+| take a newer release, or resolve a conflict | [Update and Resolve Conflicts]          |
 | check for drift in CI                       | [In CI]                                 |
-| look a command up                           | [Command Reference]                     |
+| see how devset differs from similar tools   | [Comparison]                            |
+| look a command or a file's keys up          | [Command Reference], [`profile.toml`]   |
+| run the examples                            | [`examples/`][examples]                 |
 | use the library                             | [devset-core on docs.rs][docs.rs]       |
 | know how devset is built                    | [ARCHITECTURE.md][Architecture]         |
 | move across a breaking change               | [BREAKING-CHANGES.md][Breaking Changes] |
@@ -170,12 +176,18 @@ MIT: see [LICENSE][license].
 
 [atxp]: https://github.com/atomix-labs/atxp
 [Getting Started]: https://atomix-labs.github.io/devset/getting-started.html
-[Profiles]: https://atomix-labs.github.io/devset/profiles.html
+[A New Rust Project]: https://atomix-labs.github.io/devset/new-project.html
+[An Existing Repository]: https://atomix-labs.github.io/devset/existing-repository.html
+[Write a Profile]: https://atomix-labs.github.io/devset/write-a-profile.html
 [Designing Profiles]: https://atomix-labs.github.io/devset/designing.html
-[Composing Profiles]: https://atomix-labs.github.io/devset/composing.html
-[Updating and Merging]: https://atomix-labs.github.io/devset/updating.html
+[Share a Team's Configuration]: https://atomix-labs.github.io/devset/share-configuration.html
+[Publish a Collection]: https://atomix-labs.github.io/devset/publish-a-collection.html
+[Update and Resolve Conflicts]: https://atomix-labs.github.io/devset/resolving.html
 [In CI]: https://atomix-labs.github.io/devset/ci.html
+[Comparison]: https://atomix-labs.github.io/devset/comparison.html
 [Command Reference]: https://atomix-labs.github.io/devset/reference/devset.html
+[`profile.toml`]: https://atomix-labs.github.io/devset/profile-toml.html
+[examples]: https://github.com/atomix-labs/devset/tree/main/examples
 [Breaking Changes]: https://github.com/atomix-labs/devset/blob/main/BREAKING-CHANGES.md
 [Architecture]: https://github.com/atomix-labs/devset/blob/main/ARCHITECTURE.md
 [Contributing]: https://github.com/atomix-labs/devset/blob/main/CONTRIBUTING.md

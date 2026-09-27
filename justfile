@@ -27,13 +27,15 @@ nightly-installer:
     sh docs/src/install.sh --uninstall -b "$dir"
     [[ ! -e $dir/devset ]]
 
-# Points the manual's pinned install at v$RELEASE_VERSION.
+# Points the manual's pinned installs, the install page's and CI's, at v$RELEASE_VERSION.
 release-docs:
     #!/usr/bin/env bash
     set -euo pipefail
     : "${RELEASE_VERSION:?set it: RELEASE_VERSION=x.y.z just release}"
     sed -i.bak -E "s|(github:atomix-labs/devset@)[0-9]+\.[0-9]+\.[0-9]+|\1$RELEASE_VERSION|" docs/src/ci.md
-    rm docs/src/ci.md.bak
+    # Every version install.md names is devset's.
+    sed -i.bak -E "s/[0-9]+\.[0-9]+\.[0-9]+/$RELEASE_VERSION/g" docs/src/install.md
+    rm docs/src/ci.md.bak docs/src/install.md.bak
 
 # >>> devset: just >>>
 # Each active profile's recipes.

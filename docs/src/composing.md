@@ -39,7 +39,7 @@ that profile's payload. A source may describe itself in `collection.toml`:
 ```toml
 [collection]
 name        = "atxp"                                   # the name a target gives it unless it chooses another
-description = "Profiles for Rust repositories"
+description = "Profiles for devset, one concern each"
 ```
 
 `devset add` names a source as it adds it: `devset add atxp/rust --git <url>`

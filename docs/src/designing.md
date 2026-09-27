@@ -1,4 +1,4 @@
-# Designing Profiles
+# Design Profiles
 
 A profile is a crate for a repository, and the choices are a crate author's:
 what is one crate and what two, what is a feature, what a configuration value.

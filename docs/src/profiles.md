@@ -3,7 +3,7 @@
 A profile is a directory in a source: `profile.toml` at its root, and `files/`,
 which mirrors the target. This chapter covers what `profile.toml` declares and
 how devset treats each file; the [schema](schemas.md) lists every field, and
-[Designing Profiles](designing.md) says how to cut a concern into profiles,
+[Design Profiles](designing.md) says how to cut a concern into profiles,
 features and variables.
 
 ```text
