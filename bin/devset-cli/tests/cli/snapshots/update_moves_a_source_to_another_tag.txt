@@ -1,0 +1,57 @@
+$ devset add house/lint --git ../profiles.git --tag v1.0.0 --path lint
+    Starting a target: .devset/config.toml
+    Fetching ../profiles.git
+     Created a.toml
+    Finished 1 change
+[exit 0]
+$ devset update house --tag v1.1.0 --dry-run
+    Fetching ../profiles.git
+       Would update a.toml
+    Finished dry run: 1 change, nothing written
+[exit 0]
+$ devset update house --tag v1.1.0
+    Fetching ../profiles.git
+     Updated a.toml
+    Finished 1 change
+[exit 0]
+--- a.toml
+v = 2
+--- .devset/config.toml
+# devset applies the profiles below to this directory, and keeps them up to date.
+# The manual: https://atomix-labs.github.io/devset/
+#
+# Where profiles come from, each named once: a git repository at a ref, or a directory.
+#
+#   [sources]
+#   atxp = { git = "https://github.com/atomix-labs/atxp", tag = "v0.4.0" }
+#
+# The profiles to apply, in order, by source and name, with the features to turn on.
+#
+#   [[layers]]
+#   profile  = "atxp/rust"
+#   features = ["docs"]
+
+[sources]
+house = { git = "../profiles.git", tag = "v1.1.0", path = "lint" }
+
+[[layers]]
+profile = "house/lint"
+$ devset update lint --tag v1.0.0
+    Fetching ../profiles.git
+     Updated a.toml
+    Finished 1 change
+[exit 0]
+$ devset update --tag v1.1.0
+error: the following required arguments were not provided:
+  <NAME>
+
+Usage: devset update --tag <TAG> <NAME>
+
+For more information, try '--help'.
+[exit 2]
+$ devset add house/lint --git ../profiles.git --tag v1.1.0 --path lint
+    Fetching ../profiles.git
+error: the source house is already ../profiles.git tag v1.0.0 path lint
+  |
+  = help: to move it, `devset update house --tag <tag>`; to add another, name it otherwise: `devset add <name>/<profile>`, not `house/<profile>`
+[exit 2]

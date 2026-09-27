@@ -4,10 +4,10 @@ use core::str::FromStr;
 
 use camino::Utf8PathBuf;
 use clap::{ArgGroup, Args, Parser, Subcommand, ValueEnum};
-use devset_core::NameError;
 use devset_core::name::{FeatureName, ProfileName, ScaffoldId, SourceName};
 use devset_core::profile::VarName;
-use devset_core::source::SourceSpec;
+use devset_core::source::{GitRef, Oid, SourceSpec};
+use devset_core::{NameError, SourceError};
 
 /// Apply versioned file bundles to a directory, and update them without losing local edits.
 #[derive(Debug, Parser)]
@@ -156,14 +156,20 @@ Examples:
         #[command(flatten)]
         answers: Answers,
     },
-    /// Move sources to what their refs name now, merging local edits.
+    /// Move sources to newer commits, or one to another tag, branch or commit, merging local
+    /// edits.
     #[command(after_help = "\
 Examples:
-  devset update              every source
-  devset update atxp         one source, or the source of one layer")]
+  devset update                    every source
+  devset update atxp               one source, or the source of one layer
+  devset update atxp --tag <tag>   move a source to another release
+  devset update --dry-run          what would change")]
     Update {
         /// Only the source with this name, or the source of the layer with this name.
         name: Option<String>,
+        /// Where to move it.
+        #[command(flatten)]
+        pin: Pin,
         /// Show what would change; write nothing.
         #[arg(long)]
         dry_run: bool,
@@ -280,6 +286,36 @@ impl Location {
     pub(crate) fn spec(self) -> Option<SourceSpec> {
         let Self { git, tag, branch, rev, path } = self;
         (git.is_some() || path.is_some()).then_some(SourceSpec { git, tag, branch, rev, path })
+    }
+}
+
+/// Where `update` moves a git source: a tag, a branch or a commit.
+#[derive(Debug, Args)]
+#[command(next_help_heading = "Move the source")]
+pub(crate) struct Pin {
+    /// To this tag.
+    #[arg(long, requires = "name", conflicts_with_all = ["branch", "rev"])]
+    tag: Option<String>,
+    /// To this branch.
+    #[arg(long, requires = "name", conflicts_with = "rev")]
+    branch: Option<String>,
+    /// To this commit, by its full id.
+    #[arg(long, requires = "name")]
+    rev: Option<String>,
+}
+
+impl Pin {
+    /// The ref these arguments name; `None` when they name none.
+    ///
+    /// # Errors
+    /// [`SourceError`], `--rev` is not a full commit id.
+    pub(crate) fn git_ref(self) -> Result<Option<GitRef>, SourceError> {
+        Ok(match (self.tag, self.branch, self.rev) {
+            (Some(tag), _, _) => Some(GitRef::Tag(tag)),
+            (None, Some(branch), _) => Some(GitRef::Branch(branch)),
+            (None, None, Some(rev)) => Some(GitRef::Rev(Oid::try_from(rev)?)),
+            (None, None, None) => None,
+        })
     }
 }
 

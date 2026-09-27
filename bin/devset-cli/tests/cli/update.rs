@@ -138,3 +138,23 @@ fn update_names_are_suggested() {
     log += &sb.devset("repo", &["update", "rsut"]);
     sb.assert(&log, snapbox::file!["snapshots/update_names_are_suggested.txt"]);
 }
+
+#[test]
+fn update_moves_a_source_to_another_tag() {
+    let sb = Sandbox::new();
+    sb.publish("lint", "lint", &[("a.toml", "owned", "v = 1\n")], "v1.0.0");
+    let add =
+        ["add", "house/lint", "--git", "../profiles.git", "--tag", "v1.0.0", "--path", "lint"];
+    let mut log = sb.devset("repo", &add);
+    sb.publish("lint", "lint", &[("a.toml", "owned", "v = 2\n")], "v1.1.0");
+    log += &sb.devset("repo", &["update", "house", "--tag", "v1.1.0", "--dry-run"]);
+    assert_eq!(sb.read("repo/a.toml"), "v = 1\n", "a dry run writes nothing");
+    log += &sb.devset("repo", &["update", "house", "--tag", "v1.1.0"]);
+    write!(log, "--- a.toml\n{}", sb.read("repo/a.toml")).unwrap();
+    write!(log, "--- .devset/config.toml\n{}", sb.read("repo/.devset/config.toml")).unwrap();
+    log += &sb.devset("repo", &["update", "lint", "--tag", "v1.0.0"]);
+    assert_eq!(sb.read("repo/a.toml"), "v = 1\n", "moved back through the layer's name");
+    log += &sb.devset("repo", &["update", "--tag", "v1.1.0"]);
+    log += &sb.devset("repo", &[&add[..5], &["v1.1.0", "--path", "lint"]].concat());
+    sb.assert(&log, snapbox::file!["snapshots/update_moves_a_source_to_another_tag.txt"]);
+}

@@ -155,8 +155,12 @@ fn target(error: &TargetError) -> Option<String> {
             })
         },
         TargetError::SourceExists { name, .. } => Some(format!(
-            "name the new one otherwise: `devset add <name>/<profile>`, not `{name}/<profile>`"
+            "to move it, `devset update {name} --tag <tag>`; to add another, name it otherwise: \
+             `devset add <name>/<profile>`, not `{name}/<profile>`"
         )),
+        TargetError::NotGit { .. } => {
+            Some("move a directory source by editing its `path` in .devset/config.toml".into())
+        },
         TargetError::WhichSource { profile, sources } => Some(match sources.as_slice() {
             [] => format!(
                 "the target names no source: `devset add <source>/{profile} --git <url>`, or \

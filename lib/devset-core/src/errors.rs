@@ -405,6 +405,12 @@ pub enum TargetError {
         /// The source it names, as configured.
         location: String,
     },
+    /// A tag, branch or commit given for a source that is a directory.
+    #[error("the source {name} is a directory, which has no tag, branch or commit")]
+    NotGit {
+        /// The source.
+        name: SourceName,
+    },
     /// A profile is named without its source, and the target names several, or none.
     #[error("which source is {profile} in? name it as `source/{profile}`")]
     WhichSource {

@@ -136,9 +136,14 @@ fn run(shell: &Shell, command: Command) -> Result<ExitCode, Error> {
             }
             apply(shell, target, &cache()?, (Refresh::None, mode), answers, dry_run)
         },
-        Command::Update { name, answers, dry_run } => {
+        Command::Update { name, pin, answers, dry_run } => {
+            let mut target = Target::find(&cwd)?;
+            if let (Some(given), Some(at)) = (name.as_deref(), pin.git_ref()?) {
+                let source = source_named(&target, given)?;
+                target.repin(&source, at)?;
+            }
             let how = (name.as_deref().map_or(Refresh::All, Refresh::Only), Mode::Apply);
-            apply(shell, &mut Target::find(&cwd)?, &cache()?, how, answers, dry_run)
+            apply(shell, &mut target, &cache()?, how, answers, dry_run)
         },
         Command::Explain { name } => {
             let target = Target::find(&cwd)?;
@@ -348,6 +353,21 @@ fn missing(target: &Target, cache: &Cache, name: &ProfileName) -> Error {
     }
     let names = target.config().layers.iter().map(|layer| layer.profile.profile.to_string());
     TargetError::NoSuchLayer { name: name.to_string(), names: names.collect() }.into()
+}
+
+/// The source `given` names: a source by its name, or the source of the layer so named.
+fn source_named(target: &Target, given: &str) -> Result<SourceName, Error> {
+    let config = target.config();
+    if let Some(name) = config.sources.keys().find(|name| name.as_str() == given) {
+        return Ok(name.clone());
+    }
+    if let Some(layer) = config.layers.iter().find(|layer| layer.profile.profile.as_str() == given)
+    {
+        return Ok(layer.profile.source.clone());
+    }
+    let sources = config.sources.keys().map(ToString::to_string);
+    let names = sources.chain(config.layers.iter().map(|layer| layer.profile.profile.to_string()));
+    Err(TargetError::NoSuchLayer { name: given.to_owned(), names: names.collect() }.into())
 }
 
 /// Reports where the target stands; with `exit_code`, fails when `apply --force` would write or

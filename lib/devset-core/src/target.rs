@@ -29,7 +29,7 @@ use crate::name::{FeatureName, ProfileName, ProfileRef, ScaffoldId, SourceName};
 use crate::part::{Scope, Slot};
 use crate::path::RelPath;
 use crate::profile::{Format, MergeSpec, Policy};
-use crate::source::{Oid, Source, SourceSpec};
+use crate::source::{GitRef, Oid, Source, SourceSpec};
 use crate::vars::VarName;
 
 /// devset's directory in a target.
@@ -277,6 +277,64 @@ impl Target {
             let sources = doc.entry("sources").or_insert_with(|| Item::Table(Table::new()));
             let Some(sources) = sources.as_table_like_mut() else { return false };
             sources.insert(name.as_str(), Item::Value(Value::InlineTable(inline)));
+            true
+        })
+    }
+
+    /// Moves the git source `name` to `at`, in place, keeping how `config.toml` writes it; written
+    /// by the next [`commit`](crate::commit()).
+    ///
+    /// # Errors
+    /// - [`TargetError::NoSuchSource`], `[sources]` does not name it.
+    /// - [`TargetError::NotGit`], it is a directory.
+    /// - [`Error::Parse`](crate::Error::Parse), `sources` in `config.toml` is not a table.
+    pub fn repin(&mut self, name: &SourceName, at: GitRef) -> Result<()> {
+        match self.config.sources.get(name) {
+            Some(Source::Git { .. }) => {},
+            Some(Source::Dir(_)) => return Err(TargetError::NotGit { name: name.clone() }.into()),
+            None => {
+                let sources = self.config.sources.keys().cloned().collect();
+                let (name, layers) = (name.clone(), Vec::new());
+                return Err(TargetError::NoSuchSource { name, sources, layers }.into());
+            },
+        }
+        let written = match at {
+            GitRef::Head => None,
+            GitRef::Tag(tag) => Some(("tag", tag)),
+            GitRef::Branch(branch) => Some(("branch", branch)),
+            GitRef::Rev(rev) => Some(("rev", rev.into())),
+        };
+        self.edit("`sources` must be a table of sources", |doc| {
+            let Some(entry) = doc
+                .get_mut("sources")
+                .and_then(Item::as_table_like_mut)
+                .and_then(|sources| sources.get_mut(name.as_str()))
+            else {
+                return false;
+            };
+            let Some(table) = entry.as_table_like_mut() else { return false };
+            let kept = written.as_ref().map(|(key, _)| *key);
+            for key in ["tag", "branch", "rev"] {
+                if Some(key) != kept {
+                    table.remove(key);
+                }
+            }
+            if let Some((key, value)) = written {
+                // A ref of the same kind keeps its place and its spacing.
+                match table.get_mut(key).and_then(Item::as_value_mut) {
+                    Some(old) => {
+                        let decor = old.decor().clone();
+                        *old = Value::from(value);
+                        *old.decor_mut() = decor;
+                    },
+                    None => {
+                        table.insert(key, toml_edit::value(value));
+                    },
+                }
+            }
+            if let Some(inline) = entry.as_inline_table_mut() {
+                inline.fmt();
+            }
             true
         })
     }
@@ -887,7 +945,48 @@ pub(crate) fn read_optional(path: &Utf8Path) -> Result<Option<Vec<u8>>> {
 mod tests {
     use super::{LayerSpec, Lock, State, Target};
     use crate::errors::{Error, TargetError};
-    use crate::source::Source;
+    use crate::name::SourceName;
+    use crate::source::{GitRef, Source, SourceSpec};
+
+    #[test]
+    fn a_source_moves_to_another_ref_in_place() {
+        let dir = camino_tempfile::tempdir().expect("a directory");
+        let mut target = Target::open_or_new(dir.path()).expect("a new target");
+        let spec = SourceSpec {
+            git: Some("https://example.com/p".into()),
+            tag: Some("v1.0.0".into()),
+            path: Some("lint".into()),
+            ..SourceSpec::default()
+        };
+        let name: SourceName = "p".parse().expect("a name");
+        target.add_source(name.clone(), Source::try_from(spec).expect("a source")).expect("added");
+        target.repin(&name, GitRef::Tag("v1.1.0".into())).expect("moved");
+        let text = target.config_text();
+        let moved = "p = { git = \"https://example.com/p\", tag = \"v1.1.0\", path = \"lint\" }";
+        assert!(text.contains(moved), "a tag moves in its place: {text}");
+        target.repin(&name, GitRef::Branch("main".into())).expect("moved");
+        let text = target.config_text();
+        let moved = "p = { git = \"https://example.com/p\", path = \"lint\", branch = \"main\" }";
+        assert!(text.contains(moved), "another kind of ref replaces it: {text}");
+        let local: SourceName = "d".parse().expect("a name");
+        target.add_source(local.clone(), Source::Dir("../d".into())).expect("added");
+        let refused = target.repin(&local, GitRef::Tag("v1".into()));
+        assert!(matches!(refused, Err(Error::Target(TargetError::NotGit { .. }))), "{refused:?}");
+    }
+
+    #[test]
+    fn a_source_written_as_a_table_keeps_its_layout() {
+        let dir = camino_tempfile::tempdir().expect("a directory");
+        let config =
+            "[sources.p]\ngit = \"https://example.com/p\"\ntag = \"v1.0.0\"  # the release\n";
+        fs_err::create_dir_all(dir.path().join(".devset")).expect("a directory");
+        fs_err::write(dir.path().join(".devset/config.toml"), config).expect("written");
+        let mut target = Target::find(dir.path()).expect("the target");
+        target.repin(&"p".parse().expect("a name"), GitRef::Tag("v1.1.0".into())).expect("moved");
+        let want =
+            "[sources.p]\ngit = \"https://example.com/p\"\ntag = \"v1.1.0\"  # the release\n";
+        assert_eq!(target.config_text(), want, "only the value changes");
+    }
 
     #[test]
     fn a_new_target_keeps_its_skeleton_above_what_is_added() {
