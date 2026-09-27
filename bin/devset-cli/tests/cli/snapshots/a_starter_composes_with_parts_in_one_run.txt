@@ -1,11 +1,11 @@
 $ devset init p/rust --path ../p
+note: answered project = "hello", the default
+  |
+  = help: pass `--var project=…` to choose another
      Created Cargo.toml
      Created Cargo.toml [keys: lints]
      Created Cargo.toml [keys: release]
     Finished 3 changes
-note: answered project = "hello", the default
-  |
-  = help: pass `--var project=…` to choose another
 [exit 0]
 --- Cargo.toml
 [workspace]
@@ -35,13 +35,13 @@ In sync:
 1 file matches the profile.
 [exit 0]
 $ devset init p/rust --path ../p
+note: answered project = "hello", the default
+  |
+  = help: pass `--var project=…` to choose another
      Adopted Cargo.toml
      Created Cargo.toml [keys: lints]
      Created Cargo.toml [keys: release]
     Finished 3 changes
-note: answered project = "hello", the default
-  |
-  = help: pass `--var project=…` to choose another
 [exit 0]
 --- mine/Cargo.toml
 [package]

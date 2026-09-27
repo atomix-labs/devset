@@ -5,13 +5,15 @@ command.
 
 ## Where Output Goes
 
-- **stdout** has the result: `status` and its JSON, `diff`, `schema`,
-  `completions`, and the log of what a command did or would do.
-- **stderr** has everything else: errors, notes, a `help:` line with the next
-  step, prompts, and a `Fetching <url>` line before devset reaches a remote.
+- **stdout** has what a command answers: `status` and its JSON, `diff`,
+  `explain`, `list` and `completions`.
+- **stderr** has everything else: the log of what a command did or would do,
+  errors, notes, a `help:` line with the next step, prompts, and a `Fetching
+  <url>` line before devset reaches a remote.
 
-So `devset status | grep edited` sees only the status, and a reader that stops
-early, as `devset status | head` does, is not an error.
+So `devset status | grep edited` sees only the status, `devset apply
+2>/dev/null` prints nothing, and a reader that stops early, as `devset status |
+head` does, is not an error.
 
 The log reads as cargo's does: a verb aligned on the right, past tense for what
 happened, and a `Finished` summary. A dry run says `Would` instead, and ends

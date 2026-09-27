@@ -1,7 +1,7 @@
 $ devset init --git ../profiles.git --tag v1 --path rust
+    Fetching ../profiles.git
      Created rustfmt.toml
     Finished 1 change
-    Fetching ../profiles.git
 [exit 0]
 $ devset status
 rust/rust 1.0.0  @8365cbb
@@ -21,7 +21,7 @@ git = "../profiles.git"
 tag = "v1"
 path = "rust"
 $ devset apply --force
+    Fetching ../profiles.git
     Restored rustfmt.toml
     Finished 1 change
-    Fetching ../profiles.git
 [exit 0]

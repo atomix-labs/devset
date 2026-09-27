@@ -45,6 +45,6 @@ $ devset add profiles/a
 [exit 0]
 $ devset remove a
     Removing layer profiles/a
-    Finished up to date
 note: a stays active: both requires it
+    Finished up to date
 [exit 0]

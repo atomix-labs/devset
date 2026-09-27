@@ -1,17 +1,17 @@
 $ devset init --git ../profiles.git --branch main --path p
+    Fetching ../profiles.git
      Created deny.toml
     Finished 1 change
-    Fetching ../profiles.git
 [exit 0]
 $ devset update --dry-run
+    Fetching ../profiles.git
        Would merge deny.toml
     Finished dry run: 1 change, nothing written
-    Fetching ../profiles.git
 [exit 0]
 $ devset update
+    Fetching ../profiles.git
       Merged deny.toml
     Finished 1 change
-    Fetching ../profiles.git
 [exit 0]
 $ devset status
 p/p 1.0.0  @3f7357a

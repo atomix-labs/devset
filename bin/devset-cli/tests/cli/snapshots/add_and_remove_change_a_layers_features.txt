@@ -12,8 +12,8 @@ $ devset add p/rust --features docs
     Finished 2 changes
 [exit 0]
 $ devset add p/rust --features docs
-    Finished up to date
 note: the layer p/rust already turns these on
+    Finished up to date
 [exit 0]
 $ devset add p/rust
 error: the layer rust is already applied
@@ -74,8 +74,8 @@ $ devset add p/book --default-features --features katex
 [exit 0]
 $ devset remove book --features katex
     Removing feature katex from layer p/book
-    Finished up to date
 note: katex stays on: default turns it on
+    Finished up to date
 [exit 0]
 --- .devset/config.toml
 # devset applies the profiles below to this directory, and keeps them up to date.

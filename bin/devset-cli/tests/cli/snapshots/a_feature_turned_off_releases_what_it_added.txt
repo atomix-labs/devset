@@ -21,11 +21,11 @@ $ devset apply
     Finished 2 changes
 [exit 0]
 $ devset add p/book --no-default-features --features links
-     Created lychee.toml
-    Finished 1 change
 warning: profile rust turns on the default features of book, which its layer switches off
   |
   = help: `devset features book` shows what is on, and why
+     Created lychee.toml
+    Finished 1 change
 [exit 0]
 $ devset features book
 p/book 1.0.0  [api, katex, links]

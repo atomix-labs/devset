@@ -1,9 +1,9 @@
 $ devset init --path ../p/book
-     Created docs/book.toml
-    Finished 1 change
 note: answered book_dir = "docs", the default
   |
   = help: pass `--var book_dir=…` to choose another
+     Created docs/book.toml
+    Finished 1 change
 [exit 0]
 $ devset apply --var book_dir=site
    Untracked docs/book.toml

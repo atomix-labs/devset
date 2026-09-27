@@ -1,7 +1,7 @@
 $ devset init rust --git ../profiles.git --tag v1
+    Fetching ../profiles.git
      Created rustfmt.toml
     Finished 1 change
-    Fetching ../profiles.git
 [exit 0]
 $ devset add book
      Created book.toml

@@ -1,16 +1,16 @@
 $ devset init acme/rust --git ../profiles.git --branch main
+    Fetching ../profiles.git
      Created a.toml
      Created r.toml
     Finished 2 changes
-    Fetching ../profiles.git
 [exit 0]
 $ devset apply
     Finished up to date
 [exit 0]
 $ devset update rust
+    Fetching ../profiles.git
      Updated a.toml
     Finished 1 change
-    Fetching ../profiles.git
 [exit 0]
 $ devset status
 acme/rust 1.0.0  @8049a61

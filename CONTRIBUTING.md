@@ -1,8 +1,9 @@
 # Contributing
 
 How to report a problem, and how to change devset: setting up a checkout, the
-commit convention, what counts as breaking, the checks, and how the documents
-are written. [ARCHITECTURE.md](ARCHITECTURE.md) says how devset is built.
+commit convention, what counts as breaking, the checks, the command line's
+style, and how the documents are written. [ARCHITECTURE.md](ARCHITECTURE.md)
+says how devset is built.
 
 ## Reporting Issues
 
@@ -110,6 +111,23 @@ and the snapshots' diff is part of the review.
 - Every item has a doc comment, private ones included, saying what it is in a
   sentence the reader needs.
 - A fix comes with the test that fails without it.
+
+### Command-Line Style
+
+Every message devset prints keeps these rules; a change that adds one is read
+against them.
+
+- A command's answer goes to stdout; its log, notes, warnings, errors and
+  prompts go to stderr.
+- Output reads correctly without colour: a command or a path in a message is in
+  backticks even where it is also coloured. `NO_COLOR`, `CLICOLOR_FORCE` and
+  `--no-color` are honoured.
+- An error states the problem in one line. What to do goes on a `help:` line,
+  with the command to run, ready to copy.
+- The log reads as cargo's: a verb aligned on the right, past tense for what
+  happened, `Would` in a dry run, and a `Finished` summary.
+- A command exists for a question no other command answers. A flag changes how a
+  command answers, never what it answers.
 
 ## Writing
 

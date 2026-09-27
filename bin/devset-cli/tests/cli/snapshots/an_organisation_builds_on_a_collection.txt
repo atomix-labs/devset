@@ -1,17 +1,17 @@
 $ devset init --path ../org
+    Fetching [ROOT]/profiles.git
      Created org.toml
      Created rustfmt.toml
     Finished 2 changes
-    Fetching [ROOT]/profiles.git
 [exit 0]
 $ devset update
-    Finished up to date
     Fetching [ROOT]/profiles.git
+    Finished up to date
 [exit 0]
 $ devset apply
+    Fetching [ROOT]/profiles.git
      Updated rustfmt.toml
     Finished 1 change
-    Fetching [ROOT]/profiles.git
 [exit 0]
 $ devset status
 org/org 1.0.0

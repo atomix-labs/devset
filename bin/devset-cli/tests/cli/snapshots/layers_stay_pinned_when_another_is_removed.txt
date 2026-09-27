@@ -4,7 +4,7 @@ $ devset remove a
     Finished 1 change
 [exit 0]
 $ devset update
+    Fetching ../profiles.git
      Updated b.toml
     Finished 1 change
-    Fetching ../profiles.git
 [exit 0]

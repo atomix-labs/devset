@@ -1,8 +1,8 @@
 //! Apply versioned file bundles to a directory, and update them without losing local edits.
 //!
-//! Run from anywhere inside a target; `new` and `init` make one. Status lines go to stdout,
-//! diagnostics and progress to stderr. The exit code is 0 on success, 1 on a conflict or, under
-//! `status --exit-code`, on drift, and 2 on an error.
+//! Run from anywhere inside a target; `new` and `init` make one. What a command answers goes to
+//! stdout; its log, diagnostics and progress to stderr. The exit code is 0 on success, 1 on a
+//! conflict or, under `status --exit-code`, on drift, and 2 on an error.
 //!
 //! ```text
 //! devset new hello atxp/rust --git https://github.com/atomix-labs/atxp --tag v0.4.0

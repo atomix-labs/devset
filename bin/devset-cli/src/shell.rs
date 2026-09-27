@@ -1,4 +1,5 @@
-//! Terminal output: cargo-style status lines on stdout; diagnostics and progress on stderr.
+//! Terminal output: what a command answers on stdout; its cargo-style log, diagnostics and
+//! progress on stderr.
 
 use core::fmt::Display;
 use std::io::{self, IsTerminal, Write};
@@ -43,7 +44,7 @@ impl Shell {
     /// A status line even when quiet: for what needs attention.
     #[expect(clippy::unused_self, reason = "all output goes through the shell")]
     pub(crate) fn always(&self, verb: &str, style: Style, message: impl Display) -> io::Result<()> {
-        writeln!(anstream::stdout(), "{style}{verb:>VERB$}{style:#} {message}")
+        writeln!(anstream::stderr(), "{style}{verb:>VERB$}{style:#} {message}")
     }
 
     /// A `note:` on stderr, with a `help:` if given, unless quiet.

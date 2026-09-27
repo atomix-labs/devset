@@ -1,9 +1,9 @@
 $ devset init p/project --path ../p
-     Created LICENSE-MIT
-    Finished 1 change
 note: answered license = "MIT", the default
   |
   = help: pass `--var license=…` to choose another
+     Created LICENSE-MIT
+    Finished 1 change
 [exit 0]
 $ devset apply --var license=MIT OR Apache-2.0
      Created LICENSE-APACHE

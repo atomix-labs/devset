@@ -29,9 +29,9 @@ $ devset new second p/base --path p
     Finished 1 change
 [exit 0]
 $ devset new fourth p/base --git p --branch main
+    Fetching ../p
      Created a.toml
     Finished 1 change
-    Fetching ../p
 [exit 0]
 $ devset init --dry-run
        Would create .devset/config.toml
