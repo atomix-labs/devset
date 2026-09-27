@@ -3,6 +3,33 @@
 Every release, newest first, written by [git-cliff](https://git-cliff.org) from the commits.
 [BREAKING-CHANGES.md](BREAKING-CHANGES.md) says how to move across a breaking change.
 
+## [0.4.0](https://github.com/atomix-labs/devset/releases/tag/v0.4.0) - 2026-09-27
+
+### Features
+
+- [84f2d58](https://github.com/atomix-labs/devset/commit/84f2d58cfc3a01cee127955a1536a8bde60df884) Name each file's published schema in it, and drop the schema command **breaking**
+- [ae0bcab](https://github.com/atomix-labs/devset/commit/ae0bcab12f6ded927e644c1d772fd44cf9c5a26f) Name the newer releases of a source pinned to a tag on update
+- [d4418c6](https://github.com/atomix-labs/devset/commit/d4418c6d65682082487f206bc19d39860eff2e6a) Move a source to another tag, branch or commit with update
+- [3e6b6dc](https://github.com/atomix-labs/devset/commit/3e6b6dc0d02e53e04ff68e965e6135ad3472c84d) Finish or take back a conflicted run with apply **breaking**
+- [9da423a](https://github.com/atomix-labs/devset/commit/9da423a2cc7af3a8e8ca6959f9740d031e8cad3c) Explain a layer's features as explain explains a file **breaking**
+- [1148804](https://github.com/atomix-labs/devset/commit/1148804686e9974e1d6cd58b5c7ebd7cb5433532) Make init start a target, profile or collection in any directory **breaking**
+- [243d2c8](https://github.com/atomix-labs/devset/commit/243d2c80f3833b95b6ef51b9a4b512824557b6e9) *(devset-cli)* Start a target from add where there is none
+- [87459e3](https://github.com/atomix-labs/devset/commit/87459e36bce22827a6c6d161dea57cf231077422) *(devset-cli)* Write the log to stderr, keeping stdout for what a command answers **breaking**
+
+### Documentation
+
+- [1bd4d64](https://github.com/atomix-labs/devset/commit/1bd4d642deb7f6104246aa0dd663479faa17f89f) Teach the ten commands, and how to move across them
+- [3be1f63](https://github.com/atomix-labs/devset/commit/3be1f63bcb71a450ab2ae328365071bd70dfd49d) List the commands in the order of the workflow, and keep every atxp release named current
+- [5feb1c3](https://github.com/atomix-labs/devset/commit/5feb1c3359ce4c0b0a4b09440d11863c1b4a0c22) Name the checks devset now takes from atxp
+
+### Miscellaneous
+
+- [6412932](https://github.com/atomix-labs/devset/commit/6412932b67151013cecfbc66853288a351a189be) *(devset-cli)* Match any release in the profile skeleton's snapshot
+- [1c66084](https://github.com/atomix-labs/devset/commit/1c66084a88b7258ded065ebbceb72a0bbaf0765b) *(devset-cli)* Start targets with add, and with init where a directory holds files
+- [53bb3b2](https://github.com/atomix-labs/devset/commit/53bb3b28158053d7cf72df5383c0b42e3ca83dfd) Adopt atxp v0.6.2
+
+**Full Changelog**: <https://github.com/atomix-labs/devset/compare/v0.3.0...v0.4.0>
+
 ## [0.3.0](https://github.com/atomix-labs/devset/releases/tag/v0.3.0) - 2026-09-26
 
 ### Features
