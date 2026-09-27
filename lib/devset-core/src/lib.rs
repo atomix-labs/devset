@@ -59,6 +59,10 @@
 //! The files people write have modules of their own: [`profile`] for `profile.toml`,
 //! [`collection`] for a source's profiles, [`target`] for `.devset/config.toml`, and [`source`]
 //! for where profiles come from; [`name`] holds the names they use.
+#![doc(
+    html_logo_url = "https://raw.githubusercontent.com/atomix-labs/devset/main/docs/src/media/tile.svg",
+    html_favicon_url = "https://raw.githubusercontent.com/atomix-labs/devset/main/docs/src/media/favicon.svg"
+)]
 
 extern crate alloc;
 
