@@ -1,0 +1,14 @@
+[profile]
+name        = "base"
+description = "An EditorConfig; rustfmt where there is Rust; a book with `docs`"
+
+[features]
+docs = []
+
+[files.".editorconfig"]
+
+[files."rustfmt.toml"]
+when = { exists = ["Cargo.toml"] }
+
+[files."docs/book.toml"]
+when = { features = ["docs"] }

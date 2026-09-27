@@ -1,0 +1,8 @@
+[profile]
+name        = "house"
+description = "Upstream's lint, and our deploy workflow"
+
+[requires]
+lint = { git = "../upstream", tag = "v1.0.0" }
+
+[files.".github/workflows/deploy.yml"]

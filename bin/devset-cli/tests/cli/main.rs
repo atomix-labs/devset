@@ -7,6 +7,7 @@
 mod apply;
 mod conflicts;
 mod errors;
+mod examples;
 mod features;
 mod gates;
 mod init;

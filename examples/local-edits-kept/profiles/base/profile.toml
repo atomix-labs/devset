@@ -1,0 +1,6 @@
+[profile]
+name        = "base"
+description = "A rustfmt configuration each repository may add to"
+
+[files."rustfmt.toml"]
+policy = "merge"

@@ -1,0 +1,13 @@
+[profile]
+name        = "lint"
+description = "An EditorConfig and a rustfmt configuration"
+
+[vars.line_width]
+prompt  = "Line width"
+default = "100"
+
+[files.".editorconfig"]
+template = true
+
+[files."rustfmt.toml"]
+template = true

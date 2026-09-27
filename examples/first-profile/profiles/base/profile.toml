@@ -1,0 +1,8 @@
+[profile]
+name        = "base"
+description = "An EditorConfig and a rustfmt configuration"
+
+[files.".editorconfig"]
+
+[files."rustfmt.toml"]
+policy = "merge"

@@ -123,6 +123,19 @@ impl Sandbox {
         )
     }
 
+    /// Runs `line` with `sh` in `cwd`, this build's `devset` first on the `PATH`, and returns what
+    /// it prints, its errors among its output as a terminal shows them.
+    pub(crate) fn sh(&self, cwd: &str, line: &str) -> String {
+        let bin = PathBuf::from(cargo_bin!("devset"));
+        let path = bin.parent().map(PathBuf::from).into_iter();
+        let path =
+            env::join_paths(path.chain(env::split_paths(&env::var_os("PATH").unwrap_or_default())));
+        let script = format!("{line} 2>&1");
+        let out =
+            self.command("sh", cwd, &["-c", &script]).env("PATH", path.unwrap()).output().unwrap();
+        String::from_utf8_lossy(&out.stdout).into_owned()
+    }
+
     /// Runs `git` in `cwd`, which must succeed.
     pub(crate) fn git(&self, cwd: &str, args: &[&str]) -> String {
         let out = self.command("git", cwd, args).output().unwrap();

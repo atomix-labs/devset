@@ -1,0 +1,9 @@
+[profile]
+name        = "rust"
+description = "The workspace's lints, and Git ignoring the build"
+
+[files."Cargo.toml"]
+scope = "keys"
+
+[files.".gitignore"]
+scope = "block"

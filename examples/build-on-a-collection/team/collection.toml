@@ -1,0 +1,3 @@
+[collection]
+name        = "team"
+description = "Our repositories: upstream's lint, and our deploy workflow"
