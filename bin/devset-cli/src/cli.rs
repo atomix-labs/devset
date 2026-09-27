@@ -107,7 +107,7 @@ Examples:
   devset status -v            and everything in sync
   devset status --exit-code   in CI: fail on drift")]
     Status {
-        /// Exit 1 when `apply --force` would write a file, or an update is unfinished.
+        /// Exit 1 when `apply --force` would write a file, or a run that conflicted is unfinished.
         #[arg(long)]
         exit_code: bool,
         /// Print JSON.
@@ -126,19 +126,29 @@ Examples:
         /// Only these files.
         paths: Vec<Utf8PathBuf>,
     },
-    /// Apply the pinned profile without destroying local edits.
+    /// Apply the pinned profiles without destroying local edits; finish, or take back, a run that
+    /// conflicted.
     #[command(after_help = "\
 Examples:
-  devset apply --dry-run                what would change
-  devset apply --force                  also restore drifted owned files
-  devset apply --rescaffold mdbook/book write a scaffold's missing files again")]
+  devset apply --dry-run                 what would change
+  devset apply --force                   also restore drifted owned files
+  devset apply --rescaffold mdbook/book  write a scaffold's missing files again
+  devset apply --continue                after resolving .devset/conflicts/
+  devset apply --abort                   take back what the conflicted run wrote")]
     Apply {
-        /// Also restore `owned` files that were edited, deleted or never recorded.
+        /// Also restore `owned` files that were edited, deleted or never recorded; with --abort,
+        /// also discard changes made since the conflicted run.
         #[arg(long)]
         force: bool,
         /// Write the missing files of a scaffold again, `profile/group`; repeatable.
         #[arg(long, value_name = "PROFILE/GROUP")]
         rescaffold: Vec<ScaffoldId>,
+        /// Install the conflicts resolved in .devset/conflicts/.
+        #[arg(long = "continue", conflicts_with_all = ["abort", "force", "rescaffold", "vars"])]
+        resume: bool,
+        /// Take back the run that conflicted: every file it wrote, the lock and the state.
+        #[arg(long, conflicts_with_all = ["rescaffold", "vars"])]
+        abort: bool,
         /// Show what would change; write nothing.
         #[arg(long)]
         dry_run: bool,
@@ -150,21 +160,10 @@ Examples:
     #[command(after_help = "\
 Examples:
   devset update              every source
-  devset update atxp         one source, or the source of one layer
-  devset update --continue   after resolving .devset/conflicts/
-  devset update --abort      take back an update that conflicted")]
+  devset update atxp         one source, or the source of one layer")]
     Update {
         /// Only the source with this name, or the source of the layer with this name.
         name: Option<String>,
-        /// Install the conflicts resolved in .devset/conflicts/.
-        #[arg(long = "continue", conflicts_with_all = ["name", "abort"])]
-        resume: bool,
-        /// Take back the unfinished update: every file it wrote, the lock and the state.
-        #[arg(long, conflicts_with_all = ["name", "vars"])]
-        abort: bool,
-        /// With --abort, also discard changes made since the update.
-        #[arg(long, requires = "abort")]
-        force: bool,
         /// Show what would change; write nothing.
         #[arg(long)]
         dry_run: bool,

@@ -40,7 +40,7 @@ const GITATTRIBUTES: &str = "base/** -diff -text\n";
 /// next run repairs. A held plan writes only its conflicts, and the lock it waits to apply.
 ///
 /// A commit that leaves conflicts first saves what it is about to change, and keeps every base,
-/// so the unfinished update can be taken back with [`Rollback`](crate::Rollback).
+/// so the unfinished run can be taken back with [`Rollback`](crate::Rollback).
 ///
 /// # Errors
 /// - [`TargetError::Busy`] or [`TargetError::Concurrent`], another devset is at work; nothing is

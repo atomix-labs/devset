@@ -14,22 +14,23 @@ use super::json::StatusJson;
 use super::{Heading, Standing, State, files, in_sync, suggestions};
 use crate::shell::Shell;
 
-/// A `status` section: its heading, that heading while an update is unfinished, its standings.
+/// A `status` section: its heading, that heading while a conflicted run is unfinished, its
+/// standings.
 type Section = (&'static str, &'static str, fn(Standing) -> bool);
 
 /// The sections of `status`, in order.
 const SECTIONS: [Section; 5] = [
     (
-        "Conflicts — resolve in .devset/conflicts/, then run `devset update --continue`:",
-        "Conflicts — resolve in .devset/conflicts/, then run `devset update --continue`:",
+        "Conflicts — resolve in .devset/conflicts/, then run `devset apply --continue`:",
+        "Conflicts — resolve in .devset/conflicts/, then run `devset apply --continue`:",
         |s| s == Standing::Conflict,
     ),
     (
         "Drifted — `devset apply --force` restores:",
-        "Drifted — once the update is finished, `devset apply --force` restores:",
+        "Drifted — once `devset apply --continue` has run, `devset apply --force` restores:",
         |s| matches!(s, Standing::Drifted(_)),
     ),
-    ("Pending — `devset apply` will:", "Pending — `devset update --continue` will:", |s| {
+    ("Pending — `devset apply` will:", "Pending — `devset apply --continue` will:", |s| {
         matches!(s, Standing::Pending(_))
     }),
     ("Local changes, kept:", "Local changes, kept:", |s| s == Standing::Local),

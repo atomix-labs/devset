@@ -1,0 +1,24 @@
+$ devset add p/one --path ../p
+    Starting a target: .devset/config.toml
+     Created a.toml
+    Finished 1 change
+[exit 0]
+$ devset apply
+  Conflicted a.toml  conflicting changes
+    Finished 1 conflict
+help: resolve the files in .devset/conflicts/, then run `devset apply --continue`;
+      or take it back with `devset apply --abort`
+[exit 1]
+$ devset status
+p/one 1.0.0
+
+Conflicts — resolve in .devset/conflicts/, then run `devset apply --continue`:
+    conflict   a.toml  merge  → .devset/conflicts/a.toml
+[exit 0]
+$ devset apply --continue
+      Merged a.toml
+    Finished 1 change
+[exit 0]
+$ devset apply --abort
+error: there is no run that conflicted to take back
+[exit 2]

@@ -162,7 +162,7 @@ fn keys_merge_leaf_by_leaf() {
     write!(log, "--- .devset/conflicts/deny.toml\n{sidecar}").unwrap();
     log += &sb.devset("repo", &["status"]);
     sb.write("repo/.devset/conflicts/deny.toml", &theirs(&sidecar));
-    log += &sb.devset("repo", &["update", "--continue"]);
+    log += &sb.devset("repo", &["apply", "--continue"]);
     assert!(sb.read("repo/deny.toml").contains("wildcards = \"warn\""), "resolved");
     log += &sb.devset("repo", &["status", "--exit-code"]);
     sb.assert(&log, snapbox::file!["snapshots/keys_merge_leaf_by_leaf.txt"]);

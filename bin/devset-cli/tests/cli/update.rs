@@ -102,7 +102,7 @@ fn invalid_merges_conflict() {
         "name = \"app\"\ntimeout = 30\nreplicas = 1\nport = 80\n",
         "never installed"
     );
-    log += &sb.devset("repo", &["update", "--continue"]);
+    log += &sb.devset("repo", &["apply", "--continue"]);
     sb.assert(&log, snapbox::file!["snapshots/invalid_merges_conflict.txt"]);
 }
 

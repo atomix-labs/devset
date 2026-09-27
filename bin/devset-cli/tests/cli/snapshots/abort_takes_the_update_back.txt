@@ -11,24 +11,24 @@ $ devset update
      Updated b.toml
      Created c.toml
     Finished 2 changes, 1 conflict
-help: resolve the files in .devset/conflicts/, then run `devset update --continue`;
-      or take the update back with `devset update --abort`
+help: resolve the files in .devset/conflicts/, then run `devset apply --continue`;
+      or take it back with `devset apply --abort`
 [exit 1]
-$ devset update --abort --dry-run
+$ devset apply --abort --dry-run
        Would restore b.toml
        Would remove c.toml
     Finished dry run: 1 file to restore, 1 to remove, nothing written
 [exit 0]
-$ devset update --abort
-error: 1 file changed since the update: b.toml
+$ devset apply --abort
+error: 1 file changed since the run that conflicted: b.toml
   |
-  = help: keep what you need from them, then run `devset update --abort --force`
+  = help: keep what you need from them, then run `devset apply --abort --force`
 [exit 2]
-$ devset update --abort --force
+$ devset apply --abort --force
     Restored b.toml
      Removed c.toml
-    Finished update aborted: 1 file restored, 1 removed
+    Finished taking the run back: 1 file restored, 1 removed
 [exit 0]
-$ devset update --abort
-error: there is no unfinished update to abort
+$ devset apply --abort
+error: there is no run that conflicted to take back
 [exit 2]

@@ -1,4 +1,4 @@
-//! Taking back an unfinished update, from what [`commit`](crate::commit()) saved beforehand.
+//! Taking back an unfinished run, from what [`commit`](crate::commit()) saved beforehand.
 
 use alloc::collections::BTreeMap;
 use std::collections::HashSet;
@@ -16,12 +16,12 @@ use crate::target::{
     read_optional, read_toml,
 };
 
-/// devset's own files an update may change, in the order they are restored.
+/// devset's own files a run may change, in the order they are restored.
 ///
-/// `state.toml` goes last, so an interrupted rollback still describes the update and runs again.
+/// `state.toml` goes last, so an interrupted rollback still describes the run and runs again.
 const RECORDS: [&str; 4] = [CONFIG, ANSWERS, LOCK, STATE];
 
-/// A file an unfinished update changed; displayed as its key in `undo.toml`, from the target root.
+/// A file an unfinished run changed; displayed as its key in `undo.toml`, from the target root.
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Display)]
 pub(crate) enum Location {
     /// A managed file in the target.
@@ -56,19 +56,19 @@ impl Location {
     }
 }
 
-/// One file's change: what it held before the update, and what the update left in it.
+/// One file's change: what it held before the run, and what the run left in it.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 struct Change {
     /// Digest of the bytes before; `None` when the file did not exist.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     before: Option<Digest>,
-    /// Digest of the bytes the update wrote; `None` when it removed the file.
+    /// Digest of the bytes the run wrote; `None` when it removed the file.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     after: Option<Digest>,
 }
 
-/// `undo.toml`: every file an unfinished update changed, the bytes it replaced saved beside it.
+/// `undo.toml`: every file an unfinished run changed, the bytes it replaced saved beside it.
 #[derive(Debug, Default, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub(crate) struct Undo {
@@ -129,25 +129,25 @@ impl Undo {
 /// What taking a target file back does.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Revert {
-    /// Puts back the bytes it held before the update.
+    /// Puts back the bytes it held before the run.
     Restore(RelPath),
-    /// Removes it: the update created it.
+    /// Removes it: the run created it.
     Remove(RelPath),
 }
 
-/// An unfinished update, and what taking it back does.
+/// An unfinished run, and what taking it back does.
 ///
 /// Nothing is written until [`apply`](Self::apply).
-/// An update is unfinished while conflicts wait in `.devset/conflicts/`. Taking it back returns
+/// A run is unfinished while conflicts wait in `.devset/conflicts/`. Taking it back returns
 /// every file it wrote, and `.devset/`'s records, to what they held before it, and discards its
 /// conflicts, as though it had not run.
 #[derive(Debug)]
 pub struct Rollback {
-    /// What the update changed.
+    /// What the run changed.
     undo: Undo,
     /// What taking it back does to target files, in path order.
     reverts: Vec<Revert>,
-    /// Files changed since the update, which taking it back would discard.
+    /// Files changed since the run, which taking it back would discard.
     changed: Vec<String>,
 }
 
@@ -155,8 +155,8 @@ impl Rollback {
     /// The unfinished update in `target`.
     ///
     /// # Errors
-    /// - [`MergeError::NothingToAbort`], no update is unfinished.
-    /// - [`Error::Parse`](crate::Error::Parse), what the update saved does not parse.
+    /// - [`MergeError::NothingToAbort`], no run is unfinished.
+    /// - [`Error::Parse`](crate::Error::Parse), what the run saved does not parse.
     pub fn of(target: &Target) -> Result<Self> {
         if !target.dir().join(CONFLICTS).is_dir() {
             return Err(MergeError::NothingToAbort.into());
@@ -182,26 +182,26 @@ impl Rollback {
         Ok(Self { undo, reverts, changed })
     }
 
-    /// What taking the update back does to target files, in path order.
+    /// What taking the run back does to target files, in path order.
     #[must_use]
     pub fn reverts(&self) -> &[Revert] {
         &self.reverts
     }
 
-    /// Files changed since the update, which taking it back discards, from the target root.
+    /// Files changed since the run, which taking it back discards, from the target root.
     #[must_use]
     pub fn changed(&self) -> &[String] {
         &self.changed
     }
 
-    /// Takes the update back in `target`, returning what it did to target files.
+    /// Takes the run back in `target`, returning what it did to target files.
     ///
     /// Target files and sidecars go first, then `.devset/`'s records with `state.toml` last, then
     /// `.devset/conflicts/`; an interruption leaves a rollback that runs again.
     ///
     /// # Errors
-    /// - [`MergeError::ChangedSince`], files changed since the update and `force` is off; nothing
-    ///   is written.
+    /// - [`MergeError::ChangedSince`], files changed since the run and `force` is off; nothing is
+    ///   written.
     /// - [`TargetError::Busy`](crate::TargetError::Busy) or
     ///   [`TargetError::Concurrent`](crate::TargetError::Concurrent), another devset is at work.
     /// - [`MergeError::CorruptUndo`], a saved copy is missing or damaged; what was restored before

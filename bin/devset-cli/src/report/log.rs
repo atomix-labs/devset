@@ -1,4 +1,5 @@
-//! The apply log: what an apply, or taking an update back, did or would do, and the notes after it.
+//! The apply log: what an apply, or taking a conflicted run back, did or would do, and the notes
+//! after it.
 
 use std::io;
 
@@ -96,14 +97,15 @@ pub(crate) fn applied(shell: &Shell, steps: &[Step], wrote: Wrote) -> io::Result
         shell.help(if dry_run {
             "run the command without `--dry-run`, then resolve the conflicts in .devset/conflicts/"
         } else {
-            "resolve the files in .devset/conflicts/, then run `devset update --continue`;\n\
-             or take the update back with `devset update --abort`"
+            "resolve the files in .devset/conflicts/, then run `devset apply --continue`;\n\
+             or take it back with `devset apply --abort`"
         })?;
     }
     Ok(conflicts > 0)
 }
 
-/// Prints what taking an update back would do, and the changes since it that it would discard.
+/// Prints what taking a conflicted run back would do, and the changes since it that it would
+/// discard.
 pub(crate) fn rollback(shell: &Shell, rollback: &Rollback) -> io::Result<()> {
     for revert in rollback.reverts() {
         let (verb, _, path) = revert_parts(revert);
@@ -114,19 +116,21 @@ pub(crate) fn rollback(shell: &Shell, rollback: &Rollback) -> io::Result<()> {
     if rollback.changed().is_empty() {
         return Ok(());
     }
-    let text =
-        format!("this discards changes made since the update to {}", list(rollback.changed()));
-    shell.note(&text, Some("`devset update --abort` refuses them; add `--force` to discard them"))
+    let text = format!(
+        "this discards changes made since the conflicted run to {}",
+        list(rollback.changed())
+    );
+    shell.note(&text, Some("`devset apply --abort` refuses them; add `--force` to discard them"))
 }
 
-/// Prints what taking an update back did.
+/// Prints what taking a conflicted run back did.
 pub(crate) fn rolled_back(shell: &Shell, reverts: &[Revert]) -> io::Result<()> {
     for revert in reverts {
         let (_, past, path) = revert_parts(revert);
         shell.status(past, GOOD, path)?;
     }
     let summary = reverted(reverts, ("restored", "removed"));
-    shell.status("Finished", GOOD, format!("update aborted: {summary}"))
+    shell.status("Finished", GOOD, format!("taking the run back: {summary}"))
 }
 
 /// A revert's verb, for what would happen and what happened, and its path.
@@ -142,7 +146,7 @@ fn reverted(reverts: &[Revert], (restore, remove): (&str, &str)) -> String {
     let restored = reverts.iter().filter(|r| matches!(r, Revert::Restore(_))).count();
     let removed = reverts.len().saturating_sub(restored);
     match (restored, removed) {
-        (0, 0) => "no file to take back".to_owned(),
+        (0, 0) => "nothing to restore".to_owned(),
         (n, 0) => format!("{} {restore}", count(n, "file")),
         (0, m) => format!("{} {remove}", count(m, "file")),
         (n, m) => format!("{} {restore}, {m} {remove}", count(n, "file")),

@@ -21,12 +21,12 @@ fn conflicts_wait_in_sidecars() {
     assert_eq!(sb.read("repo/b.toml"), "b = 2\n", "clean files are applied");
     log += &sb.devset("repo", &["status", "--exit-code"]);
     log += &sb.devset("repo", &["apply"]);
-    log += &sb.devset("repo", &["update", "--continue"]);
+    log += &sb.devset("repo", &["apply", "--continue"]);
     sb.write("repo/.devset/conflicts/a.toml", "x = 23\n");
-    log += &sb.devset("repo", &["update", "--continue"]);
+    log += &sb.devset("repo", &["apply", "--continue"]);
     assert_eq!(sb.read("repo/a.toml"), "x = 23\n", "the resolution is installed");
     assert!(!sb.path("repo/.devset/conflicts").exists(), "sidecars are cleared");
-    log += &sb.devset("repo", &["update", "--continue"]);
+    log += &sb.devset("repo", &["apply", "--continue"]);
     sb.assert(&log, snapbox::file!["snapshots/conflicts_wait_in_sidecars.txt"]);
 }
 
@@ -54,7 +54,7 @@ fn apply_none_withholds_everything() {
         "the update waits in its pending lock"
     );
     sb.write("repo/.devset/conflicts/a.toml", "x = 23\n");
-    log += &sb.devset("repo", &["update", "--continue"]);
+    log += &sb.devset("repo", &["apply", "--continue"]);
     assert_eq!(
         (sb.read("repo/a.toml"), sb.read("repo/b.toml")),
         ("x = 23\n".into(), "b = 2\n".into()),
@@ -84,11 +84,11 @@ fn abort_takes_the_update_back() {
         "v2",
     );
     log += &sb.devset("repo", &["update"]);
-    log += &sb.devset("repo", &["update", "--abort", "--dry-run"]);
+    log += &sb.devset("repo", &["apply", "--abort", "--dry-run"]);
     sb.write("repo/b.toml", "b = 9\n");
-    log += &sb.devset("repo", &["update", "--abort"]);
+    log += &sb.devset("repo", &["apply", "--abort"]);
     assert_eq!(sb.read("repo/b.toml"), "b = 9\n", "a refused abort writes nothing");
-    log += &sb.devset("repo", &["update", "--abort", "--force"]);
+    log += &sb.devset("repo", &["apply", "--abort", "--force"]);
     assert_eq!(
         (sb.read("repo/a.toml"), sb.read("repo/b.toml")),
         ("x = 2\n".into(), "b = 1\n".into()),
@@ -97,7 +97,7 @@ fn abort_takes_the_update_back() {
     assert!(!sb.path("repo/c.toml").exists(), "a file the update created is removed");
     assert_eq!((records(), sb.blobs("repo")), (before, bases), "and the lock, state and bases");
     assert!(!sb.path("repo/.devset/conflicts").exists(), "the conflicts are discarded");
-    log += &sb.devset("repo", &["update", "--abort"]);
+    log += &sb.devset("repo", &["apply", "--abort"]);
     sb.assert(&log, snapbox::file!["snapshots/abort_takes_the_update_back.txt"]);
 }
 
@@ -116,7 +116,7 @@ fn abort_discards_a_withheld_update() {
     let lock = sb.read("repo/.devset/lock.toml");
     sb.publish("p", "p", &[("a.toml", "merge", "x = 3\n"), ("b.toml", "owned", "b = 2\n")], "v2");
     log += &sb.devset("repo", &["update"]);
-    log += &sb.devset("repo", &["update", "--abort"]);
+    log += &sb.devset("repo", &["apply", "--abort"]);
     assert_eq!(sb.read("repo/.devset/lock.toml"), lock, "the lock never moved");
     assert!(!sb.path("repo/.devset/conflicts").exists(), "the withheld lock is discarded");
     log += &sb.devset("repo", &["status"]);
@@ -184,10 +184,26 @@ fn a_layer_added_while_conflicts_are_withheld_stays() {
         &sb.devset("repo", &["add", "q", "--git", "../profiles.git", "--tag", "v3", "--path", "q"]);
     assert!(sb.read("repo/.devset/config.toml").contains("q/q"), "the layer is the target's");
     sb.write("repo/.devset/conflicts/a.toml", "x = 23\n");
-    log += &sb.devset("repo", &["update", "--continue"]);
+    log += &sb.devset("repo", &["apply", "--continue"]);
     assert!(sb.path("repo/q.toml").exists(), "and applied once the conflict is resolved");
     sb.assert(
         &log,
         snapbox::file!["snapshots/a_layer_added_while_conflicts_are_withheld_stays.txt"],
     );
+}
+
+#[test]
+fn a_conflict_from_apply_is_finished_by_apply() {
+    let sb = Sandbox::new();
+    sb.profile("p/one", "one", &[("a.toml", "merge", "x = 1\n")]);
+    let mut log = sb.devset("t", &["add", "p/one", "--path", "../p"]);
+    sb.write("t/a.toml", "x = 2\n");
+    sb.write("p/one/files/a.toml", "x = 3\n");
+    log += &sb.devset("t", &["apply"]);
+    log += &sb.devset("t", &["status"]);
+    sb.write("t/.devset/conflicts/a.toml", "x = 4\n");
+    log += &sb.devset("t", &["apply", "--continue"]);
+    assert_eq!(sb.read("t/a.toml"), "x = 4\n", "the resolution is installed");
+    log += &sb.devset("t", &["apply", "--abort"]);
+    sb.assert(&log, snapbox::file!["snapshots/a_conflict_from_apply_is_finished_by_apply.txt"]);
 }

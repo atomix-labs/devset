@@ -597,11 +597,11 @@ pub enum MergeError {
     /// Resolutions were to be installed, and no conflict waits.
     #[error("there are no conflicts to continue from")]
     NothingToContinue,
-    /// An update was to be taken back, and none is unfinished.
-    #[error("there is no unfinished update to abort")]
+    /// A conflicted run was to be taken back, and none is unfinished.
+    #[error("there is no run that conflicted to take back")]
     NothingToAbort,
-    /// Taking an update back would discard changes made since it.
-    #[error("{} changed since the update: {}", plural(paths.len(), "file"), list(paths))]
+    /// Taking a conflicted run back would discard changes made since it.
+    #[error("{} changed since the run that conflicted: {}", plural(paths.len(), "file"), list(paths))]
     ChangedSince {
         /// Each changed file, relative to the target root.
         paths: Vec<String>,

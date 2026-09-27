@@ -41,13 +41,13 @@ pub(crate) fn status(survey: &Survey, target: &Target) -> io::Result<()> {
         return Ok(());
     }
     let mut rows = Vec::new();
-    let apply = if survey.unfinished() { "`devset update --continue`" } else { "`devset apply`" };
+    let apply = if survey.unfinished() { "`devset apply --continue`" } else { "`devset apply`" };
     for entry in survey.entries() {
         let path = &entry.path;
         let (level, next) = match Standing::of(entry) {
             Standing::Conflict => (
                 "error",
-                "resolve `.devset/conflicts/`, then run `devset update --continue`".to_owned(),
+                "resolve `.devset/conflicts/`, then run `devset apply --continue`".to_owned(),
             ),
             Standing::Drifted(change) => {
                 ("error", format!("`devset apply --force` would {change} it"))
@@ -67,7 +67,7 @@ pub(crate) fn status(survey: &Survey, target: &Target) -> io::Result<()> {
     summarize(&summary)
 }
 
-/// Annotates the conflicts of an update, which wrote as `wrote` says.
+/// Annotates the conflicts of a run, which wrote as `wrote` says.
 pub(crate) fn conflicts(steps: &[Step], target: &Target, wrote: Wrote) -> io::Result<()> {
     if !active() {
         return Ok(());

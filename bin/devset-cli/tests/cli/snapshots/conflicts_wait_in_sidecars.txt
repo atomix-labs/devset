@@ -18,30 +18,30 @@ $ devset update
   Conflicted a.toml  conflicting changes
      Updated b.toml
     Finished 1 change, 1 conflict
-help: resolve the files in .devset/conflicts/, then run `devset update --continue`;
-      or take the update back with `devset update --abort`
+help: resolve the files in .devset/conflicts/, then run `devset apply --continue`;
+      or take it back with `devset apply --abort`
 [exit 1]
 $ devset status --exit-code
 p/p 1.0.0  @54ba0dc
 
-Conflicts — resolve in .devset/conflicts/, then run `devset update --continue`:
+Conflicts — resolve in .devset/conflicts/, then run `devset apply --continue`:
     conflict   a.toml  merge  → .devset/conflicts/a.toml
 [exit 1]
 $ devset apply
 error: 1 conflict unresolved: a.toml
   |
-  = help: resolve them in .devset/conflicts/, then run `devset update --continue`;
-          or take the update back with `devset update --abort`
+  = help: resolve them in .devset/conflicts/, then run `devset apply --continue`;
+          or take it back with `devset apply --abort`
 [exit 2]
-$ devset update --continue
+$ devset apply --continue
 error: .devset/conflicts/a.toml still has conflict markers
   |
-  = help: fix it, then run `devset update --continue` again
+  = help: fix it, then run `devset apply --continue` again
 [exit 2]
-$ devset update --continue
+$ devset apply --continue
       Merged a.toml
     Finished 1 change
 [exit 0]
-$ devset update --continue
+$ devset apply --continue
 error: there are no conflicts to continue from
 [exit 2]

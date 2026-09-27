@@ -10,8 +10,8 @@ $ devset apply
   Conflicted m.toml  its recorded base is missing, so it merged without one
      Updated o.toml
     Finished 1 change, 2 conflicts
-help: resolve the files in .devset/conflicts/, then run `devset update --continue`;
-      or take the update back with `devset update --abort`
+help: resolve the files in .devset/conflicts/, then run `devset apply --continue`;
+      or take it back with `devset apply --abort`
 [exit 1]
 --- .devset/conflicts/m.toml
 <<<<<<< ours

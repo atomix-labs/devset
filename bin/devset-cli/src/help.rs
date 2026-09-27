@@ -258,18 +258,18 @@ fn merge(error: &MergeError) -> Option<String> {
                 .into(),
         ),
         MergeError::Unresolved { .. } => Some(
-            "resolve them in .devset/conflicts/, then run `devset update --continue`;\n\
-             or take the update back with `devset update --abort`"
+            "resolve them in .devset/conflicts/, then run `devset apply --continue`;\n\
+             or take it back with `devset apply --abort`"
                 .into(),
         ),
         MergeError::Unmerged { .. } | MergeError::Invalid { .. } => {
-            Some("fix it, then run `devset update --continue` again".into())
+            Some("fix it, then run `devset apply --continue` again".into())
         },
         MergeError::ChangedSince { .. } => {
-            Some("keep what you need from them, then run `devset update --abort --force`".into())
+            Some("keep what you need from them, then run `devset apply --abort --force`".into())
         },
         MergeError::CorruptUndo { .. } => Some(
-            "restore that file by hand, or delete .devset/conflicts/ to keep what the update wrote"
+            "restore that file by hand, or delete .devset/conflicts/ to keep what the conflicted run wrote"
                 .into(),
         ),
         MergeError::Driver { .. }

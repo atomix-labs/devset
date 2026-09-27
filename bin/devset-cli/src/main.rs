@@ -123,7 +123,12 @@ fn run(shell: &Shell, command: Command) -> Result<ExitCode, Error> {
         Command::Status { exit_code, json, verbose } => {
             status(shell, &cwd, &cache()?, exit_code, json, verbose)
         },
-        Command::Apply { force, rescaffold, answers, dry_run } => {
+        Command::Apply { abort: true, force, dry_run, .. } => abort(shell, &cwd, force, dry_run),
+        Command::Apply { resume: true, answers, dry_run, .. } => {
+            let how = (Refresh::None, Mode::Continue);
+            apply(shell, &mut Target::find(&cwd)?, &cache()?, how, answers, dry_run)
+        },
+        Command::Apply { force, rescaffold, answers, dry_run, .. } => {
             let mode = if force { Mode::Force } else { Mode::Apply };
             let target = &mut Target::find(&cwd)?;
             for scaffold in rescaffold {
@@ -131,13 +136,8 @@ fn run(shell: &Shell, command: Command) -> Result<ExitCode, Error> {
             }
             apply(shell, target, &cache()?, (Refresh::None, mode), answers, dry_run)
         },
-        Command::Update { abort: true, force, dry_run, .. } => abort(shell, &cwd, force, dry_run),
-        Command::Update { name, resume, answers, dry_run, .. } => {
-            let how = match (resume, name.as_deref()) {
-                (true, _) => (Refresh::None, Mode::Continue),
-                (false, Some(name)) => (Refresh::Only(name), Mode::Apply),
-                (false, None) => (Refresh::All, Mode::Apply),
-            };
+        Command::Update { name, answers, dry_run } => {
+            let how = (name.as_deref().map_or(Refresh::All, Refresh::Only), Mode::Apply);
             apply(shell, &mut Target::find(&cwd)?, &cache()?, how, answers, dry_run)
         },
         Command::Explain { name } => {
@@ -363,7 +363,7 @@ fn status(
     Ok(if failed { ExitCode::FAILURE } else { ExitCode::SUCCESS })
 }
 
-/// Takes back an unfinished update, or with `dry_run` says what that would restore.
+/// Takes back the run that conflicted, or with `dry_run` says what that would restore.
 fn abort(shell: &Shell, cwd: &Utf8Path, force: bool, dry_run: bool) -> Result<ExitCode, Error> {
     let target = Target::find(cwd)?;
     let rollback = Rollback::of(&target)?;

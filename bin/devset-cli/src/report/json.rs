@@ -27,7 +27,7 @@ pub(super) struct StatusJson<'a> {
     suggestions: Vec<SuggestionJson<'a>>,
     /// Whether `apply --force` would write a file.
     drifted: bool,
-    /// Whether an update is unfinished: conflicts wait in `.devset/conflicts/`.
+    /// Whether a run that conflicted is unfinished: conflicts wait in `.devset/conflicts/`.
     unfinished: bool,
 }
 
@@ -83,7 +83,7 @@ struct FileJson<'a> {
 #[derive(Serialize)]
 #[serde(rename_all = "kebab-case")]
 struct SettingsJson {
-    /// What an update does when a file conflicts.
+    /// What a run does when a file conflicts.
     on_conflict: OnConflict,
     /// The merge driver: `builtin`, or its command line.
     driver: String,

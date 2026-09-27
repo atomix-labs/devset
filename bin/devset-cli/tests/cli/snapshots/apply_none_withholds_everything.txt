@@ -17,10 +17,10 @@ $ devset update
   Conflicted a.toml  conflicting changes
     Withheld b.toml  would update
     Finished 1 conflict; 1 change withheld by `on-conflict = "apply-none"`
-help: resolve the files in .devset/conflicts/, then run `devset update --continue`;
-      or take the update back with `devset update --abort`
+help: resolve the files in .devset/conflicts/, then run `devset apply --continue`;
+      or take it back with `devset apply --abort`
 [exit 1]
-$ devset update --continue
+$ devset apply --continue
       Merged a.toml
      Updated b.toml
     Finished 2 changes

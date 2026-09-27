@@ -5,8 +5,8 @@ help: add a layer: `devset add <source>/<profile> --git <url>`, or `--path <dir>
 $ devset add --path ../p
   Conflicted Cargo.toml [block: p]  with it, the file is invalid: duplicate key at line 5
     Finished 1 conflict
-help: resolve the files in .devset/conflicts/, then run `devset update --continue`;
-      or take the update back with `devset update --abort`
+help: resolve the files in .devset/conflicts/, then run `devset apply --continue`;
+      or take it back with `devset apply --abort`
 [exit 1]
 --- .devset/conflicts/Cargo.toml
 [workspace]
@@ -39,6 +39,6 @@ help: add a layer: `devset add <source>/<profile> --git <url>`, or `--path <dir>
 $ devset add --path ../p
   Conflicted Cargo.toml [block: p]  with it, the file is invalid: unclosed table, expected `]` at line 1
     Finished 1 conflict
-help: resolve the files in .devset/conflicts/, then run `devset update --continue`;
-      or take the update back with `devset update --abort`
+help: resolve the files in .devset/conflicts/, then run `devset apply --continue`;
+      or take it back with `devset apply --abort`
 [exit 1]

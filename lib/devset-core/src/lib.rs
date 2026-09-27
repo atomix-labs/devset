@@ -44,8 +44,8 @@
 //!
 //! [`Refresh::All`] moves every source to what its ref names now; the rest of the chain is the
 //! same. A `merge` file then merges its local edits with the profile's new version. A conflict
-//! leaves the update unfinished, waiting in `.devset/conflicts/`: a chain under
-//! [`Mode::Continue`] installs the fix, or a [`Rollback`] takes the whole update back.
+//! leaves the run unfinished, waiting in `.devset/conflicts/`: a chain under
+//! [`Mode::Continue`] installs the fix, or a [`Rollback`] takes the whole run back.
 //!
 //! # Types
 //!
@@ -53,7 +53,7 @@
 //! - [`Resolved`]: the target's layers composed, one provider per path.
 //! - [`Survey`]: every managed path as the profile wants it, as recorded, and as on disk.
 //! - [`Plan`]: what committing does to each path.
-//! - [`Rollback`]: an unfinished update, and what taking it back restores.
+//! - [`Rollback`]: an unfinished run, and what taking it back restores.
 //! - [`Error`]: why any of it did not go through, one type per domain.
 //!
 //! The files people write have modules of their own: [`profile`] for `profile.toml`,

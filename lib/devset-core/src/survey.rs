@@ -166,7 +166,7 @@ impl Survey {
         self.gated.get(&Slot { path: path.clone(), part: part.map(str::to_owned) })
     }
 
-    /// Whether an update is unfinished: conflicts wait in `.devset/conflicts/`.
+    /// Whether a run is unfinished: conflicts wait in `.devset/conflicts/`.
     #[must_use]
     pub fn unfinished(&self) -> bool {
         self.entries.iter().any(|entry| entry.conflict)
