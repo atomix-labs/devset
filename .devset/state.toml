@@ -85,8 +85,8 @@ exact = "4afd46c92fab57b3675d5e54de839c3818d35c1dd58ca9e4551a0ea3a6ee55e0"
 canonical = "4afd46c92fab57b3675d5e54de839c3818d35c1dd58ca9e4551a0ea3a6ee55e0"
 
 [files.".claude/skills/writing-the-book/SKILL.md"]
-exact = "3e34f06ac7920ca9e0fe2b92065144990128cc5e8be1741a4d022f15c7703589"
-canonical = "3e34f06ac7920ca9e0fe2b92065144990128cc5e8be1741a4d022f15c7703589"
+exact = "9d570fe9a91aa3b3627fedbc6d087cf0292cc2751a3863f91f050f3a6c7a8315"
+canonical = "9d570fe9a91aa3b3627fedbc6d087cf0292cc2751a3863f91f050f3a6c7a8315"
 
 [files.".config/mise/conf.d/devset-cargo-bump.toml"]
 exact = "fcb07146bfdf1ac873fafbb51b55e276dadcf4e8944f78d18c1d714046e0efea"
@@ -145,8 +145,8 @@ exact = "4830eed6ef06ca7a7846a988b53f4d920dd2213f23c2554a587bf2420a91c321"
 canonical = "4830eed6ef06ca7a7846a988b53f4d920dd2213f23c2554a587bf2420a91c321"
 
 [files.".config/mise/conf.d/devset-mdbook.toml"]
-exact = "188ee09fba4007c204f59de17b639893d2fd025e1fb360faf067acd35c68e769"
-canonical = "188ee09fba4007c204f59de17b639893d2fd025e1fb360faf067acd35c68e769"
+exact = "bbd44336e2ed8c5ad93b28fc128d71fb8408c5bdb1c50bf3f827862b85cec3db"
+canonical = "bbd44336e2ed8c5ad93b28fc128d71fb8408c5bdb1c50bf3f827862b85cec3db"
 
 [files.".config/mise/conf.d/devset-mise.toml"]
 exact = "1274c5d252fd47ce75be2907e123c5e8e4ebdaf9a1790f3dc411d21175ad2c21"
@@ -450,6 +450,14 @@ canonical = "e247332cdf9e82db6b29a70b0d6628a6dba1054fcb1e76664602f6cda7cfe20e"
 exact = "c2de05ad0105989ccf851720965ce244f5cc740d8bd8d7689265db3be5a2cde0"
 canonical = "c2de05ad0105989ccf851720965ce244f5cc740d8bd8d7689265db3be5a2cde0"
 
+[files."docs/mermaid-init.js"]
+exact = "6312cfe44594f0a56b70c8864fa810d58558d076842fee927da3cb746c43d3fe"
+canonical = "6312cfe44594f0a56b70c8864fa810d58558d076842fee927da3cb746c43d3fe"
+
+[files."docs/mermaid.min.js"]
+exact = "2d2fd911a347fe6cd32e7856484fa7fb9be3a98fdeeb496eab1a6d87b39dfc87"
+canonical = "e5043db3826f51a6f4fc4e6f8eb9cd4ada0711fb645aafefd9f1266399867b4e"
+
 [files."docs/src/vendor/katex/fonts/KaTeX_AMS-Regular.woff2"]
 exact = "d6591f77408a0de1a2207f1ee245578658252d909c856b2e89d3e6f8e09d30cb"
 canonical = "d6591f77408a0de1a2207f1ee245578658252d909c856b2e89d3e6f8e09d30cb"
@@ -653,8 +661,8 @@ canonical = "907b12b5e69615b0d434a41abc81c437443f5f2279c737ece501f1a6e31f9626"
 
 [parts.".config/mise/mise.lock".mdbook]
 scope = "keys"
-exact = "cfeb37eb6a2a2a7d9053dacdfbbff76e37a6c400baeb28f6060648b6d98e03c9"
-canonical = "cfeb37eb6a2a2a7d9053dacdfbbff76e37a6c400baeb28f6060648b6d98e03c9"
+exact = "bab4098f2d0385c5bad1bc2b890aa1b810e1adf2421b7134ac2465a242017d6f"
+canonical = "bab4098f2d0385c5bad1bc2b890aa1b810e1adf2421b7134ac2465a242017d6f"
 
 [parts.".config/mise/mise.lock".mise]
 scope = "keys"
@@ -823,8 +831,8 @@ canonical = "688e3a53753b421f7fdcc42316db2de85d3fb22c6ab67fbce99b77c19680e4a4"
 
 [parts."docs/book.toml".mdbook]
 scope = "keys"
-exact = "7ec46dd13f44578ee0a9e5ca09b4c916ea7d60ffdc8069a99d4f0281fedb5dfc"
-canonical = "7ec46dd13f44578ee0a9e5ca09b4c916ea7d60ffdc8069a99d4f0281fedb5dfc"
+exact = "3820dea08e6d83d624eca4ef4d1fb56d1dbb1967ecbff897f5038877e25eb3d6"
+canonical = "3820dea08e6d83d624eca4ef4d1fb56d1dbb1967ecbff897f5038877e25eb3d6"
 policy = "merge"
 
 [parts."dprint.json".dprint]

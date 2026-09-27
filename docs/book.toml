@@ -17,7 +17,7 @@ additional-css = [
     "theme/width.css",
     "theme/details.css",
 ]
-additional-js = ["api-link.js"]
+additional-js = ["mermaid.min.js", "mermaid-init.js", "api-link.js"]
 
 [output.html.fold]
 enable = true
@@ -36,3 +36,6 @@ no-css = true
 unstable-features = true
 base-url          = "/api"
 fail-on-warnings  = "always"
+
+[preprocessor.mermaid]
+command = "mdbook-mermaid"

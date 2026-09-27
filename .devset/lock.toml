@@ -329,7 +329,7 @@ tag = "v0.8.1"
 [[profiles]]
 name = "mdbook"
 rev = "3200dadb18d5cd9a831300fc4af78708dd90b31a"
-digest = "baaf3ada7f75a5ee669391a20a14d4c1cb0e2857a41bee13fa62aebad9e40794"
+digest = "86b8c121876aec81c7077760f657f6fcc2dc15b02bb285399420fc394ffc8dae"
 
 [profiles.source]
 git = "https://github.com/atomix-labs/atxp"
@@ -340,6 +340,7 @@ agents = ["rust/agents"]
 api = ["default"]
 katex = ["default"]
 links = ["default"]
+mermaid = ["target"]
 pages = ["default"]
 
 [[profiles]]

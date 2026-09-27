@@ -33,3 +33,7 @@ profile = "atxp/suppressions"
 
 [[layers]]
 profile = "atxp/vhs"
+
+[[layers]]
+profile = "atxp/mdbook"
+features = ["mermaid"]
