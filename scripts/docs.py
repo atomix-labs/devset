@@ -24,6 +24,10 @@ REFERENCE = SRC / "reference"
 SUMMARY = SRC / "SUMMARY.md"
 # A release of atxp a file names: its URL, then on the same line `--tag v...` or `tag = "v..."`.
 ATXP = re.compile(r'(atomix-labs/atxp\b[^\n]*?(?:--tag |tag = \\?"))(v\d+\.\d+\.\d+)')
+# The release of atxp a demo moves to, which is the one devset applies; where it starts is older on
+# purpose, so the demo has a release to move to.
+UPDATE = re.compile(r"(devset update atxp --tag )(v\d+\.\d+\.\d+)")
+DEMOS = Path("docs/demo")
 # What names atxp's release besides the manual: the README, the help, and the skeleton `init` writes.
 NAMING = ("README.md", "bin/devset-cli/src/cli.rs", "bin/devset-cli/src/main.rs", "lib/devset-core/src/target.rs")
 # Marks a reference page as written here; a page without it is written by hand.
@@ -223,13 +227,20 @@ def pin():
     return tomllib.loads(Path(".devset/config.toml").read_text())["sources"]["atxp"]["tag"]
 
 
+def naming():
+    """Each file that names atxp's release, with the pattern that finds it there."""
+    files = [(Path(name), ATXP) for name in NAMING] + [(path, ATXP) for path in sorted(SRC.rglob("*.md"))]
+    return files + [(path, UPDATE) for path in sorted(DEMOS.rglob("*.tape"))]
+
+
 def misnamed(want):
-    """Each file naming a release of atxp other than `want`, with the releases it names."""
+    """Each file naming a release of atxp other than `want`, with the releases it names, and the
+    pattern that finds them."""
     found = {}
-    for path in [Path(name) for name in NAMING] + sorted(SRC.rglob("*.md")):
-        tags = {match.group(2) for match in ATXP.finditer(path.read_text())} - {want}
+    for path, pattern in naming():
+        tags = {match.group(2) for match in pattern.finditer(path.read_text())} - {want}
         if tags:
-            found[path] = sorted(tags)
+            found[path] = (sorted(tags), pattern)
     return found
 
 
@@ -257,7 +268,7 @@ def check():
         print(f"{SUMMARY}: no chapter links {path.relative_to(SRC)}", file=sys.stderr)
     want = pin()
     named = misnamed(want)
-    for path, tags in named.items():
+    for path, (tags, _) in named.items():
         print(f"{path}: names atxp {', '.join(tags)}, not {want}; run `just fix-docs`", file=sys.stderr)
     return 1 if outdated or unlisted or named else 0
 
@@ -266,8 +277,8 @@ def fix():
     """Names the pinned release of atxp everywhere, then writes every page, and removes the pages
     of commands there are no more."""
     want = pin()
-    for path in misnamed(want):
-        path.write_text(ATXP.sub(lambda match: match.group(1) + want, path.read_text()))
+    for path, (_, pattern) in misnamed(want).items():
+        path.write_text(pattern.sub(lambda match: match.group(1) + want, path.read_text()))
     written = pages() | schemas()
     for path in leftovers(written):
         path.unlink()

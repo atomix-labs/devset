@@ -1,9 +1,14 @@
-# devset's demo, both themes: a repository takes a profile from an old release, adds a line of its
-# own to a file the profile owns part of, and moves to a newer release, the line still there.
-Require devset
+# devset's demo, both themes: a repository takes a profile from an old release of atxp, v0.6.0 on
+# purpose, adds a line of its own to a file the profile owns part of, and moves to the release devset
+# pins, the line still there. It records the devset this checkout builds, so the demo of a release
+# shows that release; `just fix-docs` keeps the tag it moves to at devset's pin.
+Require cargo
 Require git
 
 Hide
+Type "cargo build --quiet --locked --release --bin devset && export PATH=$PWD/target/release:$PATH"
+Enter
+Wait@900s
 Type "cd $(mktemp -d) && mkdir hello && cd hello && git init -q && clear"
 Enter
 Sleep 500ms
@@ -27,7 +32,7 @@ Enter
 Wait@30s
 Sleep 3s
 
-Type "devset update atxp --tag v0.8.0"
+Type "devset update atxp --tag v0.10.0"
 Sleep 400ms
 Enter
 Wait@30s
