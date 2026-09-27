@@ -29,7 +29,7 @@ policy = "once"
 exact = "9f621f5eeda35e1e30592260439716ea71b7c3ff080bc09aacdaaacdac8208f2"
 canonical = "9f621f5eeda35e1e30592260439716ea71b7c3ff080bc09aacdaaacdac8208f2"
 $ devset apply --force
-    Finished up to date
+    Finished nothing to change
 [exit 0]
 $ devset apply --rescaffold book/book
      Adopted docs/book.toml

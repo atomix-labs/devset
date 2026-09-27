@@ -7,8 +7,8 @@ $ devset add --path ../p/editor
     Finished 1 change
 [exit 0]
 $ devset apply
-    Finished up to date
+    Finished nothing to change
 [exit 0]
 $ devset apply
-    Finished up to date
+    Finished nothing to change
 [exit 0]

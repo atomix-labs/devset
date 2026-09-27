@@ -4,8 +4,8 @@ $ devset add --path ../profile
     Finished 1 change
 [exit 0]
 $ devset apply --force
-    Finished up to date
+    Finished nothing to change
 [exit 0]
 $ devset apply --force
-    Finished up to date
+    Finished nothing to change
 [exit 0]

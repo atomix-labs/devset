@@ -5,7 +5,7 @@ $ devset add p/rust --path ../p
     Finished 2 changes
 [exit 0]
 $ devset apply
-    Finished up to date
+    Finished nothing to change
 [exit 0]
 $ devset apply --rescaffold ws/ws
      Created Cargo.toml

@@ -24,7 +24,7 @@ Local changes, kept:
     edited     deny.toml     merge
 [exit 1]
 $ devset apply
-    Finished up to date
+    Finished nothing to change
 [exit 0]
 $ devset apply --force --dry-run
        Would restore rustfmt.toml

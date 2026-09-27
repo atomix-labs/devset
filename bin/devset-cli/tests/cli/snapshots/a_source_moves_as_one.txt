@@ -6,7 +6,7 @@ $ devset add acme/rust --git ../profiles.git --branch main
     Finished 2 changes
 [exit 0]
 $ devset apply
-    Finished up to date
+    Finished nothing to change
 [exit 0]
 $ devset update rust
     Fetching ../profiles.git

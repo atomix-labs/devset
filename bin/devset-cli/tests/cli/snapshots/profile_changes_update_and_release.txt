@@ -17,5 +17,5 @@ $ devset apply
     Finished 2 changes
 [exit 0]
 $ devset apply
-    Finished up to date
+    Finished nothing to change
 [exit 0]

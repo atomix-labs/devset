@@ -7,7 +7,7 @@ $ devset add --path ../org
 [exit 0]
 $ devset update
     Fetching [ROOT]/profiles.git
-    Finished up to date
+    Finished nothing to change
 [exit 0]
 $ devset apply
     Fetching [ROOT]/profiles.git

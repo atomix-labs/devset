@@ -14,7 +14,7 @@ $ devset add p/rust --features docs
 [exit 0]
 $ devset add p/rust --features docs
 note: the layer p/rust already turns these on
-    Finished up to date
+    Finished nothing to change
 [exit 0]
 $ devset add p/rust
 error: the layer rust is already applied
@@ -78,7 +78,7 @@ $ devset add p/book --default-features --features katex
 $ devset remove book --features katex
     Removing feature katex from layer p/book
 note: katex stays on: default turns it on
-    Finished up to date
+    Finished nothing to change
 [exit 0]
 --- .devset/config.toml
 #:schema https://atomix-labs.github.io/devset/schema/config.json

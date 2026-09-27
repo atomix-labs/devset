@@ -76,7 +76,7 @@ pub(crate) fn applied(shell: &Shell, steps: &[Step], wrote: Wrote) -> io::Result
         shell.status(status, style, message)?;
     }
     let outcome = match (changes, conflicts) {
-        (0, 0) => "up to date".to_owned(),
+        (0, 0) => "nothing to change".to_owned(),
         (n, c) if wrote.held() && n > 0 => format!(
             "{}; {} withheld by `on-conflict = \"apply-none\"`",
             count(c, "conflict"),

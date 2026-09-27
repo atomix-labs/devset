@@ -22,7 +22,7 @@ releases newer than it, with the command that takes the newest:
 ```console
 $ devset update
     Fetching https://github.com/atomix-labs/atxp
-    Finished up to date
+    Finished nothing to change
 note: atxp is pinned to v0.6.2; newer: v0.7.0
   |
   = help: take the newest: `devset update atxp --tag v0.7.0`

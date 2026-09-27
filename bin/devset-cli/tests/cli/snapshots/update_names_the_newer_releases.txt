@@ -6,14 +6,14 @@ $ devset add house/lint --git ../profiles.git --tag v1.0.0 --path lint
 [exit 0]
 $ devset update --dry-run
     Fetching ../profiles.git
-    Finished up to date
+    Finished nothing to change
 note: house is pinned to v1.0.0; newer: v1.1.0, v1.2.0
   |
   = help: take the newest: `devset update house --tag v1.2.0`
 [exit 0]
 $ devset update
     Fetching ../profiles.git
-    Finished up to date
+    Finished nothing to change
 note: house is pinned to v1.0.0; newer: v1.1.0, v1.2.0
   |
   = help: take the newest: `devset update house --tag v1.2.0`

@@ -15,7 +15,7 @@ error: Cargo.toml is provided by ws1 and ws2
               from = "ws1"   # or "ws2"
 [exit 2]
 $ devset apply
-    Finished up to date
+    Finished nothing to change
 [exit 0]
 --- Cargo.toml
 [workspace.lints.rust]

@@ -7,7 +7,7 @@ $ devset add p/book --path ../p
     Finished 1 change
 [exit 0]
 $ devset apply
-    Finished up to date
+    Finished nothing to change
 [exit 0]
 $ devset explain docs/src/SUMMARY.md
 docs/src/SUMMARY.md

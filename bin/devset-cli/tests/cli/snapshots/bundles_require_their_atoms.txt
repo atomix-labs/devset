@@ -43,10 +43,10 @@ error: a is required by both, not configured by this target
   = help: remove both, which brings it in
 [exit 2]
 $ devset add profiles/a
-    Finished up to date
+    Finished nothing to change
 [exit 0]
 $ devset remove a
     Removing layer profiles/a
 note: a stays active: both requires it
-    Finished up to date
+    Finished nothing to change
 [exit 0]
