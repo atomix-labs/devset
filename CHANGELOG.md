@@ -3,6 +3,24 @@
 Every release, newest first, written by [git-cliff](https://git-cliff.org) from the commits.
 [BREAKING-CHANGES.md](BREAKING-CHANGES.md) says how to move across a breaking change.
 
+## [0.5.2](https://github.com/atomix-labs/devset/releases/tag/v0.5.2) - 2026-09-27
+
+### Bug Fixes
+
+- [c979f5d](https://github.com/atomix-labs/devset/commit/c979f5d1af7a2c1f684db080bc535b99e3673be3) *(core)* Take a TOML table from the top of a file without a blank line
+- [811ab71](https://github.com/atomix-labs/devset/commit/811ab71ee1954d478aa6b837ea97f6d15d46f63e) *(core)* Keep a key a new owner takes from one that keeps others
+
+### Documentation
+
+- [f33afc4](https://github.com/atomix-labs/devset/commit/f33afc4e7594f5695e812f701e804e410301a47c) Keep the devset a profile in the manual asks for at the series
+- [4bc237b](https://github.com/atomix-labs/devset/commit/4bc237b1c14a239931e30102608e62c09328d53c) Record the demo for v0.5.1 (#31)
+
+### Miscellaneous
+
+- [bbbcdf4](https://github.com/atomix-labs/devset/commit/bbbcdf4e2f6efcfac3f935c2f0c071a0bcb970e3) Take atxp v0.11.0
+
+**Full Changelog**: <https://github.com/atomix-labs/devset/compare/v0.5.1...v0.5.2>
+
 ## [0.5.1](https://github.com/atomix-labs/devset/releases/tag/v0.5.1) - 2026-09-27
 
 ### Features

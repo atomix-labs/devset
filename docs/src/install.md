@@ -16,7 +16,7 @@ and says so when that directory is not on your `PATH`.
 
 | Option               | Does                                                                  |
 | -------------------- | --------------------------------------------------------------------- |
-| `-v <version>`       | Installs that release, as `0.5.1`, rather than the latest.            |
+| `-v <version>`       | Installs that release, as `0.5.2`, rather than the latest.            |
 | `-b <dir>`           | Installs into `<dir>`, rather than `$XDG_BIN_HOME` or `~/.local/bin`. |
 | `--uninstall`        | Removes the binary it would install.                                  |
 | `DEVSET_VERSION`     | The environment's way to say `-v`.                                    |
@@ -26,7 +26,7 @@ and says so when that directory is not on your `PATH`.
 Pass options after `sh -s --`:
 
 ```sh
-curl --proto '=https' --tlsv1.2 -fsSL https://atomix-labs.github.io/devset/install.sh | sh -s -- -v 0.5.1 -b /usr/local/bin
+curl --proto '=https' --tlsv1.2 -fsSL https://atomix-labs.github.io/devset/install.sh | sh -s -- -v 0.5.2 -b /usr/local/bin
 ```
 
 ## Other Ways
@@ -39,7 +39,7 @@ curl --proto '=https' --tlsv1.2 -fsSL https://atomix-labs.github.io/devset/insta
 
 The package is `devset-cli`, and the binary `devset`; `cargo install` builds it
 with Rust 1.98 or later. In a repository, pin devset as its other tools are: a
-`mise.toml` naming `"github:atomix-labs/devset" = "0.5.1"` gives every machine
+`mise.toml` naming `"github:atomix-labs/devset" = "0.5.2"` gives every machine
 and CI job the same one.
 
 ## Checking a Download
@@ -50,8 +50,8 @@ Each release's archives are on its
 one by hand:
 
 ```sh
-sha256sum -c devset-0.5.1-x86_64-unknown-linux-musl.tar.xz.sha256
-gh attestation verify devset-0.5.1-x86_64-unknown-linux-musl.tar.xz --repo atomix-labs/devset
+sha256sum -c devset-0.5.2-x86_64-unknown-linux-musl.tar.xz.sha256
+gh attestation verify devset-0.5.2-x86_64-unknown-linux-musl.tar.xz --repo atomix-labs/devset
 ```
 
 ## Shell Completions
