@@ -1,11 +1,11 @@
-//! What `new --profile` and `new --collection` write: a profile, or a source of them, to author,
-//! its manifest a commented tour of what it can say.
+//! What `init --profile` and `init --collection` write: a profile, or a source of them, to
+//! author, its manifest a commented tour of what it can say.
 
 use std::io::Write as _;
 
-use camino::Utf8Path;
-use devset_core::Error;
+use camino::{Utf8Path, Utf8PathBuf};
 use devset_core::name::{ProfileName, SourceName};
+use devset_core::{Error, TargetError};
 
 /// Where each template below takes its name.
 const NAME: &str = "NAME";
@@ -64,43 +64,88 @@ description = "One line: what these profiles are for"
 const COLLECTION_README: &str = "# NAME\n\nProfiles for devset. A target takes one with:\n\n\
 ```sh\ndevset add NAME/example --git <this repository's URL> --tag <a release>\n```\n";
 
-/// Writes a profile to author in `full`, named after it; returns what to do next, naming the
-/// directory as `dir`.
+/// What `init --profile` or `init --collection` wrote.
+pub(crate) struct Authored {
+    /// What it is, and its name: `profile my-lint`.
+    pub(crate) what: String,
+    /// What to do next.
+    pub(crate) next: String,
+}
+
+/// Writes a profile to author in `full`, named after it; what to do next names the directory as
+/// `dir`.
 ///
 /// # Errors
 /// - [`Error::Name`], the directory's name is not a profile's.
-/// - [`Error::Io`], a file cannot be written, or the directory already holds one of them.
-pub(crate) fn profile(full: &Utf8Path, dir: &Utf8Path) -> Result<String, Error> {
+/// - [`TargetError::Occupied`], one of its files is there already; nothing is written.
+/// - [`Error::Io`], a file cannot be written.
+pub(crate) fn profile(full: &Utf8Path, dir: &Utf8Path) -> Result<Authored, Error> {
     let name: ProfileName = full.file_name().unwrap_or_default().parse()?;
-    write_profile(full, &name)?;
-    Ok(format!(
-        "list its files in {dir}/profile.toml and put them under {dir}/files/; a target takes it \
-         with `devset add --path {dir}`"
-    ))
+    write(full, dir, &profile_files(Utf8Path::new(""), &name))?;
+    let path = if here(dir) { "<its path>".to_owned() } else { dir.to_string() };
+    Ok(Authored {
+        what: format!("profile {name}"),
+        next: format!(
+            "list its files in {} and put them under {}; a target takes it with `devset add \
+             --path {path}`",
+            at(dir, "profile.toml"),
+            at(dir, "files/"),
+        ),
+    })
 }
 
 /// Writes a collection of profiles to author in `full`, named after it, with one example
-/// profile; returns what to do next, naming the directory as `dir`.
+/// profile; what to do next names the directory as `dir`.
 ///
 /// # Errors
 /// As [`profile`].
-pub(crate) fn collection(full: &Utf8Path, dir: &Utf8Path) -> Result<String, Error> {
+pub(crate) fn collection(full: &Utf8Path, dir: &Utf8Path) -> Result<Authored, Error> {
     let name: SourceName = full.file_name().unwrap_or_default().parse()?;
-    create(&full.join("collection.toml"), &COLLECTION.replace(NAME, name.as_str()))?;
-    create(&full.join("README.md"), &COLLECTION_README.replace(NAME, name.as_str()))?;
-    write_profile(&full.join("profiles/example"), &"example".parse()?)?;
-    Ok(format!(
-        "add profiles under {dir}/profiles/, each a directory with a profile.toml; `devset list \
-         --path {dir}` shows them"
-    ))
+    let mut files = vec![
+        (Utf8PathBuf::from("collection.toml"), COLLECTION.replace(NAME, name.as_str())),
+        (Utf8PathBuf::from("README.md"), COLLECTION_README.replace(NAME, name.as_str())),
+    ];
+    files.extend(profile_files(Utf8Path::new("profiles/example"), &"example".parse()?));
+    write(full, dir, &files)?;
+    Ok(Authored {
+        what: format!("collection {name}"),
+        next: format!(
+            "add profiles under {}, each a directory with a profile.toml; `devset list --path \
+             {dir}` shows them",
+            at(dir, "profiles/"),
+        ),
+    })
 }
 
-/// Writes the profile `name` in `dir`.
-fn write_profile(dir: &Utf8Path, name: &ProfileName) -> Result<(), Error> {
+/// The files of the profile `name`, under `under`.
+fn profile_files(under: &Utf8Path, name: &ProfileName) -> Vec<(Utf8PathBuf, String)> {
     let manifest = PROFILE.replace(NAME, name.as_str()).replace(DEVSET, &release());
-    create(&dir.join("profile.toml"), &manifest)?;
-    create(&dir.join("README.md"), &PROFILE_README.replace(NAME, name.as_str()))?;
-    create(&dir.join("files/.gitkeep"), "")
+    vec![
+        (under.join("profile.toml"), manifest),
+        (under.join("README.md"), PROFILE_README.replace(NAME, name.as_str())),
+        (under.join("files/.gitkeep"), String::new()),
+    ]
+}
+
+/// Whether `dir` is the directory devset runs in.
+fn here(dir: &Utf8Path) -> bool {
+    dir == Utf8Path::new(".")
+}
+
+/// `rel` in `dir`, as a message names it: `rel` alone when `dir` is the directory devset runs in.
+fn at(dir: &Utf8Path, rel: &str) -> Utf8PathBuf {
+    if here(dir) { Utf8PathBuf::from(rel) } else { dir.join(rel) }
+}
+
+/// Writes each of `files` in `full`, named from `dir` in an error: none of them if one is there.
+fn write(full: &Utf8Path, dir: &Utf8Path, files: &[(Utf8PathBuf, String)]) -> Result<(), Error> {
+    if let Some((path, _)) = files.iter().find(|(path, _)| full.join(path).exists()) {
+        return Err(TargetError::Occupied { path: at(dir, path.as_str()) }.into());
+    }
+    for (path, text) in files {
+        create(&full.join(path), text)?;
+    }
+    Ok(())
 }
 
 /// This build's release series, `major.minor`: what a profile written now works with.

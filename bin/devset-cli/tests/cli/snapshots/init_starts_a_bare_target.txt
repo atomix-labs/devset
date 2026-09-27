@@ -1,4 +1,4 @@
-$ devset new hello
+$ devset init hello
      Created hello/.devset/config.toml
 help: add a layer: `devset add <source>/<profile> --git <url>`, or `--path <dir>`
 [exit 0]
@@ -20,18 +20,10 @@ $ devset status
 The target applies no profile yet.
 help: add one: `devset add <source>/<profile> --git <url>`, or `--path <dir>`
 [exit 0]
-$ devset add p/base --path ../p
-     Created a.toml
-    Finished 1 change
-[exit 0]
-$ devset new second p/base --path p
-     Created a.toml
-    Finished 1 change
-[exit 0]
-$ devset new fourth p/base --git p --branch main
-    Fetching ../p
-     Created a.toml
-    Finished 1 change
+$ devset init
+note: .devset/config.toml is there already: this is a target
+  |
+  = help: add a layer: `devset add <source>/<profile> --git <url>`, or `--path <dir>`
 [exit 0]
 $ devset init --dry-run
        Would create .devset/config.toml

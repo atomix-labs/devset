@@ -51,8 +51,8 @@ fn source(error: &SourceError) -> Option<String> {
 fn profile(error: &ProfileError) -> Option<String> {
     match error {
         ProfileError::NoProfiles { .. } => Some(
-            "a source holds profiles, each a directory with a profile.toml; `devset new \
-             --profile <dir>` starts one"
+            "a source holds profiles, each a directory with a profile.toml; `devset init <dir> \
+             --profile` starts one"
                 .into(),
         ),
         ProfileError::NotInSource { name, profiles, .. } => {
@@ -181,6 +181,11 @@ fn target(error: &TargetError) -> Option<String> {
                 (None, _) => format!("the scaffolds are {}", list(scaffolds)),
             })
         },
+        TargetError::Occupied { .. } => Some(
+            "`devset init` writes a profile or a collection only where its files are not: \
+                  choose another directory"
+                .into(),
+        ),
         TargetError::NotManaged { path, managed } => Some(nearest(path, managed).map_or_else(
             || "`devset status -v` lists the managed files".to_owned(),
             |near| format!("did you mean `{near}`?"),

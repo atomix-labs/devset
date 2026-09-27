@@ -13,7 +13,7 @@ use devset_core::source::SourceSpec;
 #[derive(Debug, Parser)]
 #[command(name = "devset", version, styles = clap_cargo::style::CLAP_STYLING, after_help = "\
 Examples:
-  devset new hello atxp/rust --git https://github.com/atomix-labs/atxp --tag v0.4.0
+  devset add atxp/rust --git https://github.com/atomix-labs/atxp --tag v0.6.2
   devset add atxp/mdbook --features katex
   devset status
   devset update
@@ -37,47 +37,24 @@ pub(crate) struct Cli {
 /// A devset command.
 #[derive(Debug, Subcommand)]
 pub(crate) enum Command {
-    /// Start a target in a new directory, or a profile or a collection to author.
+    /// Make a directory a target, or a profile or a collection to author.
     #[command(after_help = "\
 Examples:
-  devset new hello                    a target: hello/.devset/config.toml, to add layers to
-  devset new hello atxp/rust --git https://github.com/atomix-labs/atxp --tag v0.4.0
-  devset new --profile my-lint        a profile: profile.toml, files/ and a README
-  devset new --collection acme        a source of profiles: collection.toml and profiles/")]
-    New {
-        /// The directory to create it in.
-        dir: Utf8PathBuf,
-        /// Create a profile to author, not a target.
-        #[arg(long, conflicts_with_all = ["collection", "layer", "git", "path"])]
-        profile: bool,
-        /// Create a collection of profiles to publish, not a target.
-        #[arg(long, conflicts_with_all = ["layer", "git", "path"])]
-        collection: bool,
-        /// The first layer, if any.
-        #[command(flatten)]
-        add: AddArgs,
-        /// Answers to its variables.
-        #[command(flatten)]
-        answers: Answers,
-        /// Show what would change; write nothing.
-        #[arg(long)]
-        dry_run: bool,
-    },
-    /// Start a target in the current directory, with a first layer if given.
-    #[command(after_help = "\
-Examples:
-  devset init
-  devset init atxp/rust --git https://github.com/atomix-labs/atxp --tag v0.4.0 --features docs
-  devset init --path ../profiles/base")]
+  devset init                        this directory, a target to add layers to
+  devset init hello                  a new directory, hello/, as a target
+  devset init my-lint --profile      a profile: profile.toml, files/ and a README
+  devset init acme --collection      a source of profiles: collection.toml and profiles/")]
     Init {
-        /// The first layer, if any.
-        #[command(flatten)]
-        add: AddArgs,
-        /// Answers to its variables.
-        #[command(flatten)]
-        answers: Answers,
-        /// Show what would change; write nothing.
+        /// The directory, created if missing; this one if not given.
+        path: Option<Utf8PathBuf>,
+        /// Make it a profile to author, not a target.
+        #[arg(long, conflicts_with = "collection")]
+        profile: bool,
+        /// Make it a collection of profiles to publish, not a target.
         #[arg(long)]
+        collection: bool,
+        /// Show what would change; write nothing.
+        #[arg(long, conflicts_with_all = ["profile", "collection"])]
         dry_run: bool,
     },
     /// Add a profile as a layer, or features to one, and apply it; starts the target where there is

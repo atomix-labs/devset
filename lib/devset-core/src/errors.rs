@@ -459,6 +459,12 @@ pub enum TargetError {
         /// Every active profile's scaffolds.
         scaffolds: Vec<String>,
     },
+    /// A profile or a collection to author would be written over a file that is there.
+    #[error("{path} is there already")]
+    Occupied {
+        /// The file, as the command line names it.
+        path: Utf8PathBuf,
+    },
     /// A path named on the command line is not a file devset manages.
     #[error("{path} is not a file devset manages")]
     NotManaged {

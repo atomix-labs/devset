@@ -1,11 +1,12 @@
 //! Apply versioned file bundles to a directory, and update them without losing local edits.
 //!
-//! Run from anywhere inside a target; `new` and `init` make one. What a command answers goes to
-//! stdout; its log, diagnostics and progress to stderr. The exit code is 0 on success, 1 on a
-//! conflict or, under `status --exit-code`, on drift, and 2 on an error.
+//! Run from anywhere inside a target; `init` makes one, and `add` starts one where there is none.
+//! What a command answers goes to stdout; its log, diagnostics and progress to stderr. The exit
+//! code is 0 on success, 1 on a conflict or, under `status --exit-code`, on drift, and 2 on an
+//! error.
 //!
 //! ```text
-//! devset new hello atxp/rust --git https://github.com/atomix-labs/atxp --tag v0.4.0
+//! devset add atxp/rust --git https://github.com/atomix-labs/atxp --tag v0.6.2
 //! devset add atxp/mdbook --features katex
 //! devset status --exit-code
 //! devset update
@@ -75,15 +76,13 @@ fn run(shell: &Shell, command: Command) -> Result<ExitCode, Error> {
         Ok(Cache::user()?.prompting(shell.interactive()).on_fetch(shell.fetches()))
     };
     match command {
-        Command::New { dir, profile: true, .. } => author(shell, (&cwd, &dir), skeleton::profile),
-        Command::New { dir, collection: true, .. } => {
-            author(shell, (&cwd, &dir), skeleton::collection)
-        },
-        Command::New { dir, add, answers, dry_run, .. } => {
-            start(shell, (&cwd, &dir), &cache()?, add, answers, dry_run)
-        },
-        Command::Init { add, answers, dry_run } => {
-            start(shell, (&cwd, Utf8Path::new("")), &cache()?, add, answers, dry_run)
+        Command::Init { path, profile, collection, dry_run } => {
+            let dir = path.unwrap_or_else(|| Utf8PathBuf::from("."));
+            match (profile, collection) {
+                (true, _) => author(shell, (&cwd, &dir), skeleton::profile),
+                (_, true) => author(shell, (&cwd, &dir), skeleton::collection),
+                _ => init(shell, (&cwd, &dir), &cache()?, dry_run),
+            }
         },
         Command::Add { add, default_features, answers, dry_run } => {
             let mut target = found_or_started(shell, &cwd, dry_run)?;
@@ -163,44 +162,44 @@ fn run(shell: &Shell, command: Command) -> Result<ExitCode, Error> {
 /// Creates, in `dir` relative to `cwd`, what `write` writes: a profile or a collection to author.
 fn author(
     shell: &Shell, (cwd, dir): (&Utf8Path, &Utf8Path),
-    write: fn(&Utf8Path, &Utf8Path) -> Result<String, Error>,
+    write: fn(&Utf8Path, &Utf8Path) -> Result<skeleton::Authored, Error>,
 ) -> Result<ExitCode, Error> {
-    let next = write(&cwd.join(dir), dir)?;
-    shell.status("Created", GOOD, dir)?;
-    shell.help(&next)?;
+    let full = lexical(&cwd.join(dir)).unwrap_or_else(|| cwd.join(dir));
+    let authored = write(&full, dir)?;
+    shell.status("Created", GOOD, &authored.what)?;
+    shell.help(&authored.next)?;
     Ok(ExitCode::SUCCESS)
 }
 
-/// Starts a target in `dir`, relative to `cwd`, with the layer `add` names, if any, and applies
-/// it; a new target without one is a commented `config.toml`.
-fn start(
-    shell: &Shell, (cwd, dir): (&Utf8Path, &Utf8Path), cache: &Cache, add: AddArgs,
-    answers: Answers, dry_run: bool,
+/// Makes `dir`, relative to `cwd`, a target, its `config.toml` a commented skeleton; notes one
+/// that is a target already.
+fn init(
+    shell: &Shell, (cwd, dir): (&Utf8Path, &Utf8Path), cache: &Cache, dry_run: bool,
 ) -> Result<ExitCode, Error> {
-    let root = if dir.as_str().is_empty() { cwd.to_owned() } else { cwd.join(dir) };
-    let mut target = Target::open_or_new(&root)?;
-    let new = !target.exists();
-    if let Some(layer) = layer(&mut target, cache, add, cwd)? {
-        target.add_layer(layer)?;
+    let root = lexical(&cwd.join(dir)).unwrap_or_else(|| cwd.join(dir));
+    let target = Target::open_or_new(&root)?;
+    let config = shown(dir, ".devset/config.toml");
+    if target.exists() {
+        shell.note(&format!("{config} is there already: this is a target"), Some(ADD_A_LAYER))?;
+        return Ok(ExitCode::SUCCESS);
     }
-    if !target.config().layers.is_empty() {
-        return apply(shell, &mut target, cache, (Refresh::None, Mode::Apply), answers, dry_run);
+    if !dry_run {
+        let survey = survey(resolve(&target, cache, Refresh::None)?, &target)?;
+        commit(plan(survey, Mode::Apply, &target)?, &target)?;
     }
-    if new {
-        if !dry_run {
-            let plan = plan(
-                survey(resolve(&target, cache, Refresh::None)?, &target)?,
-                Mode::Apply,
-                &target,
-            )?;
-            commit(plan, &target)?;
-        }
-        let config = dir.join(".devset/config.toml");
-        let (verb, what) = if dry_run { ("Would", "create ") } else { ("Created", "") };
-        shell.status(verb, GOOD, format_args!("{what}{config}"))?;
-    }
-    shell.help("add a layer: `devset add <source>/<profile> --git <url>`, or `--path <dir>`")?;
+    let (verb, what) = if dry_run { ("Would", "create ") } else { ("Created", "") };
+    shell.status(verb, GOOD, format_args!("{what}{config}"))?;
+    shell.help(ADD_A_LAYER)?;
     Ok(ExitCode::SUCCESS)
+}
+
+/// The next step in a target that applies nothing yet.
+const ADD_A_LAYER: &str =
+    "add a layer: `devset add <source>/<profile> --git <url>`, or `--path <dir>`";
+
+/// `rel` in `dir`, as a message names it: `rel` alone when `dir` is this directory.
+fn shown(dir: &Utf8Path, rel: &str) -> Utf8PathBuf {
+    if dir == Utf8Path::new(".") { Utf8PathBuf::from(rel) } else { dir.join(rel) }
 }
 
 /// The target containing `cwd`; or, where there is none and `cwd` may start one, a new target

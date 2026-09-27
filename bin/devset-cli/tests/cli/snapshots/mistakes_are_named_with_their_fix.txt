@@ -8,7 +8,7 @@ $ devset add --path ../profiles/rust/files
     Starting a target: .devset/config.toml
 error: ../profiles/rust/files holds no profile: no profile.toml in it
   |
-  = help: a source holds profiles, each a directory with a profile.toml; `devset new --profile <dir>` starts one
+  = help: a source holds profiles, each a directory with a profile.toml; `devset init <dir> --profile` starts one
 [exit 2]
 $ devset add rsut --git ../profiles.git
     Starting a target: .devset/config.toml

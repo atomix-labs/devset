@@ -15,7 +15,7 @@ $ devset add --path ../nope
     Starting a target: .devset/config.toml
 error: ../nope holds no profile: no profile.toml in it
   |
-  = help: a source holds profiles, each a directory with a profile.toml; `devset new --profile <dir>` starts one
+  = help: a source holds profiles, each a directory with a profile.toml; `devset init <dir> --profile` starts one
 [exit 2]
 $ devset add --path ../reserved
     Starting a target: .devset/config.toml

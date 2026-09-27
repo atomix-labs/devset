@@ -1,12 +1,12 @@
-$ devset new --profile my-lint
-     Created my-lint
+$ devset init my-lint --profile
+     Created profile my-lint
 help: list its files in my-lint/profile.toml and put them under my-lint/files/; a target takes it with `devset add --path my-lint`
 [exit 0]
 --- my-lint/profile.toml
 [profile]
 name        = "my-lint"
 description = "One line: what this profile sets up"
-devset      = ">=[..]"
+devset      = ">=0.3"
 
 # Profiles this one builds on, by name in its source; each applies before it.
 # [requires]
@@ -38,11 +38,17 @@ devset      = ">=[..]"
 # [files."Cargo.toml"]
 # scope = "keys"                              # only the keys its payload defines
 # when  = { exists = ["Cargo.toml"] }         # only where the target has one
-$ devset new --profile my-lint
-error: failed to open file `[ROOT]/my-lint/profile.toml`: File exists (os error 17)
+$ devset init my-lint --profile
+error: my-lint/profile.toml is there already
+  |
+  = help: `devset init` writes a profile or a collection only where its files are not: choose another directory
 [exit 2]
-$ devset new --collection acme
-     Created acme
+$ devset init --profile
+     Created profile here
+help: list its files in profile.toml and put them under files/; a target takes it with `devset add --path <its path>`
+[exit 0]
+$ devset init acme --collection
+     Created collection acme
 help: add profiles under acme/profiles/, each a directory with a profile.toml; `devset list --path acme` shows them
 [exit 0]
 $ devset list --path acme
@@ -50,14 +56,6 @@ acme  acme
   One line: what these profiles are for
     example  One line: what this profile sets up
 [exit 0]
-$ devset new demo acme/example --path acme
-    Finished up to date
-[exit 0]
-$ devset status
-acme/example
-
-The profile provides no files.
-[exit 0]
-$ devset new --profile bad.name
+$ devset init bad.name --profile
 error: invalid profile name "bad.name": use letters, digits, `-` and `_`
 [exit 2]
