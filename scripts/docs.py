@@ -1,5 +1,6 @@
-"""The manual's generated pages, the command reference from each `devset <command> --help`; and
-the release of atxp every document names, which is the one devset applies.
+"""The manual's generated pages, the command reference from each `devset <command> --help` and the
+file references from the published schemas; and the release of atxp every document names, which is
+the one devset applies.
 
 Usage: docs.py check | fix
 
@@ -9,6 +10,7 @@ not what this checkout's devset prints, the book's summary leaves a command's pa
 names another release of atxp than the one `.devset/config.toml` pins.
 """
 
+import json
 import os
 import re
 import subprocess
@@ -57,6 +59,165 @@ def pages():
     return written
 
 
+# Each file a schema describes: its schema, its page, and the page's opening, which links the pages
+# that explain it.
+FILES = {
+    "profile": (
+        "profile-toml.md",
+        "`profile.toml`",
+        "A profile's manifest: who it is, what it builds on, its features and variables, and every file it manages. [Profiles](profiles.md) explains it, and [Write a Profile](write-a-profile.md) writes one.",
+    ),
+    "config": (
+        "config-toml.md",
+        "`config.toml`",
+        "A target's `.devset/config.toml`: its sources, its layers, and its word on every setting they carry. [Composing Profiles](composing.md) and [Settings](settings.md) explain it.",
+    ),
+    "collection": (
+        "collection-toml.md",
+        "`collection.toml`",
+        "What a source says of itself, at its root. [Publish a Collection](publish-a-collection.md) explains it.",
+    ),
+}
+# How a map-valued key of a file is written, by its key: each entry's header.
+ENTRIES = {
+    "requires": "[requires]",
+    "vars": "[vars.<name>]",
+    "scaffolds": "[scaffolds.<name>]",
+    "files": '[files."<path>"]',
+    "sources": "[sources]",
+    "layers": "[[layers]]",
+}
+
+
+# The words an enum value's description may start with that begin a sentence, not a name: the value
+# list says them after a colon, lowercased.
+PROSE = {"a", "an", "all", "each", "every", "local", "no", "not", "one", "the", "write", "written"}
+
+
+def plural(kind):
+    """`kind`, a type as a row says it, of more than one."""
+    return f"lists{kind[4:]}" if kind.startswith("list ") else f"{kind}s"
+
+
+def text(node):
+    """A schema node's description, its paragraphs joined for a table's cell."""
+    return " ".join((node.get("description") or "").split()).replace("|", "\\|")
+
+
+class Schema:
+    """A published schema, read into the page that documents its file."""
+
+    def __init__(self, path):
+        self.root = json.loads(path.read_text())
+        self.defs = self.root.get("$defs", {})
+        self.nested = []
+
+    def resolve(self, node):
+        """`node`, followed through a `$ref`, and through `anyOf` with `null`, as the key being
+        optional."""
+        if "$ref" in node:
+            return self.defs[node["$ref"].rsplit("/", 1)[1]]
+        some = [n for n in node.get("anyOf", []) if n.get("type") != "null"]
+        if len(some) == 1 and len(node.get("anyOf", [])) == 2:
+            return self.resolve(some[0])
+        return node
+
+    def kind(self, name, node):
+        """What a key takes, for its row: a type, the values of an enum, or a table below."""
+        node = self.resolve(node)
+        if "oneOf" in node and all("const" in n for n in node["oneOf"]):
+            values = [f"`{n['const']}`" for n in node["oneOf"]]
+            return ", ".join(values[:-1]) + " or " + values[-1] if len(values) > 1 else values[0]
+        if "anyOf" in node:
+            return " or ".join(self.kind(name, n) for n in node["anyOf"])
+        kind = node.get("type")
+        if isinstance(kind, list):
+            kind = next(k for k in kind if k != "null")
+        if kind == "array":
+            return f"list of {plural(self.kind(name, node.get('items', {})))}"
+        if kind == "object" and "properties" in node:
+            self.nested.append((name, node))
+            return f"table, [below](#{name.replace('-', '')})"
+        if kind == "object":
+            return f"table of {plural(self.kind(name, node.get('additionalProperties', {})))}"
+        return {"integer": "number"}.get(kind, kind or "any")
+
+    def values(self, node):
+        """An enum's values, each with what it means; `None` for any other node."""
+        node = self.resolve(node)
+        if "oneOf" not in node or not all("const" in n for n in node["oneOf"]):
+            return None
+        said = []
+        for value in node["oneOf"]:
+            meaning = re.sub(r"^`[^`]+`: ", "", text(value)).rstrip(".")
+            first = meaning.split(" ", 1)[0]
+            if first.lower() in PROSE:
+                meaning = meaning[0].lower() + meaning[1:]
+            said.append(f"- `{value['const']}`: {meaning}.")
+        return said
+
+    def meaning(self, node):
+        """What a key means, and its default."""
+        said = text(node)
+        default = node.get("default")
+        if default not in (None, [], {}, ""):
+            shown = f"`{default if isinstance(default, str) else json.dumps(default)}`"
+            # A description that already names its default is not told it again.
+            if shown not in said:
+                said += f" Default {shown}."
+        return said.strip()
+
+    def table(self, node):
+        """The rows of an object's keys, then what each value of an enum means."""
+        required = set(node.get("required", []))
+        rows = ["| Key | Takes | Meaning |", "| --- | --- | --- |"]
+        enums = []
+        for name, child in node.get("properties", {}).items():
+            takes = self.kind(name, child) + (", required" if name in required else "")
+            rows.append(f"| `{name}` | {takes} | {self.meaning(child)} |")
+            if (values := self.values(child)) is not None:
+                enums += ["", f"`{name}` takes:", "", *values]
+        return rows + enums
+
+    def page(self, title, opening, source):
+        """The whole page."""
+        out = [f"# {title}", "", f"{MARKER} from `{source}` -->", "", opening, ""]
+        out += [
+            "Editors complete and check it from its schema, as [Schemas](schemas.md) says.",
+            "",
+        ]
+        for name, child in self.root.get("properties", {}).items():
+            header = ENTRIES.get(name, f"[{name}]")
+            out += [f"## `{header}`", ""]
+            node = self.resolve(child)
+            entry = node.get("additionalProperties") or node.get("items")
+            if entry is not None and "properties" in self.resolve(entry):
+                out += [text(child) + " Each entry:", "", *self.table(self.resolve(entry)), ""]
+            elif "properties" in node:
+                out += [text(child) or text(node), "", *self.table(node), ""]
+            else:
+                out += [f"{text(child)} {text(node)}".strip(), ""]
+            while self.nested:
+                nested, table = self.nested.pop(0)
+                out += [f"### `{nested}`", "", text(table), "", *self.table(table), ""]
+        return "\n".join(out).rstrip() + "\n"
+
+
+def formatted(path, text):
+    """`text` as dprint formats a page at `path`, so the check compares what the formatter keeps."""
+    return subprocess.run(["dprint", "fmt", "--stdin", str(path)], input=text, capture_output=True, text=True, check=True).stdout
+
+
+def schemas():
+    """Every file reference, by path, from the schemas `docs/src/schema/` publishes."""
+    written = {}
+    for name, (page_name, title, opening) in FILES.items():
+        source = SRC / "schema" / f"{name}.json"
+        path = SRC / page_name
+        written[path] = formatted(path, Schema(source).page(title, opening, source))
+    return written
+
+
 def pin():
     """The release of atxp this repository applies, from its own `.devset/config.toml`."""
     return tomllib.loads(Path(".devset/config.toml").read_text())["sources"]["atxp"]["tag"]
@@ -85,7 +246,7 @@ def stale(path, text):
 
 def check():
     """Names every page that is stale, and fails if any is."""
-    written = pages()
+    written = pages() | schemas()
     outdated = [path for path, text in written.items() if stale(path, text)]
     outdated += leftovers(written)
     summary = SUMMARY.read_text()
@@ -107,7 +268,7 @@ def fix():
     want = pin()
     for path in misnamed(want):
         path.write_text(ATXP.sub(lambda match: match.group(1) + want, path.read_text()))
-    written = pages()
+    written = pages() | schemas()
     for path in leftovers(written):
         path.unlink()
     for path, text in written.items():
