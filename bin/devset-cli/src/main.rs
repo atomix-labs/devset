@@ -389,7 +389,7 @@ fn newer(shell: &Shell, target: &Target, cache: &Cache, only: Option<&str>) -> R
         match source.newer_tags(target.root(), cache) {
             Ok(tags) => {
                 if let Some(last) = tags.last() {
-                    let text = format!("{name} is pinned to {tag}; newer: {}", tags.join(", "));
+                    let text = format!("{name} is pinned to {tag}; newer: {}", listed(&tags));
                     let help = format!("take the newest: `devset update {name} --tag {last}`");
                     shell.note(&text, Some(&help))?;
                 }
@@ -401,6 +401,20 @@ fn newer(shell: &Shell, target: &Target, cache: &Cache, only: Option<&str>) -> R
         }
     }
     Ok(())
+}
+
+/// How many of the newest releases a note names; the rest it counts.
+const NAMED: usize = 3;
+
+/// `tags`, oldest first, as a note names them: every one, or the newest few and how many more.
+fn listed(tags: &[String]) -> String {
+    let older = tags.len().saturating_sub(NAMED);
+    let newest = tags.get(older..).unwrap_or_default().join(", ");
+    match older {
+        0 => newest,
+        1 => format!("{newest}, and 1 older"),
+        n => format!("{newest}, and {n} older"),
+    }
 }
 
 /// Reports where the target stands; with `exit_code`, fails when `apply --force` would write or
@@ -623,7 +637,20 @@ mod tests {
     use camino::Utf8Path;
     use devset_core::source::SourceSpec;
 
-    use super::{derive, lexical};
+    use super::{derive, lexical, listed};
+
+    #[test]
+    fn a_note_names_the_newest_releases_and_counts_the_rest() {
+        let tags = |names: &[&str]| names.iter().map(|&name| name.to_owned()).collect::<Vec<_>>();
+        assert_eq!(listed(&tags(&["v1.1.0"])), "v1.1.0", "one, named");
+        assert_eq!(listed(&tags(&["v1", "v2", "v3"])), "v1, v2, v3", "as many as it names");
+        assert_eq!(listed(&tags(&["v1", "v2", "v3", "v4"])), "v2, v3, v4, and 1 older");
+        assert_eq!(
+            listed(&tags(&["v1", "v2", "v3", "v4", "v5", "v6"])),
+            "v4, v5, v6, and 3 older",
+            "the newest three, and a count of the rest"
+        );
+    }
 
     #[test]
     fn lexical_resolves_dots_by_name() {
