@@ -448,6 +448,20 @@ unsafe_code = \"deny\"
     }
 
     #[test]
+    fn toml_a_table_taken_from_the_top_takes_the_blank_line_below_it() {
+        let shape = keys("mise.lock");
+        let file = "[[tools.book]]\nversion = \"1\"\n\n[[tools.other]]\nversion = \"2\"\n";
+        let (content, _) = shape.read(b"[[tools.book]]\nversion = \"1\"\n", "p").expect("valid");
+        let owned = shape.keys(&content);
+        let out = shape.remove(file.as_bytes(), &owned, "file").expect("removes");
+        let out = String::from_utf8(out).expect("UTF-8");
+        assert_eq!(
+            out, "[[tools.other]]\nversion = \"2\"\n",
+            "the file starts where it did: {out:?}"
+        );
+    }
+
+    #[test]
     fn toml_arrays_of_objects_are_arrays_of_tables() {
         let shape = keys(".config/mise/mise.lock");
         let file = "[[tools.dprint]]\nversion = \"0.57.4\"\n\n[tools.dprint.\"platforms.linux-x64\"]\nchecksum = \"sha256:a\"\n";

@@ -94,7 +94,24 @@ pub(super) fn apply(text: &str, edits: &[Edit<'_>], payload: &Written) -> Result
     for key in joined {
         align(&mut doc, key, aligns);
     }
-    Ok(doc.to_string())
+    let out = doc.to_string();
+    // A table taken from the top leaves the blank line that parted it from the next one there.
+    if unblanked(text).len() == text.len() {
+        return Ok(unblanked(&out).to_owned());
+    }
+    Ok(out)
+}
+
+/// `text` without the blank lines it starts with.
+fn unblanked(text: &str) -> &str {
+    let mut rest = text;
+    while let Some((line, after)) = rest.split_once('\n') {
+        if !line.trim().is_empty() {
+            break;
+        }
+        rest = after;
+    }
+    rest
 }
 
 /// How a payload writes a leaf.
