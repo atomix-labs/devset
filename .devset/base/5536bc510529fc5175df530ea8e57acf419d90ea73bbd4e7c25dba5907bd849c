@@ -1,0 +1,47 @@
+# Records the demos again from docs/demo/*.tape, each a terminal session VHS plays and films, and
+# opens a pull request with the recordings that changed: on each release's tag, and on demand. A
+# tape whose output no longer comes fails here, on its Wait lines, rather than going stale. The tag,
+# not the GitHub Release: a release the workflow token publishes starts no other workflow.
+name: demo
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: demo
+  cancel-in-progress: true
+
+jobs:
+  record:
+    # VHS drives Chrome, which GitHub's runner has; its action installs ttyd for x86-64 only.
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # Every locked tool, so a tape runs the repository's own commands. A release run restores no
+      # cache that another ref wrote.
+      - uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c # v4.3.0
+        with:
+          version: 2026.9.12
+          cache: false
+      # VHS, with ttyd, ffmpeg and JetBrains Mono.
+      - uses: charmbracelet/vhs-action@f6d7db07a432fcd3b06772628d36a57f96d95dcf # v2.1.1
+        with:
+          version: v0.12.1
+      - name: Record
+        run: for tape in docs/demo/*.tape; do vhs -q "$tape"; done
+      - uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const demo = require(`${process.env.GITHUB_WORKSPACE}/.github/scripts/demo.js`)
+            await demo({ github, context, core, exec })

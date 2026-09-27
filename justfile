@@ -83,6 +83,7 @@ import? '.just/shell.just'
 import? '.just/spelling.just'
 import? '.just/suppressions.just'
 import? '.just/toml.just'
+import? '.just/vhs.just'
 import? '.just/vscode.just'
 import? '.just/yaml.just'
 

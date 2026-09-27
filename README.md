@@ -1,18 +1,23 @@
-# devset
-
 <!-- >>> devset: project >>> -->
+<!-- dprint-ignore-start -->
 
-[![CI][c1]][c2] [![crates.io][r1]][r2] [![docs.rs][d1]][d2] [![Book][b1]][b2]
+<h1 align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/atomix-labs/devset/main/docs/src/media/logo-dark.svg">
+    <img alt="devset" src="https://raw.githubusercontent.com/atomix-labs/devset/main/docs/src/media/logo-light.svg" height="56">
+  </picture>
+</h1>
 
-[c1]: https://img.shields.io/github/actions/workflow/status/atomix-labs/devset/check.yml?branch=main&style=flat-square&label=check
-[c2]: https://github.com/atomix-labs/devset/actions/workflows/check.yml
-[r1]: https://img.shields.io/crates/v/devset-core?style=flat-square
-[r2]: https://crates.io/crates/devset-core
-[d1]: https://img.shields.io/docsrs/devset-core?style=flat-square
-[d2]: https://docs.rs/devset-core
-[b1]: https://img.shields.io/badge/book-read-blue?style=flat-square
-[b2]: https://atomix-labs.github.io/devset/
+<p align="center">Share your repositories' configuration, and keep it in sync without losing local edits.</p>
 
+<p align="center">
+  <a href="https://github.com/atomix-labs/devset/actions/workflows/check.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/atomix-labs/devset/check.yml?branch=main&amp;style=flat-square&amp;label=check"></a>
+  <a href="https://crates.io/crates/devset-core"><img alt="crates.io" src="https://img.shields.io/crates/v/devset-core?style=flat-square"></a>
+  <a href="https://docs.rs/devset-core"><img alt="docs.rs" src="https://img.shields.io/docsrs/devset-core?style=flat-square"></a>
+  <a href="https://atomix-labs.github.io/devset/"><img alt="Book" src="https://img.shields.io/badge/book-read-blue?style=flat-square"></a>
+</p>
+
+<!-- dprint-ignore-end -->
 <!-- <<< devset: project <<< -->
 
 [![Release][release badge]][releases] [![License][license badge]][license]
@@ -55,7 +60,7 @@ In a repository, even an empty one, name a source once and apply profiles from
 it by name, with the features you want:
 
 ```sh
-devset add atxp/rust --git https://github.com/atomix-labs/atxp --tag v0.7.0 --features docs
+devset add atxp/rust --git https://github.com/atomix-labs/atxp --tag v0.8.0 --features docs
 devset add atxp/mdbook --features mermaid
 ```
 

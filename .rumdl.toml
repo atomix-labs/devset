@@ -8,7 +8,18 @@ extend-enable = ["MD063"]
 # Collapsible definitions are a `<details>`/`<summary>` pair, which Markdown has no form of. Narrowed
 # rather than disabling MD033, so every other tag still reports.
 [MD033]
-allowed_elements = ["details", "summary", "code", "span"]
+allowed_elements = [
+    "details",
+    "summary",
+    "code",
+    "span",
+    "h1",
+    "p",
+    "picture",
+    "source",
+    "img",
+    "a",
+]
 
 # A heading repeats across a changelog's releases: Features, Bug Fixes.
 [MD024]

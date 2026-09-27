@@ -21,6 +21,9 @@ decision = "written"
 [scaffolds."mdbook/book"]
 decision = "found"
 
+[scaffolds."vhs/demo"]
+decision = "found"
+
 [files.".claude/hooks/check.sh"]
 exact = "0ba38df078e228a747756fedf082e3d06aea9555e08a1b47f73a34095212ee07"
 canonical = "0ba38df078e228a747756fedf082e3d06aea9555e08a1b47f73a34095212ee07"
@@ -215,6 +218,10 @@ policy = "once"
 exact = "6a421952dce3b398ec4ff82ae2058570e4db96f02ac93c789c9e451e278fa183"
 canonical = "6a421952dce3b398ec4ff82ae2058570e4db96f02ac93c789c9e451e278fa183"
 
+[files.".github/scripts/demo.js"]
+exact = "29ece0c85d7aaf82f1fb16db81a69fe51ccd46932b2262c94c484e3bf210a759"
+canonical = "29ece0c85d7aaf82f1fb16db81a69fe51ccd46932b2262c94c484e3bf210a759"
+
 [files.".github/scripts/issue.js"]
 exact = "f2b007f52b9c00c8ec5e19b9a36cac4de4513759259872e81860537822bac592"
 canonical = "f2b007f52b9c00c8ec5e19b9a36cac4de4513759259872e81860537822bac592"
@@ -230,6 +237,10 @@ canonical = "821240a57368f0108720f1e6bd885a6d6cb69d2407acd4888df7b080dc3e2868"
 [files.".github/workflows/check.yml"]
 exact = "ffec8c8d6fc3c5b062767248ae72a1f1961a0deed410f6c26c3b852e7cddc6b1"
 canonical = "ffec8c8d6fc3c5b062767248ae72a1f1961a0deed410f6c26c3b852e7cddc6b1"
+
+[files.".github/workflows/demo.yml"]
+exact = "5536bc510529fc5175df530ea8e57acf419d90ea73bbd4e7c25dba5907bd849c"
+canonical = "5536bc510529fc5175df530ea8e57acf419d90ea73bbd4e7c25dba5907bd849c"
 
 [files.".github/workflows/nightly.yml"]
 exact = "0e36063a555ba5185d36127a496eb749ed2d5b85b56152090cc962f100b8131e"
@@ -272,8 +283,8 @@ exact = "373dc0bc1cd5c1445303298d7b19ac344f872373e1e67c5e9c4e2cd7e842e50d"
 canonical = "373dc0bc1cd5c1445303298d7b19ac344f872373e1e67c5e9c4e2cd7e842e50d"
 
 [files.".just/cargo-manifest.just"]
-exact = "7c184644abdbc35fdd7b23dff1506be8cd532687525218d92810dd51a9bfc1a6"
-canonical = "7c184644abdbc35fdd7b23dff1506be8cd532687525218d92810dd51a9bfc1a6"
+exact = "601cd92904a54cfaa4374e85bdb37d9b5dac2a9e9f4bdbf99bbce97784ffd1dc"
+canonical = "601cd92904a54cfaa4374e85bdb37d9b5dac2a9e9f4bdbf99bbce97784ffd1dc"
 
 [files.".just/cargo-manifest.py"]
 exact = "3cd20fdb5965c924e0d40827c159bfed013ef1b06258af6781b2ad295ac2aabc"
@@ -292,8 +303,8 @@ exact = "101df303de2d41f46c3786866f14ab1c24838440e8c4b15a1bd09d308304a7e1"
 canonical = "101df303de2d41f46c3786866f14ab1c24838440e8c4b15a1bd09d308304a7e1"
 
 [files.".just/cargo-unused.just"]
-exact = "cf6db07f2446433264262511b5cc63c4d8117389b2c585bc06e47b0734bdc375"
-canonical = "cf6db07f2446433264262511b5cc63c4d8117389b2c585bc06e47b0734bdc375"
+exact = "e3e8f3ad935f1d1981e9b59650df6517b2db987e0d6124309ccf2afcfbcdb9f9"
+canonical = "e3e8f3ad935f1d1981e9b59650df6517b2db987e0d6124309ccf2afcfbcdb9f9"
 
 [files.".just/devset.just"]
 exact = "a2f04bf6942490a7b486675dca5ac6f19d26ba111b7f671cc225eb105e05df41"
@@ -316,20 +327,20 @@ exact = "9fca67db8ccd75372f5b50876e7066b6f6b25d3dfe834a7cbc8e6661a3e9d70f"
 canonical = "9fca67db8ccd75372f5b50876e7066b6f6b25d3dfe834a7cbc8e6661a3e9d70f"
 
 [files.".just/github-workflow-lint.just"]
-exact = "c81abe4813aa996be50e4faa056f51b26d75e3f49699a56461855108c6948eee"
-canonical = "c81abe4813aa996be50e4faa056f51b26d75e3f49699a56461855108c6948eee"
+exact = "0c2d08e020c16a193f7536edb88e8d3505a204aec849a061573d30d4902209cf"
+canonical = "0c2d08e020c16a193f7536edb88e8d3505a204aec849a061573d30d4902209cf"
 
 [files.".just/lychee.just"]
-exact = "c368719d05304a19211ed2a3f1f31005d1f1a15409027e5aecd936be19d224e6"
-canonical = "c368719d05304a19211ed2a3f1f31005d1f1a15409027e5aecd936be19d224e6"
+exact = "d93585830b59f983dcb1d6ab3dbb9bb489fa806df67673557f7f366c8318eeb3"
+canonical = "d93585830b59f983dcb1d6ab3dbb9bb489fa806df67673557f7f366c8318eeb3"
 
 [files.".just/markdown.just"]
 exact = "9da33503e1cf3d55ad71a994b25cb661d2a53b05498e9a05c9177a669c6581ea"
 canonical = "9da33503e1cf3d55ad71a994b25cb661d2a53b05498e9a05c9177a669c6581ea"
 
 [files.".just/mdbook.just"]
-exact = "e8826d57d792679684a3a22fe64faa6c4d00f4671abd81b8033fd9ccc85338cd"
-canonical = "e8826d57d792679684a3a22fe64faa6c4d00f4671abd81b8033fd9ccc85338cd"
+exact = "753dc7972d059041c2ae1955958200bc50e5b755d587f1c2b43ef15ede284139"
+canonical = "753dc7972d059041c2ae1955958200bc50e5b755d587f1c2b43ef15ede284139"
 
 [files.".just/mdbook.py"]
 exact = "017bd24ae6b5894b91fbea158163cab7acb7b120d762aec902991fc7801d7b75"
@@ -352,8 +363,8 @@ exact = "b57a98a444c348c13ac0ce280281b78507373a474da83abf7950f0af15097d54"
 canonical = "b57a98a444c348c13ac0ce280281b78507373a474da83abf7950f0af15097d54"
 
 [files.".just/rust-doc.just"]
-exact = "1303ae9261f23e113d758fea100df5a5b53a83c47a4d7e155309506ef2e8b804"
-canonical = "1303ae9261f23e113d758fea100df5a5b53a83c47a4d7e155309506ef2e8b804"
+exact = "247b98fb1760955f5936f46218d9a556a875e21511550a9d111affb1c0c321e8"
+canonical = "247b98fb1760955f5936f46218d9a556a875e21511550a9d111affb1c0c321e8"
 
 [files.".just/rust-doc.py"]
 exact = "95f7c581d64fbd2878b747dca8daef6fb99a655d42d86fb23f0dd7daa2f6729e"
@@ -364,8 +375,8 @@ exact = "0bc696c0c91bb6d13d1917a40ef0727e02c193ac951a90962929e4b6fb793bd0"
 canonical = "0bc696c0c91bb6d13d1917a40ef0727e02c193ac951a90962929e4b6fb793bd0"
 
 [files.".just/rust-lints.just"]
-exact = "94b5ce09d8f6730e559d365a33e9220a05f6c341fd74df7e9efa344176ce96f0"
-canonical = "94b5ce09d8f6730e559d365a33e9220a05f6c341fd74df7e9efa344176ce96f0"
+exact = "fb473a023b408fcb6b45bf595bc49b92d5c4a4922c091bc9bd1fed231253146f"
+canonical = "fb473a023b408fcb6b45bf595bc49b92d5c4a4922c091bc9bd1fed231253146f"
 
 [files.".just/rust-msrv.just"]
 exact = "da41fed166001978060f408bb9e047e1259f0fd80161a2bc74d4c1fde5152915"
@@ -376,20 +387,20 @@ exact = "15246e5f058f93d7b4b540cafb94a501bf83ce4a05210978cb12695855e26851"
 canonical = "15246e5f058f93d7b4b540cafb94a501bf83ce4a05210978cb12695855e26851"
 
 [files.".just/rust-toolchain.just"]
-exact = "b21fce8496e7a792b913a3506528bb17c5b4b1a5aa01b33b54b94863c146f239"
-canonical = "b21fce8496e7a792b913a3506528bb17c5b4b1a5aa01b33b54b94863c146f239"
+exact = "626b6e648fa1c207842a1f0b1813c6048928b0725ea7088deaf04152e2d0a05a"
+canonical = "626b6e648fa1c207842a1f0b1813c6048928b0725ea7088deaf04152e2d0a05a"
 
 [files.".just/rust-toolchain.sh"]
 exact = "7b86c522ceac318f73e69dd4f5565a15b1c64b94e66b536cd1b93f54e0e3dcca"
 canonical = "7b86c522ceac318f73e69dd4f5565a15b1c64b94e66b536cd1b93f54e0e3dcca"
 
 [files.".just/shell.just"]
-exact = "3249b0046733cd933fc2d75021c181e438a0f30cfb612312d9b2ca72cde41345"
-canonical = "3249b0046733cd933fc2d75021c181e438a0f30cfb612312d9b2ca72cde41345"
+exact = "c2ed2f32fbcd0c54a1f1f2ad2e252c791f9de7c2bc2d34224fbc80532d322bac"
+canonical = "c2ed2f32fbcd0c54a1f1f2ad2e252c791f9de7c2bc2d34224fbc80532d322bac"
 
 [files.".just/spelling.just"]
-exact = "40a1b81b63474a8e17379e92de85c7161f61a34af10720fdc1b8b1c7ee3df377"
-canonical = "40a1b81b63474a8e17379e92de85c7161f61a34af10720fdc1b8b1c7ee3df377"
+exact = "362739a51f38a1aa42171238d3948caad29c204ce2890b1d5f6fb20d2ea934fb"
+canonical = "362739a51f38a1aa42171238d3948caad29c204ce2890b1d5f6fb20d2ea934fb"
 
 [files.".just/suppressions.just"]
 exact = "71a7db7a2142275828ae688ae70952de21bcf9329f2c4fed603bdfcbd698c25d"
@@ -400,12 +411,12 @@ exact = "afe9f889707fa94251f3b3335e0815d66c2385491ab6a26a64008431f3eec807"
 canonical = "afe9f889707fa94251f3b3335e0815d66c2385491ab6a26a64008431f3eec807"
 
 [files.".just/toml.just"]
-exact = "222699e64e3adc08fe529af4cf3cba5f833daf8ef438a239f6652bfc24a3b625"
-canonical = "222699e64e3adc08fe529af4cf3cba5f833daf8ef438a239f6652bfc24a3b625"
+exact = "26bf0b5efdb498b2607b7e25f09f4d814297fb225f2dc172aac1edd8b7962857"
+canonical = "26bf0b5efdb498b2607b7e25f09f4d814297fb225f2dc172aac1edd8b7962857"
 
 [files.".just/yaml.just"]
-exact = "65a987478f32d326e1b3ef04ff1b145861fa0d150f22b7017dba58430ceb0293"
-canonical = "65a987478f32d326e1b3ef04ff1b145861fa0d150f22b7017dba58430ceb0293"
+exact = "93b6fa782273ac07d7e3f53bf7da277b8c2166e8610adf6f81ac87ed67259520"
+canonical = "93b6fa782273ac07d7e3f53bf7da277b8c2166e8610adf6f81ac87ed67259520"
 
 [files."BREAKING-CHANGES.md"]
 exact = "4638868342aa98bcc8e7ecf8815e3a7ffb6dfa185df74e31088ca7dfbe3b2424"
@@ -733,8 +744,8 @@ canonical = "75905f895ca860f37df4530f2578fcb238f6d8f36384b7366a5f9b4673bfa7fd"
 
 [parts.".rumdl.toml".markdown]
 scope = "keys"
-exact = "f6df2a0eabaa7f08dbf591d741b8d729717e3c63a893b4063ea0de2fc2f1e861"
-canonical = "f6df2a0eabaa7f08dbf591d741b8d729717e3c63a893b4063ea0de2fc2f1e861"
+exact = "d16a6c2162a07ccda7afb6ee33d9c1ca65efe48efe22a3a26c9f92d49e270905"
+canonical = "d16a6c2162a07ccda7afb6ee33d9c1ca65efe48efe22a3a26c9f92d49e270905"
 policy = "merge"
 
 [parts.".vscode/extensions.json".vscode]
@@ -797,8 +808,8 @@ canonical = "2f95ae17a56673dc32d8f1e1d80639835d4fd1a647efd36c69ea48e680a87c16"
 
 [parts."README.md".project]
 scope = "block"
-exact = "2fb4503cfd1480a23b4f1bee90fa4f9208408f5e91af970598f9ca8c880ad978"
-canonical = "baa43f15df2bf6a57242429888a17defefd3ec6f01dae73a439368c19246b7cb"
+exact = "803406725f43b8e879b7b7f4d8be356a4338572554eb46929743dc4f091999cf"
+canonical = "803406725f43b8e879b7b7f4d8be356a4338572554eb46929743dc4f091999cf"
 
 [parts."clippy.toml".rust-clippy]
 scope = "keys"
@@ -842,8 +853,8 @@ policy = "merge"
 
 [parts.justfile.just]
 scope = "block"
-exact = "048f064f88ca71cea3ed3a873897da2fcf3755881f6a58ae84dbf38626c75f66"
-canonical = "2c9410ed2d9b9bec832b5e244dca48a0611423234ce7880ab50f77952100e1f3"
+exact = "c7ffbe2f274a0cf7fd37c9f073aceb0a23cf8f04bce5d392b10e5386327dcb8a"
+canonical = "a37c26782c3d3855b9dfce402f780eb56151c53bd836d37963ba501b0badec24"
 
 [parts."ruff.toml".python]
 scope = "keys"

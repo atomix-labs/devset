@@ -1,0 +1,19 @@
+<!-- dprint-ignore-start -->
+
+<h1 align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/atomix-labs/devset/main/docs/src/media/logo-dark.svg">
+    <img alt="devset" src="https://raw.githubusercontent.com/atomix-labs/devset/main/docs/src/media/logo-light.svg" height="56">
+  </picture>
+</h1>
+
+<p align="center">Share your repositories' configuration, and keep it in sync without losing local edits.</p>
+
+<p align="center">
+  <a href="https://github.com/atomix-labs/devset/actions/workflows/check.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/atomix-labs/devset/check.yml?branch=main&amp;style=flat-square&amp;label=check"></a>
+  <a href="https://crates.io/crates/devset-core"><img alt="crates.io" src="https://img.shields.io/crates/v/devset-core?style=flat-square"></a>
+  <a href="https://docs.rs/devset-core"><img alt="docs.rs" src="https://img.shields.io/docsrs/devset-core?style=flat-square"></a>
+  <a href="https://atomix-labs.github.io/devset/"><img alt="Book" src="https://img.shields.io/badge/book-read-blue?style=flat-square"></a>
+</p>
+
+<!-- dprint-ignore-end -->
