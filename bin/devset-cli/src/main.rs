@@ -33,7 +33,7 @@ use clap_cargo::style::GOOD;
 use devset_core::collection::{self, CollectionFile, Listing};
 use devset_core::name::{FeatureName, ProfileName, ProfileRef, SourceName};
 use devset_core::profile::{Manifest, VarName};
-use devset_core::source::{Source, SourceSpec};
+use devset_core::source::{GitRef, Source, SourceSpec};
 use devset_core::target::{Config, LayerSpec};
 use devset_core::{
     Cache, Error, Mode, ProfileError, Refresh, RelPath, Rollback, Survey, Target, TargetError,
@@ -142,8 +142,11 @@ fn run(shell: &Shell, command: Command) -> Result<ExitCode, Error> {
                 let source = source_named(&target, given)?;
                 target.repin(&source, at)?;
             }
-            let how = (name.as_deref().map_or(Refresh::All, Refresh::Only), Mode::Apply);
-            apply(shell, &mut target, &cache()?, how, answers, dry_run)
+            let (cache, only) = (cache()?, name.as_deref());
+            let how = (only.map_or(Refresh::All, Refresh::Only), Mode::Apply);
+            let code = apply(shell, &mut target, &cache, how, answers, dry_run)?;
+            newer(shell, &target, &cache, only)?;
+            Ok(code)
         },
         Command::Explain { name } => {
             let target = Target::find(&cwd)?;
@@ -368,6 +371,37 @@ fn source_named(target: &Target, given: &str) -> Result<SourceName, Error> {
     let sources = config.sources.keys().map(ToString::to_string);
     let names = sources.chain(config.layers.iter().map(|layer| layer.profile.profile.to_string()));
     Err(TargetError::NoSuchLayer { name: given.to_owned(), names: names.collect() }.into())
+}
+
+/// Notes the newer releases of each source `only` names, every one when `None`, that is pinned to
+/// a tag; a remote whose tags cannot be listed is warned of, and the update stands.
+fn newer(shell: &Shell, target: &Target, cache: &Cache, only: Option<&str>) -> Result<(), Error> {
+    let config = target.config();
+    let named = |name: &SourceName| {
+        only.is_none_or(|only| {
+            name.as_str() == only
+                || config.layers.iter().any(|layer| {
+                    layer.profile.profile.as_str() == only && layer.profile.source == *name
+                })
+        })
+    };
+    for (name, source) in config.sources.iter().filter(|(name, _)| named(name)) {
+        let Source::Git { at: GitRef::Tag(tag), .. } = source else { continue };
+        match source.newer_tags(target.root(), cache) {
+            Ok(tags) => {
+                if let Some(last) = tags.last() {
+                    let text = format!("{name} is pinned to {tag}; newer: {}", tags.join(", "));
+                    let help = format!("take the newest: `devset update {name} --tag {last}`");
+                    shell.note(&text, Some(&help))?;
+                }
+            },
+            Err(error) => {
+                let text = format!("the releases of {name} could not be listed: {error}");
+                shell.warn(&text, None)?;
+            },
+        }
+    }
+    Ok(())
 }
 
 /// Reports where the target stands; with `exit_code`, fails when `apply --force` would write or

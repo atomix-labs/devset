@@ -223,6 +223,18 @@ fn wanted(at: &GitRef) -> String {
     }
 }
 
+/// Every tag `url` holds, by name; `shown` names it in messages.
+pub(crate) fn tags(url: &str, shown: &str, prompts: bool) -> Result<Vec<String>> {
+    let remote = Remote { url, shown, prompts };
+    let listing = git(None, &["ls-remote", "--tags", "--refs", "--", remote.url], Some(remote))?;
+    Ok(String::from_utf8_lossy(&listing)
+        .lines()
+        .filter_map(|line| line.split_once('\t'))
+        .filter_map(|(_, name)| name.strip_prefix("refs/tags/"))
+        .map(str::to_owned)
+        .collect())
+}
+
 /// The commit `at` names on `remote` now.
 fn resolve(remote: Remote<'_>, at: &GitRef) -> Result<Oid> {
     let reference = match at {

@@ -158,3 +158,24 @@ fn update_moves_a_source_to_another_tag() {
     log += &sb.devset("repo", &[&add[..5], &["v1.1.0", "--path", "lint"]].concat());
     sb.assert(&log, snapbox::file!["snapshots/update_moves_a_source_to_another_tag.txt"]);
 }
+
+#[test]
+fn update_names_the_newer_releases() {
+    let sb = Sandbox::new();
+    let release = |v: u8, tag: &str| {
+        sb.publish("lint", "lint", &[("a.toml", "owned", &format!("v = {v}\n"))], tag);
+    };
+    release(1, "v1.0.0");
+    let add =
+        ["add", "house/lint", "--git", "../profiles.git", "--tag", "v1.0.0", "--path", "lint"];
+    let mut log = sb.devset("repo", &add);
+    release(2, "v1.1.0");
+    release(3, "v2.0.0-rc.1");
+    release(4, "v1.2.0");
+    release(5, "nightly");
+    log += &sb.devset("repo", &["update", "--dry-run"]);
+    assert!(log.contains("newer: v1.1.0, v1.2.0"), "the releases after v1.0.0, in order:\n{log}");
+    log += &sb.devset("repo", &["update"]);
+    log += &sb.devset("repo", &["update", "house", "--tag", "v1.2.0"]);
+    sb.assert(&log, snapbox::file!["snapshots/update_names_the_newer_releases.txt"]);
+}

@@ -40,6 +40,9 @@ $ devset update lint --tag v1.0.0
     Fetching ../profiles.git
      Updated a.toml
     Finished 1 change
+note: house is pinned to v1.0.0; newer: v1.1.0
+  |
+  = help: take the newest: `devset update house --tag v1.1.0`
 [exit 0]
 $ devset update --tag v1.1.0
 error: the following required arguments were not provided:

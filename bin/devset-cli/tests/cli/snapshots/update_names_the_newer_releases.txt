@@ -1,0 +1,25 @@
+$ devset add house/lint --git ../profiles.git --tag v1.0.0 --path lint
+    Starting a target: .devset/config.toml
+    Fetching ../profiles.git
+     Created a.toml
+    Finished 1 change
+[exit 0]
+$ devset update --dry-run
+    Fetching ../profiles.git
+    Finished up to date
+note: house is pinned to v1.0.0; newer: v1.1.0, v1.2.0
+  |
+  = help: take the newest: `devset update house --tag v1.2.0`
+[exit 0]
+$ devset update
+    Fetching ../profiles.git
+    Finished up to date
+note: house is pinned to v1.0.0; newer: v1.1.0, v1.2.0
+  |
+  = help: take the newest: `devset update house --tag v1.2.0`
+[exit 0]
+$ devset update house --tag v1.2.0
+    Fetching ../profiles.git
+     Updated a.toml
+    Finished 1 change
+[exit 0]

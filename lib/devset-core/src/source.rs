@@ -321,6 +321,25 @@ impl Source {
         }
     }
 
+    /// The releases newer than the tag this source is pinned to, oldest first: tags that read as
+    /// versions, with a `v` or without, later than it, prereleases left out. None for a source
+    /// not pinned to such a tag.
+    ///
+    /// # Errors
+    /// [`Error::Source`](crate::Error::Source), git cannot list the remote's tags.
+    pub fn newer_tags(&self, root: &Utf8Path, cache: &Cache) -> Result<Vec<String>> {
+        let Self::Git { url, at: GitRef::Tag(tag), .. } = self else { return Ok(Vec::new()) };
+        let Some(have) = version(tag) else { return Ok(Vec::new()) };
+        let mut newer: Vec<(semver::Version, String)> =
+            git::tags(&locate(url, root), url, cache.prompts())?
+                .into_iter()
+                .filter_map(|name| version(&name).map(|version| (version, name)))
+                .filter(|(version, _)| version.pre.is_empty() && *version > have)
+                .collect();
+        newer.sort();
+        Ok(newer.into_iter().map(|(_, name)| name).collect())
+    }
+
     /// Opens the source: a git source at `pin` if given, else at its ref, fetching as needed.
     pub(crate) fn open(&self, root: &Utf8Path, pin: Option<&Oid>, cache: &Cache) -> Result<Reader> {
         match self {
@@ -331,6 +350,11 @@ impl Source {
             },
         }
     }
+}
+
+/// `tag` as a version, `v1.2.3` or `1.2.3`; `None` for a tag that is not one.
+fn version(tag: &str) -> Option<semver::Version> {
+    semver::Version::parse(tag.strip_prefix('v').unwrap_or(tag)).ok()
 }
 
 /// `url` as `git` sees it from any directory: a local path is made absolute against `root`.
@@ -451,7 +475,15 @@ fn read_dir(dir: &Utf8Path, paths: &[RelPath]) -> Result<Tree> {
 
 #[cfg(test)]
 mod tests {
-    use super::{GitRef, Source, SourceSpec};
+    use super::{GitRef, Source, SourceSpec, version};
+
+    #[test]
+    fn a_release_reads_as_a_version() {
+        let read = |tag: &str| version(tag).map(|version| version.to_string());
+        assert_eq!(read("v1.2.3").as_deref(), Some("1.2.3"), "with a v");
+        assert_eq!(read("1.2.3").as_deref(), Some("1.2.3"), "or without");
+        assert_eq!(read("nightly"), None, "a name is no version");
+    }
 
     fn parse(toml: &str) -> Result<Source, String> {
         toml::from_str::<SourceSpec>(toml)
