@@ -12,7 +12,7 @@ layers, by `source/profile`:
 
 ```toml
 [sources]
-atxp  = { git = "https://github.com/atomix-labs/atxp", tag = "v0.9.1" }
+atxp  = { git = "https://github.com/atomix-labs/atxp", tag = "v0.10.0" }
 house = { path = "../house-profiles" }
 
 [[layers]]

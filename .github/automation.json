@@ -1,8 +1,10 @@
 {
   "broken": { "labels": ["bug"], "type": "Bug" },
   "chore": { "labels": ["dependencies"], "type": "Task" },
-  "assignees": [],
+  "assignees": ["RishiDarkDevil"],
   "bump": { "mode": "pr" },
   "nightly": { "skip_unchanged": true },
-  "pages": { "recipe": "check-mdbook", "path": "docs/book" }
+  "pages": { "recipe": "check-mdbook", "path": "docs/book" },
+  "docs": { "labels": ["documentation"], "type": "Task" },
+  "demo": { "merge": true }
 }

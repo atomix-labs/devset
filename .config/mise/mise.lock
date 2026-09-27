@@ -146,26 +146,45 @@ url = "https://github.com/orhun/git-cliff/releases/download/v2.14.2/git-cliff-2.
 url_api = "https://api.github.com/repos/orhun/git-cliff/releases/assets/573487203"
 
 [[tools."github:atomix-labs/devset"]]
-version = "0.4.0"
+version = "0.5.0"
 backend = "github:atomix-labs/devset"
 
 [tools."github:atomix-labs/devset"."platforms.linux-arm64"]
-checksum = "sha256:a272ec02fa99c92aee86fe88a415b87372ca0f428728bb971e31e6542dfa53a0"
-url = "https://github.com/atomix-labs/devset/releases/download/v0.4.0/devset-0.4.0-aarch64-unknown-linux-musl.tar.xz"
-url_api = "https://api.github.com/repos/atomix-labs/devset/releases/assets/592640536"
+checksum = "sha256:de078e47bf00630ef7d1bf3de5a32bf9bd17c3ac0922d638326a0a0be5f7f469"
+url = "https://github.com/atomix-labs/devset/releases/download/v0.5.0/devset-0.5.0-aarch64-unknown-linux-musl.tar.xz"
+url_api = "https://api.github.com/repos/atomix-labs/devset/releases/assets/593445688"
 provenance = "github-attestations"
 
 [tools."github:atomix-labs/devset"."platforms.linux-x64"]
-checksum = "sha256:d242f59e5b333565a6734e2c46d0f9683c4281da2d058b9aed0add66764ad36f"
-url = "https://github.com/atomix-labs/devset/releases/download/v0.4.0/devset-0.4.0-x86_64-unknown-linux-musl.tar.xz"
-url_api = "https://api.github.com/repos/atomix-labs/devset/releases/assets/592640533"
+checksum = "sha256:ec10e9d780b12068650aba8fd2f208a2d773d75985ea36113dd4b47cde7e2349"
+url = "https://github.com/atomix-labs/devset/releases/download/v0.5.0/devset-0.5.0-x86_64-unknown-linux-musl.tar.xz"
+url_api = "https://api.github.com/repos/atomix-labs/devset/releases/assets/593445690"
 provenance = "github-attestations"
 
 [tools."github:atomix-labs/devset"."platforms.macos-arm64"]
-checksum = "sha256:c36e18e582d026dffc29dbd4c99e4de9bf27dda4c9bddc29e9dc4988559aea90"
-url = "https://github.com/atomix-labs/devset/releases/download/v0.4.0/devset-0.4.0-aarch64-apple-darwin.tar.xz"
-url_api = "https://api.github.com/repos/atomix-labs/devset/releases/assets/592640537"
+checksum = "sha256:edf7202015ea46508930a83bb745888a510bf6c30d73d8cd2e1f9da27ae885d4"
+url = "https://github.com/atomix-labs/devset/releases/download/v0.5.0/devset-0.5.0-aarch64-apple-darwin.tar.xz"
+url_api = "https://api.github.com/repos/atomix-labs/devset/releases/assets/593445692"
 provenance = "github-attestations"
+
+[[tools."github:badboy/mdbook-mermaid"]]
+version = "0.17.1"
+backend = "github:badboy/mdbook-mermaid"
+
+[tools."github:badboy/mdbook-mermaid"."platforms.linux-arm64"]
+checksum = "sha256:b1782ecaf775bfbe069dead6cdd8ac7cc739d5e62d138bd0e800efec6467cf3a"
+url = "https://github.com/badboy/mdbook-mermaid/releases/download/v0.17.1/mdbook-mermaid-v0.17.1-aarch64-unknown-linux-musl.tar.gz"
+url_api = "https://api.github.com/repos/badboy/mdbook-mermaid/releases/assets/514372902"
+
+[tools."github:badboy/mdbook-mermaid"."platforms.linux-x64"]
+checksum = "sha256:9afcfa5b8463afe606d48595a7ae338564302903e626ea5b6edb8007d29393a5"
+url = "https://github.com/badboy/mdbook-mermaid/releases/download/v0.17.1/mdbook-mermaid-v0.17.1-x86_64-unknown-linux-gnu.tar.gz"
+url_api = "https://api.github.com/repos/badboy/mdbook-mermaid/releases/assets/514372906"
+
+[tools."github:badboy/mdbook-mermaid"."platforms.macos-arm64"]
+checksum = "sha256:5be76bfffefd36efe5abf876c52530ba03c16df5f44c94164cc9ca88d16df1e1"
+url = "https://github.com/badboy/mdbook-mermaid/releases/download/v0.17.1/mdbook-mermaid-v0.17.1-aarch64-apple-darwin.tar.gz"
+url_api = "https://api.github.com/repos/badboy/mdbook-mermaid/releases/assets/514372901"
 
 [[tools."github:crate-ci/committed"]]
 version = "1.1.11"
@@ -410,23 +429,3 @@ checksum = "sha256:e28d22b087f9ebb8d99da6e740d348c930f559961c7c3f12badda54f88219
 url = "https://github.com/zizmorcore/zizmor/releases/download/v1.30.1/zizmor-aarch64-apple-darwin.tar.gz"
 url_api = "https://api.github.com/repos/zizmorcore/zizmor/releases/assets/552067640"
 provenance = "github-attestations"
-
-
-[[tools."github:badboy/mdbook-mermaid"]]
-version = "0.17.1"
-backend = "github:badboy/mdbook-mermaid"
-
-[tools."github:badboy/mdbook-mermaid"."platforms.linux-arm64"]
-checksum = "sha256:b1782ecaf775bfbe069dead6cdd8ac7cc739d5e62d138bd0e800efec6467cf3a"
-url = "https://github.com/badboy/mdbook-mermaid/releases/download/v0.17.1/mdbook-mermaid-v0.17.1-aarch64-unknown-linux-musl.tar.gz"
-url_api = "https://api.github.com/repos/badboy/mdbook-mermaid/releases/assets/514372902"
-
-[tools."github:badboy/mdbook-mermaid"."platforms.linux-x64"]
-checksum = "sha256:9afcfa5b8463afe606d48595a7ae338564302903e626ea5b6edb8007d29393a5"
-url = "https://github.com/badboy/mdbook-mermaid/releases/download/v0.17.1/mdbook-mermaid-v0.17.1-x86_64-unknown-linux-gnu.tar.gz"
-url_api = "https://api.github.com/repos/badboy/mdbook-mermaid/releases/assets/514372906"
-
-[tools."github:badboy/mdbook-mermaid"."platforms.macos-arm64"]
-checksum = "sha256:5be76bfffefd36efe5abf876c52530ba03c16df5f44c94164cc9ca88d16df1e1"
-url = "https://github.com/badboy/mdbook-mermaid/releases/download/v0.17.1/mdbook-mermaid-v0.17.1-aarch64-apple-darwin.tar.gz"
-url_api = "https://api.github.com/repos/badboy/mdbook-mermaid/releases/assets/514372901"
