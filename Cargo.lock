@@ -399,6 +399,7 @@ dependencies = [
  "github-actions",
  "serde",
  "serde_json",
+ "shlex",
  "snapbox",
  "strsim",
  "tempfile",

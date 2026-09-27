@@ -337,3 +337,145 @@ fn var(arg: &str) -> Result<(VarName, String), String> {
     let name = VarName::try_from(name.to_owned()).map_err(|e| e.to_string())?;
     Ok((name, value.to_owned()))
 }
+
+#[cfg(test)]
+mod tests {
+    use core::iter;
+
+    use camino::{Utf8Path, Utf8PathBuf};
+    use clap::Parser;
+    use clap::error::ErrorKind;
+
+    use super::Cli;
+
+    /// The documents whose commands a reader copies: the README, the repository's guides, and the
+    /// manual's pages. The command reference is the help itself, and the changelog and the
+    /// migration notes name commands that were.
+    fn documents() -> Vec<Utf8PathBuf> {
+        let root = Utf8Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+        let mut found: Vec<Utf8PathBuf> = ["README.md", "AGENTS.md", "ARCHITECTURE.md"]
+            .into_iter()
+            .chain(["CONTRIBUTING.md", "RELEASE.md"])
+            .map(|name| root.join(name))
+            .collect();
+        for entry in root.join("docs/src").read_dir_utf8().expect("the manual") {
+            let path = entry.expect("a page").into_path();
+            if path.extension() == Some("md") {
+                found.push(path);
+            }
+        }
+        found
+    }
+
+    /// A `devset` command a document shows: the line it is on, its words, and whether it is one to
+    /// run as it is, from a block, rather than named in prose, where its arguments may be left out.
+    type Shown = (String, Vec<String>, bool);
+
+    /// Each `devset` command in a document, split as the shell splits it: an inline code span
+    /// that starts with one, a `console` block's `$ ` lines, a shell block's every line, and a
+    /// workflow step's `run:`. A line continued with `\` is joined to the next; a pipe, `&&` or
+    /// `;` ends a command, and a `mise exec … --` before one is left off. A `<placeholder>` or `…`
+    /// reads as `x`.
+    fn commands(text: &str) -> Vec<Shown> {
+        let mut found = Vec::new();
+        let mut fence: Option<&str> = None;
+        let mut pending = String::new();
+        // The prose since the last block, its lines joined, as a span may wrap.
+        let mut prose = String::new();
+        for line in text.lines().chain(["```"]) {
+            let trimmed = line.trim_start();
+            if let Some(info) = trimmed.strip_prefix("```") {
+                let spans = prose.split('`').skip(1).step_by(2);
+                for span in spans.filter(|span| span.starts_with("devset ")) {
+                    found.extend(split(span, false));
+                }
+                prose.clear();
+                fence = match fence {
+                    Some(_) => None,
+                    None => Some(info.split_whitespace().next().unwrap_or_default()),
+                };
+                continue;
+            }
+            let command = match fence {
+                None => {
+                    prose.push_str(trimmed);
+                    prose.push(' ');
+                    continue;
+                },
+                Some("console") => match trimmed.strip_prefix("$ ") {
+                    Some(command) => command,
+                    None if !pending.is_empty() => trimmed,
+                    None => continue,
+                },
+                Some("sh" | "bash" | "shell") => trimmed,
+                Some("yaml") => match trimmed.trim_start_matches("- ").strip_prefix("run: ") {
+                    Some(command) => command,
+                    None => continue,
+                },
+                Some(_) => continue,
+            };
+            if let Some(start) = command.strip_suffix('\\') {
+                pending.push_str(start);
+                continue;
+            }
+            let whole = format!("{pending}{command}");
+            pending.clear();
+            found.extend(split(whole.split(" #").next().unwrap_or_default(), true));
+        }
+        found
+    }
+
+    /// The `devset` commands in one shell line; `run`, whether they are to run as they are.
+    fn split(line: &str, run: bool) -> Vec<Shown> {
+        let mut found = Vec::new();
+        for part in line.split(['|', ';']).flat_map(|part| part.split("&&")) {
+            // `mise exec <tool> -- devset …` runs devset too.
+            let part = part.trim();
+            let part = part.rsplit_once(" -- ").map_or(part, |(_, rest)| rest);
+            let Some(rest) = part.strip_prefix("devset ") else { continue };
+            let words = shlex::split(&filled(rest)).expect("words the shell splits");
+            let words = iter::once("devset".to_owned()).chain(words).collect();
+            found.push((line.trim().to_owned(), words, run));
+        }
+        found
+    }
+
+    /// `text` with each `<placeholder>` and `…` filled in as `x`.
+    fn filled(text: &str) -> String {
+        let mut out = String::new();
+        let mut rest = text;
+        while let Some((before, after)) = rest.split_once('<') {
+            let Some((_, tail)) = after.split_once('>') else { break };
+            out.push_str(before);
+            out.push('x');
+            rest = tail;
+        }
+        out.push_str(rest);
+        out.replace('…', "x")
+    }
+
+    #[test]
+    fn every_command_the_documents_show_parses() {
+        let mut seen = 0_usize;
+        let mut failed = Vec::new();
+        for path in documents() {
+            let text = fs_err::read_to_string(&path).expect("a document");
+            for (line, words, run) in commands(&text) {
+                seen = seen.saturating_add(1);
+                let Err(e) = Cli::try_parse_from(&words) else { continue };
+                if matches!(e.kind(), ErrorKind::DisplayHelp | ErrorKind::DisplayVersion) {
+                    continue;
+                }
+                // Prose names a command, and may leave out what it takes; it names no other.
+                let named = matches!(e.kind(), ErrorKind::MissingRequiredArgument)
+                    || e.kind() == ErrorKind::InvalidValue
+                        && e.to_string().contains("none was supplied");
+                if run || !named {
+                    failed.push(format!("{path}: {line}\n{}", e.render()));
+                }
+            }
+        }
+        assert!(seen > 50, "the documents show {seen} commands, fewer than they do");
+        assert!(failed.is_empty(), "{}", failed.join("\n"));
+    }
+}

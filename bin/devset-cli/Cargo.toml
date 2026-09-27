@@ -51,5 +51,6 @@ devset-core = { workspace = true }
 
 [dev-dependencies]
 # external
+shlex    = { workspace = true }
 snapbox  = { workspace = true }
 tempfile = { workspace = true }
