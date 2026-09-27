@@ -41,8 +41,9 @@
 A profile is a folder of configuration in a git repository: formatter settings,
 lint rules, CI workflows, whatever your repositories share. devset applies it to
 a repository, records what it wrote, and later brings in the profile's changes
-while keeping the repository's own edits. [atxp] is a collection of profiles for
-Rust repositories.
+while keeping the repository's own edits. [atxp], provided by Atomix Labs, is a
+collection to start from; anyone can keep a collection of their own the same
+way.
 
 ## Install
 
@@ -111,9 +112,9 @@ devset update atxp --tag <release>   # takes one, merging your edits
 
 ## Profiles
 
-[atxp] holds profiles for Rust repositories, one concern each: formatting,
-lints, tests, dependency policy, CI, releases, docs and agents, with a bundle
-that takes them. Or write your own: a profile is a directory with a
+[atxp], provided by Atomix Labs, holds profiles for any repository and for Rust
+ones, one concern each, with a bundle that takes them: use them, build on them,
+or contribute. Or write your own: a profile is a directory with a
 `profile.toml`, which says how devset manages each file and when, and `files/`,
 which holds them as a repository should have them.
 
