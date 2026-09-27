@@ -3,33 +3,18 @@
 <!-- reference: written by `just fix-docs` from `devset init --help` -->
 
 ```text
-Start a target in the current directory, with a first layer if given
+Make a directory a target, or a profile or a collection to author
 
-Usage: devset init [OPTIONS] [LAYER]
+Usage: devset init [OPTIONS] [PATH]
 
 Arguments:
-  [LAYER]  The profile, `source/profile`; with --git or --path, `profile` alone names it in the
-           source they name
+  [PATH]  The directory, created if missing; this one if not given
 
 Options:
-  -h, --help  Print help
-
-Source:
-      --git <GIT>        Git repository URL
-      --tag <TAG>        Tag to use
-      --branch <BRANCH>  Branch to use
-      --rev <REV>        Full commit id to use
-      --path <PATH>      A local directory; with --git, the directory in the repository its profiles
-                         are in
-
-Features:
-  -F, --features <FEATURES>  Features to turn on, beside the default ones; comma-separated or
-                             repeated
-      --no-default-features  Leave the profile's default features off
-
-Variables:
-      --var <NAME=VALUE>  Answer a profile variable; repeatable
-      --dry-run           Show what would change; write nothing
+      --profile     Make it a profile to author, not a target
+      --collection  Make it a collection of profiles to publish, not a target
+      --dry-run     Show what would change; write nothing
+  -h, --help        Print help
 
 Global Options:
   -q, --quiet     Print only results and errors
@@ -37,7 +22,8 @@ Global Options:
       --no-color  Never colour output
 
 Examples:
-  devset init
-  devset init atxp/rust --git https://github.com/atomix-labs/atxp --tag v0.4.0 --features docs
-  devset init --path ../profiles/base
+  devset init                        this directory, a target to add layers to
+  devset init hello                  a new directory, hello/, as a target
+  devset init my-lint --profile      a profile: profile.toml, files/ and a README
+  devset init acme --collection      a source of profiles: collection.toml and profiles/
 ```

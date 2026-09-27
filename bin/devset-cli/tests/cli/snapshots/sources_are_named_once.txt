@@ -18,6 +18,7 @@ error: which source is mermaid in? name it as `source/mermaid`
   = help: the sources are acme and deploy
 [exit 2]
 --- .devset/config.toml
+#:schema https://atomix-labs.github.io/devset/schema/config.json
 # devset applies the profiles below to this directory, and keeps them up to date.
 # The manual: https://atomix-labs.github.io/devset/
 #

@@ -30,18 +30,18 @@ use std::process::ExitCode;
 use camino::{Utf8Component, Utf8Path, Utf8PathBuf};
 use clap::{CommandFactory, Parser};
 use clap_cargo::style::GOOD;
-use devset_core::collection::{self, CollectionFile, Listing};
+use devset_core::collection::{self, Listing};
 use devset_core::name::{FeatureName, ProfileName, ProfileRef, SourceName};
-use devset_core::profile::{Manifest, VarName};
+use devset_core::profile::VarName;
 use devset_core::source::{GitRef, Source, SourceSpec};
-use devset_core::target::{Config, LayerSpec};
+use devset_core::target::LayerSpec;
 use devset_core::{
     Cache, Error, Mode, ProfileError, Refresh, RelPath, Rollback, Survey, Target, TargetError,
     commit, plan, resolve, survey,
 };
 use dialoguer::console;
 
-use crate::cli::{AddArgs, Answers, Cli, Command, LayerArg, Location, SchemaFile};
+use crate::cli::{AddArgs, Answers, Cli, Command, LayerArg, Location};
 use crate::report::Wrote;
 use crate::shell::Shell;
 
@@ -166,7 +166,6 @@ fn run(shell: &Shell, command: Command) -> Result<ExitCode, Error> {
             Ok(ExitCode::SUCCESS)
         },
         Command::List { source, location } => list(&cwd, &cache()?, source.as_ref(), location),
-        Command::Schema { file } => schema(file),
         Command::Completions { shell } => completions(shell),
     }
 }
@@ -453,19 +452,6 @@ fn list(
         let listing = collection::list(each, target.root(), target.pinned(each), cache)?;
         report::list(Some(name), each, &listing)?;
     }
-    Ok(ExitCode::SUCCESS)
-}
-
-/// Prints the JSON schema of `file`.
-fn schema(file: SchemaFile) -> Result<ExitCode, Error> {
-    let schema = match file {
-        SchemaFile::Profile => schemars::schema_for!(Manifest),
-        SchemaFile::Config => schemars::schema_for!(Config),
-        SchemaFile::Collection => schemars::schema_for!(CollectionFile),
-    };
-    let mut out = anstream::stdout().lock();
-    serde_json::to_writer_pretty(&mut out, &schema).map_err(io::Error::from)?;
-    writeln!(out)?;
     Ok(ExitCode::SUCCESS)
 }
 

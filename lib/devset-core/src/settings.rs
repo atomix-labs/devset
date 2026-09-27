@@ -13,7 +13,7 @@ use crate::resolve::Layer;
 #[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields, rename_all = "kebab-case")]
 pub struct MergeSpec {
-    /// What an update does when a file conflicts.
+    /// What a run does when a file conflicts.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub on_conflict: Option<OnConflict>,
     /// A merge program, with `%O %A %B %P` substituted.
@@ -24,7 +24,7 @@ pub struct MergeSpec {
     pub driver: Option<Driver>,
 }
 
-/// What an update does when a file conflicts.
+/// What a run does when a file conflicts.
 #[derive(
     Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize, JsonSchema, Display,
 )]
@@ -41,7 +41,7 @@ pub enum OnConflict {
 /// The settings in force: devset's defaults, then each layer's, then the target's.
 #[derive(Clone, Debug, Default)]
 pub struct Settings {
-    /// What an update does when a file conflicts.
+    /// What a run does when a file conflicts.
     pub on_conflict: OnConflict,
     /// How files are merged.
     pub driver: Driver,

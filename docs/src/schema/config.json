@@ -52,7 +52,7 @@
       "description": "A `[merge]` table: defaults in `profile.toml`, decisions in `.devset/config.toml`.",
       "type": "object",
       "properties": {
-        "on-conflict": { "description": "What an update does when a file conflicts.", "anyOf": [{ "$ref": "#/$defs/OnConflict" }, { "type": "null" }] },
+        "on-conflict": { "description": "What a run does when a file conflicts.", "anyOf": [{ "$ref": "#/$defs/OnConflict" }, { "type": "null" }] },
         "driver": {
           "description": "A merge program, with `%O %A %B %P` substituted.\n\nFrom a profile it is only a suggestion: devset never runs a program a profile names.",
           "type": ["string", "null"]
@@ -61,7 +61,7 @@
       "additionalProperties": false
     },
     "OnConflict": {
-      "description": "What an update does when a file conflicts.",
+      "description": "What a run does when a file conflicts.",
       "oneOf": [
         { "description": "Write every other file and advance the lock; conflicts wait in `.devset/conflicts/`.", "type": "string", "const": "apply-others" },
         { "description": "Write nothing but the conflicts until every one is resolved.", "type": "string", "const": "apply-none" }

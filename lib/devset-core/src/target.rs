@@ -89,6 +89,7 @@ pub struct Target {
 
 /// What a new target's `config.toml` says before it has a source or a layer.
 const SKELETON: &str = "\
+#:schema https://atomix-labs.github.io/devset/schema/config.json
 # devset applies the profiles below to this directory, and keeps them up to date.
 # The manual: https://atomix-labs.github.io/devset/
 #
@@ -997,7 +998,9 @@ mod tests {
             .expect("added");
         target.add_layer(LayerSpec::new("house/base".parse().expect("a layer"))).expect("added");
         let text = target.config_text();
-        assert!(text.starts_with("# devset applies"), "the skeleton leads: {text}");
+        let lead =
+            "#:schema https://atomix-labs.github.io/devset/schema/config.json\n# devset applies";
+        assert!(text.starts_with(lead), "the skeleton leads, naming its schema: {text}");
         assert!(
             text.contains("\n\n[sources]\nhouse = { path = \"../p\" }\n"),
             "a source, inline: {text}"

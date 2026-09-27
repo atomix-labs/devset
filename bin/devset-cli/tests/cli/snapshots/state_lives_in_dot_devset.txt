@@ -9,6 +9,7 @@ $ devset add --path ../extra
 [exit 0]
 --- .devset/config.toml
 # layers, in order
+#:schema https://atomix-labs.github.io/devset/schema/config.json
 # devset applies the profiles below to this directory, and keeps them up to date.
 # The manual: https://atomix-labs.github.io/devset/
 #

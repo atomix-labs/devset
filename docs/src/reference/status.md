@@ -8,7 +8,8 @@ Show where every managed file stands against the profile
 Usage: devset status [OPTIONS]
 
 Options:
-      --exit-code  Exit 1 when `apply --force` would write a file, or an update is unfinished
+      --exit-code  Exit 1 when `apply --force` would write a file, or a run that conflicted is
+                   unfinished
       --json       Print JSON
   -v, --verbose    Also list files that match, and the settings in force
   -h, --help       Print help

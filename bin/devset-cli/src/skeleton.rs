@@ -14,7 +14,8 @@ const NAME: &str = "NAME";
 const DEVSET: &str = "DEVSET";
 
 /// A profile's manifest, `NAME` its name.
-const PROFILE: &str = r#"[profile]
+const PROFILE: &str = r#"#:schema https://atomix-labs.github.io/devset/schema/profile.json
+[profile]
 name        = "NAME"
 description = "One line: what this profile sets up"
 devset      = ">=DEVSET"
@@ -55,7 +56,8 @@ devset      = ">=DEVSET"
 const PROFILE_README: &str = "# `NAME`\n\nWhat the profile sets up, and the features it offers.\n";
 
 /// A collection's `collection.toml`, `NAME` its name.
-const COLLECTION: &str = r#"[collection]
+const COLLECTION: &str = r#"#:schema https://atomix-labs.github.io/devset/schema/collection.json
+[collection]
 name        = "NAME"
 description = "One line: what these profiles are for"
 "#;

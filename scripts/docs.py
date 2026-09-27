@@ -1,5 +1,4 @@
-"""The manual's generated pages: the command reference, from each `devset <command> --help`, and
-the JSON schemas, from `devset schema`.
+"""The manual's generated pages: the command reference, from each `devset <command> --help`.
 
 Usage: docs.py check | fix
 
@@ -7,7 +6,6 @@ Usage: docs.py check | fix
 what this checkout's devset prints, or the book's summary leaves a command's page out.
 """
 
-import json
 import os
 import re
 import subprocess
@@ -16,9 +14,7 @@ from pathlib import Path
 
 SRC = Path("docs/src")
 REFERENCE = SRC / "reference"
-SCHEMA = SRC / "schema"
 SUMMARY = SRC / "SUMMARY.md"
-SCHEMAS = ("profile", "config", "collection")
 # Marks a reference page as written here; a page without it is written by hand.
 MARKER = "<!-- reference: written by `just fix-docs`"
 # devset's own help lists its commands under this heading, two spaces in, up to a blank line.
@@ -52,11 +48,6 @@ def pages():
     return written
 
 
-def schemas():
-    """Each schema, by path, as devset prints it."""
-    return {SCHEMA / f"{name}.json": devset("schema", name) for name in SCHEMAS}
-
-
 def leftovers(written):
     """Reference pages written here once that no command has now."""
     generated = (path for path in REFERENCE.glob("*.md") if MARKER in path.read_text())
@@ -68,16 +59,10 @@ def stale(path, text):
     return not path.is_file() or path.read_text() != text
 
 
-def stale_schema(path, text):
-    """Whether `path` is missing, or holds another schema than `text`: dprint lays it out."""
-    return not path.is_file() or json.loads(path.read_text()) != json.loads(text)
-
-
 def check():
     """Names every page that is stale, and fails if any is."""
-    written, printed = pages(), schemas()
+    written = pages()
     outdated = [path for path, text in written.items() if stale(path, text)]
-    outdated += [path for path, text in printed.items() if stale_schema(path, text)]
     outdated += leftovers(written)
     summary = SUMMARY.read_text()
     unlisted = [path for path in written if f"]({path.relative_to(SRC)})" not in summary]
@@ -89,14 +74,13 @@ def check():
 
 
 def fix():
-    """Writes every page, then lays the schemas out as dprint does."""
-    written, printed = pages(), schemas()
+    """Writes every page, and removes the pages of commands there are no more."""
+    written = pages()
     for path in leftovers(written):
         path.unlink()
-    for path, text in {**written, **printed}.items():
+    for path, text in written.items():
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(text)
-    subprocess.run(["dprint", "fmt", *map(str, printed)], check=True)
     return 0
 
 

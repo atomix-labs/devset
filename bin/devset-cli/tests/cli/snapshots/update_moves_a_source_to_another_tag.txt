@@ -17,6 +17,7 @@ $ devset update house --tag v1.1.0
 --- a.toml
 v = 2
 --- .devset/config.toml
+#:schema https://atomix-labs.github.io/devset/schema/config.json
 # devset applies the profiles below to this directory, and keeps them up to date.
 # The manual: https://atomix-labs.github.io/devset/
 #

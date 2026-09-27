@@ -397,7 +397,6 @@ dependencies = [
  "diffy",
  "fs-err",
  "github-actions",
- "schemars",
  "serde",
  "serde_json",
  "snapbox",

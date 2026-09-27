@@ -10,9 +10,9 @@ complete and check them:
 | `collection.toml`     | [`schema/collection.json`](schema/collection.json) |
 
 Each is served beside this manual, at
-`https://atomix-labs.github.io/devset/schema/<name>.json`, and `devset schema
-profile`, `devset schema config` and `devset schema collection` print the ones a
-build of devset knows.
+`https://atomix-labs.github.io/devset/schema/<name>.json`, and every one of
+these files devset writes, with `devset init` or when `devset add` starts a
+target, names its schema on its first line, as below.
 
 ## In an Editor
 

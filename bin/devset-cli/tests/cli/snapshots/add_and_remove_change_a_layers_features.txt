@@ -33,6 +33,7 @@ $ devset remove rust --features docs
     Finished 2 changes
 [exit 0]
 --- .devset/config.toml
+#:schema https://atomix-labs.github.io/devset/schema/config.json
 # devset applies the profiles below to this directory, and keeps them up to date.
 # The manual: https://atomix-labs.github.io/devset/
 #
@@ -80,6 +81,7 @@ note: katex stays on: default turns it on
     Finished up to date
 [exit 0]
 --- .devset/config.toml
+#:schema https://atomix-labs.github.io/devset/schema/config.json
 # devset applies the profiles below to this directory, and keeps them up to date.
 # The manual: https://atomix-labs.github.io/devset/
 #

@@ -23,19 +23,6 @@ fn status_json() {
 }
 
 #[test]
-fn schemas() {
-    let sb = Sandbox::new();
-    sb.assert(
-        &sb.devset(".", &["schema", "profile"]),
-        snapbox::file!["snapshots/schema_profile.txt"],
-    );
-    sb.assert(
-        &sb.devset(".", &["schema", "config"]),
-        snapbox::file!["snapshots/schema_config.txt"],
-    );
-}
-
-#[test]
 fn quiet_and_github() {
     let sb = Sandbox::new();
     sb.profile("p", "p", &[("a.toml", "owned", "a\n"), ("b.toml", "owned", "b\n")]);

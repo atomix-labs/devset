@@ -3,6 +3,7 @@ $ devset init hello
 help: add a layer: `devset add <source>/<profile> --git <url>`, or `--path <dir>`
 [exit 0]
 --- hello/.devset/config.toml
+#:schema https://atomix-labs.github.io/devset/schema/config.json
 # devset applies the profiles below to this directory, and keeps them up to date.
 # The manual: https://atomix-labs.github.io/devset/
 #

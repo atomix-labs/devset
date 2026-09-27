@@ -3,6 +3,7 @@ $ devset init my-lint --profile
 help: list its files in my-lint/profile.toml and put them under my-lint/files/; a target takes it with `devset add --path my-lint`
 [exit 0]
 --- my-lint/profile.toml
+#:schema https://atomix-labs.github.io/devset/schema/profile.json
 [profile]
 name        = "my-lint"
 description = "One line: what this profile sets up"

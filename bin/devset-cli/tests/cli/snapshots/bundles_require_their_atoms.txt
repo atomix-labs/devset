@@ -17,6 +17,7 @@ In sync:
 All 2 files match the profile.
 [exit 0]
 --- .devset/config.toml
+#:schema https://atomix-labs.github.io/devset/schema/config.json
 # devset applies the profiles below to this directory, and keeps them up to date.
 # The manual: https://atomix-labs.github.io/devset/
 #

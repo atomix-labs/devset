@@ -41,7 +41,6 @@ dialoguer         = { workspace = true }
 diffy             = { workspace = true }
 fs-err            = { workspace = true }
 github-actions    = { workspace = true }
-schemars          = { workspace = true }
 serde             = { workspace = true }
 serde_json        = { workspace = true }
 strsim            = { workspace = true }

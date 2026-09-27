@@ -3,7 +3,7 @@
 use core::str::FromStr;
 
 use camino::Utf8PathBuf;
-use clap::{ArgGroup, Args, Parser, Subcommand, ValueEnum};
+use clap::{ArgGroup, Args, Parser, Subcommand};
 use devset_core::name::{FeatureName, ProfileName, ScaffoldId, SourceName};
 use devset_core::profile::VarName;
 use devset_core::source::{GitRef, Oid, SourceSpec};
@@ -57,8 +57,10 @@ Examples:
         #[arg(long, conflicts_with_all = ["profile", "collection"])]
         dry_run: bool,
     },
-    /// Add a profile as a layer, or features to one, and apply it; starts the target where there is
-    /// none.
+    /// Add a profile as a layer, or features to one, and apply it.
+    ///
+    /// Where there is no target yet, `add` starts one: at a git repository's top level, or in an
+    /// empty directory; anywhere else, run `devset init` first.
     #[command(
         group(ArgGroup::new("what").required(true).multiple(true).args(["layer", "git", "path"])),
         after_help = "\
@@ -126,8 +128,10 @@ Examples:
         /// Only these files.
         paths: Vec<Utf8PathBuf>,
     },
-    /// Apply the pinned profiles without destroying local edits; finish, or take back, a run that
-    /// conflicted.
+    /// Apply the pinned profiles without destroying local edits.
+    ///
+    /// A run that conflicted, of any command, is finished with `--continue`, once the files in
+    /// .devset/conflicts/ are resolved, or taken back with `--abort`.
     #[command(after_help = "\
 Examples:
   devset apply --dry-run                 what would change
@@ -156,8 +160,10 @@ Examples:
         #[command(flatten)]
         answers: Answers,
     },
-    /// Move sources to newer commits, or one to another tag, branch or commit, merging local
-    /// edits.
+    /// Move sources to newer commits, or to another tag, merging local edits.
+    ///
+    /// A source pinned to a tag stays there: `update` names the releases newer than it, and
+    /// `--tag`, `--branch` or `--rev` moves it.
     #[command(after_help = "\
 Examples:
   devset update                    every source
@@ -177,8 +183,10 @@ Examples:
         #[command(flatten)]
         answers: Answers,
     },
-    /// Show why a layer or a file is as it is: a layer's features and who turned each on, or each
-    /// layer that lists a file, and its gates.
+    /// Show why a layer's features are on, or why a file is managed as it is.
+    ///
+    /// For a layer, its features and who turned each on, and those it leaves off; for a file,
+    /// each layer that lists it, how it manages it, and its gates.
     #[command(after_help = "\
 Examples:
   devset explain                  every layer, with its features and who turned each on
@@ -202,11 +210,6 @@ Examples:
         /// Or any source.
         #[command(flatten)]
         location: Location,
-    },
-    /// Print the JSON Schema of a devset file, for editor completion.
-    Schema {
-        /// Which file.
-        file: SchemaFile,
     },
     /// Print a shell completion script.
     #[command(after_help = "\
@@ -326,17 +329,6 @@ pub(crate) struct Answers {
     /// Answer a profile variable; repeatable.
     #[arg(long = "var", value_name = "NAME=VALUE", value_parser = var)]
     pub(crate) vars: Vec<(VarName, String)>,
-}
-
-/// A devset file with a schema.
-#[derive(Clone, Copy, Debug, ValueEnum)]
-pub(crate) enum SchemaFile {
-    /// A profile's `profile.toml`.
-    Profile,
-    /// A target's `.devset/config.toml`.
-    Config,
-    /// A source's `collection.toml`.
-    Collection,
 }
 
 /// Parses `NAME=VALUE`.
