@@ -25,7 +25,7 @@ error: which source is mermaid in? name it as `source/mermaid`
 # Where profiles come from, each named once: a git repository at a ref, or a directory.
 #
 #   [sources]
-#   atxp = { git = "https://github.com/atomix-labs/atxp", tag = "v0.4.0" }
+#   atxp = { git = "https://github.com/atomix-labs/atxp", tag = "v0.6.2" }
 #
 # The profiles to apply, in order, by source and name, with the features to turn on.
 #

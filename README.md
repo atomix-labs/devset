@@ -55,7 +55,7 @@ A target names its sources once, and applies profiles from them by name, with
 the features it wants:
 
 ```sh
-devset new hello atxp/rust --git https://github.com/atomix-labs/atxp --tag v0.4.0 --features docs
+devset new hello atxp/rust --git https://github.com/atomix-labs/atxp --tag v0.6.2 --features docs
 cd hello
 devset add atxp/mdbook --features katex
 ```

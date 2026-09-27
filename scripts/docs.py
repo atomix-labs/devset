@@ -1,9 +1,12 @@
-"""The manual's generated pages: the command reference, from each `devset <command> --help`.
+"""The manual's generated pages, the command reference from each `devset <command> --help`; and
+the release of atxp every document names, which is the one devset applies.
 
 Usage: docs.py check | fix
 
-`fix` writes them from this checkout's devset. `check` fails, naming each page, when one is not
-what this checkout's devset prints, or the book's summary leaves a command's page out.
+`fix` writes the pages from this checkout's devset, after naming atxp's release as the pin in every
+document, the help and the skeleton `init` writes. `check` fails, naming each file, when a page is
+not what this checkout's devset prints, the book's summary leaves a command's page out, or a file
+names another release of atxp than the one `.devset/config.toml` pins.
 """
 
 import os
@@ -12,9 +15,15 @@ import subprocess
 import sys
 from pathlib import Path
 
+import tomllib
+
 SRC = Path("docs/src")
 REFERENCE = SRC / "reference"
 SUMMARY = SRC / "SUMMARY.md"
+# A release of atxp a file names: its URL, then on the same line `--tag v...` or `tag = "v..."`.
+ATXP = re.compile(r'(atomix-labs/atxp\b[^\n]*?(?:--tag |tag = \\?"))(v\d+\.\d+\.\d+)')
+# What names atxp's release besides the manual: the README, the help, and the skeleton `init` writes.
+NAMING = ("README.md", "bin/devset-cli/src/cli.rs", "bin/devset-cli/src/main.rs", "lib/devset-core/src/target.rs")
 # Marks a reference page as written here; a page without it is written by hand.
 MARKER = "<!-- reference: written by `just fix-docs`"
 # devset's own help lists its commands under this heading, two spaces in, up to a blank line.
@@ -48,6 +57,21 @@ def pages():
     return written
 
 
+def pin():
+    """The release of atxp this repository applies, from its own `.devset/config.toml`."""
+    return tomllib.loads(Path(".devset/config.toml").read_text())["sources"]["atxp"]["tag"]
+
+
+def misnamed(want):
+    """Each file naming a release of atxp other than `want`, with the releases it names."""
+    found = {}
+    for path in [Path(name) for name in NAMING] + sorted(SRC.rglob("*.md")):
+        tags = {match.group(2) for match in ATXP.finditer(path.read_text())} - {want}
+        if tags:
+            found[path] = sorted(tags)
+    return found
+
+
 def leftovers(written):
     """Reference pages written here once that no command has now."""
     generated = (path for path in REFERENCE.glob("*.md") if MARKER in path.read_text())
@@ -70,11 +94,19 @@ def check():
         print(f"{path}: stale; run `just fix-docs`", file=sys.stderr)
     for path in unlisted:
         print(f"{SUMMARY}: no chapter links {path.relative_to(SRC)}", file=sys.stderr)
-    return 1 if outdated or unlisted else 0
+    want = pin()
+    named = misnamed(want)
+    for path, tags in named.items():
+        print(f"{path}: names atxp {', '.join(tags)}, not {want}; run `just fix-docs`", file=sys.stderr)
+    return 1 if outdated or unlisted or named else 0
 
 
 def fix():
-    """Writes every page, and removes the pages of commands there are no more."""
+    """Names the pinned release of atxp everywhere, then writes every page, and removes the pages
+    of commands there are no more."""
+    want = pin()
+    for path in misnamed(want):
+        path.write_text(ATXP.sub(lambda match: match.group(1) + want, path.read_text()))
     written = pages()
     for path in leftovers(written):
         path.unlink()

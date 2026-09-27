@@ -16,7 +16,7 @@ Examples:
   devset add atxp/rust --git https://github.com/atomix-labs/atxp --tag v0.6.2
   devset add atxp/mdbook --features katex
   devset status
-  devset update
+  devset update --dry-run
 
 Manual: https://atomix-labs.github.io/devset/")]
 pub(crate) struct Cli {
@@ -102,32 +102,6 @@ Examples:
         #[arg(long)]
         dry_run: bool,
     },
-    /// Show where every managed file stands against the profile.
-    #[command(after_help = "\
-Examples:
-  devset status               what needs doing
-  devset status -v            and everything in sync
-  devset status --exit-code   in CI: fail on drift")]
-    Status {
-        /// Exit 1 when `apply --force` would write a file, or a run that conflicted is unfinished.
-        #[arg(long)]
-        exit_code: bool,
-        /// Print JSON.
-        #[arg(long)]
-        json: bool,
-        /// Also list files that match, and the settings in force.
-        #[arg(long, short)]
-        verbose: bool,
-    },
-    /// Show, line by line, how files differ from the profile.
-    #[command(after_help = "\
-Examples:
-  devset diff             every file that differs
-  devset diff deny.toml   one file")]
-    Diff {
-        /// Only these files.
-        paths: Vec<Utf8PathBuf>,
-    },
     /// Apply the pinned profiles without destroying local edits.
     ///
     /// A run that conflicted, of any command, is finished with `--continue`, once the files in
@@ -183,6 +157,32 @@ Examples:
         #[command(flatten)]
         answers: Answers,
     },
+    /// Show where every managed file stands against the profile.
+    #[command(after_help = "\
+Examples:
+  devset status               what needs doing
+  devset status -v            and everything in sync
+  devset status --exit-code   in CI: fail on drift")]
+    Status {
+        /// Exit 1 when `apply --force` would write a file, or a run that conflicted is unfinished.
+        #[arg(long)]
+        exit_code: bool,
+        /// Print JSON.
+        #[arg(long)]
+        json: bool,
+        /// Also list files that match, and the settings in force.
+        #[arg(long, short)]
+        verbose: bool,
+    },
+    /// Show, line by line, how files differ from the profile.
+    #[command(after_help = "\
+Examples:
+  devset diff             every file that differs
+  devset diff deny.toml   one file")]
+    Diff {
+        /// Only these files.
+        paths: Vec<Utf8PathBuf>,
+    },
     /// Show why a layer's features are on, or why a file is managed as it is.
     ///
     /// For a layer, its features and who turned each on, and those it leaves off; for a file,
@@ -202,7 +202,7 @@ Examples:
 Examples:
   devset list                                   every source the target names
   devset list atxp                              one of them
-  devset list --git https://github.com/atomix-labs/atxp --tag v0.4.0")]
+  devset list --git https://github.com/atomix-labs/atxp --tag v0.6.2")]
     List {
         /// A source the target names.
         #[arg(conflicts_with_all = ["git", "path"])]

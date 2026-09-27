@@ -11,10 +11,10 @@ Commands:
   init         Make a directory a target, or a profile or a collection to author
   add          Add a profile as a layer, or features to one, and apply it
   remove       Remove a layer, or features from one: unchanged files go, edited ones stay
-  status       Show where every managed file stands against the profile
-  diff         Show, line by line, how files differ from the profile
   apply        Apply the pinned profiles without destroying local edits
   update       Move sources to newer commits, or to another tag, merging local edits
+  status       Show where every managed file stands against the profile
+  diff         Show, line by line, how files differ from the profile
   explain      Show why a layer's features are on, or why a file is managed as it is
   list         List the profiles a source holds, with their features
   completions  Print a shell completion script
@@ -33,7 +33,7 @@ Examples:
   devset add atxp/rust --git https://github.com/atomix-labs/atxp --tag v0.6.2
   devset add atxp/mdbook --features katex
   devset status
-  devset update
+  devset update --dry-run
 
 Manual: https://atomix-labs.github.io/devset/
 ```
