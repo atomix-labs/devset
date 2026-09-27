@@ -144,9 +144,13 @@ canonical = "9117cc8303cc9a60ff4025c04349bbb6cf4af6e999ea54172429295834708926"
 exact = "4830eed6ef06ca7a7846a988b53f4d920dd2213f23c2554a587bf2420a91c321"
 canonical = "4830eed6ef06ca7a7846a988b53f4d920dd2213f23c2554a587bf2420a91c321"
 
+[files.".config/mise/conf.d/devset-mdbook-tool.toml"]
+exact = "26a064937ab85c6125c5dad33055c0c241abdc88e3a8da4eee5870289f9042f0"
+canonical = "26a064937ab85c6125c5dad33055c0c241abdc88e3a8da4eee5870289f9042f0"
+
 [files.".config/mise/conf.d/devset-mdbook.toml"]
-exact = "bbd44336e2ed8c5ad93b28fc128d71fb8408c5bdb1c50bf3f827862b85cec3db"
-canonical = "bbd44336e2ed8c5ad93b28fc128d71fb8408c5bdb1c50bf3f827862b85cec3db"
+exact = "c15cdbbcae6c3b72efad54ec9c3d2c3aec89978b39808d2bd6213797fdcc5da5"
+canonical = "c15cdbbcae6c3b72efad54ec9c3d2c3aec89978b39808d2bd6213797fdcc5da5"
 
 [files.".config/mise/conf.d/devset-mise.toml"]
 exact = "1274c5d252fd47ce75be2907e123c5e8e4ebdaf9a1790f3dc411d21175ad2c21"
@@ -215,16 +219,16 @@ canonical = "2662523c489fd93f8c2023219f7ccb8a77d4816ce278656bae4d6e8c2f8f1421"
 policy = "once"
 
 [files.".github/scripts/automation.js"]
-exact = "b92cef87798f26bfc313754b22101526683a8826cd102709c7a17abfa2ca8b4d"
-canonical = "b92cef87798f26bfc313754b22101526683a8826cd102709c7a17abfa2ca8b4d"
+exact = "ae1e80b3f95958e0fa343bc1e8cf3cbe929a376b24474009da550b5bddbf36c0"
+canonical = "ae1e80b3f95958e0fa343bc1e8cf3cbe929a376b24474009da550b5bddbf36c0"
 
 [files.".github/scripts/bump.js"]
-exact = "b50cd669627b916854ec83c2c29448f56fc86a8227aa26fc00e2634325b94329"
-canonical = "b50cd669627b916854ec83c2c29448f56fc86a8227aa26fc00e2634325b94329"
+exact = "22548ff099dc8ea7a4cf08f5654f2127c7ed75cdf2964d121c61f6a3150e292c"
+canonical = "22548ff099dc8ea7a4cf08f5654f2127c7ed75cdf2964d121c61f6a3150e292c"
 
 [files.".github/scripts/demo.js"]
-exact = "04dddbdb03f48a99fec5256eba44df95044dfe45fa0e3d6b13b1ab909950ebaa"
-canonical = "04dddbdb03f48a99fec5256eba44df95044dfe45fa0e3d6b13b1ab909950ebaa"
+exact = "5e79a2f2922857ced4a9801e1207f525b8bad53c2e5cee68930cd24dc7c7703b"
+canonical = "5e79a2f2922857ced4a9801e1207f525b8bad53c2e5cee68930cd24dc7c7703b"
 
 [files.".github/scripts/watch.js"]
 exact = "9dc6ad6420557683d275dba0188a69321c41e49349ac3e336e917358310f984c"
@@ -670,8 +674,13 @@ canonical = "907b12b5e69615b0d434a41abc81c437443f5f2279c737ece501f1a6e31f9626"
 
 [parts.".config/mise/mise.lock".mdbook]
 scope = "keys"
-exact = "bab4098f2d0385c5bad1bc2b890aa1b810e1adf2421b7134ac2465a242017d6f"
-canonical = "bab4098f2d0385c5bad1bc2b890aa1b810e1adf2421b7134ac2465a242017d6f"
+exact = "a04ec905d95264e9653397d99bb1ea20c0ccdabe0174cadee4ddef805bb44ef2"
+canonical = "a04ec905d95264e9653397d99bb1ea20c0ccdabe0174cadee4ddef805bb44ef2"
+
+[parts.".config/mise/mise.lock".mdbook-tool]
+scope = "keys"
+exact = "786f0e03f041c5dfb6928de6195a3da6150e4651a9eff4f4d706ca30dc08bfb7"
+canonical = "786f0e03f041c5dfb6928de6195a3da6150e4651a9eff4f4d706ca30dc08bfb7"
 
 [parts.".config/mise/mise.lock".mise]
 scope = "keys"
@@ -761,8 +770,8 @@ canonical = "75905f895ca860f37df4530f2578fcb238f6d8f36384b7366a5f9b4673bfa7fd"
 
 [parts.".rumdl.toml".markdown]
 scope = "keys"
-exact = "8606490c619de5d4fe2247f195920f64e1c7d3233871d2a9d24b05e49af5bbf8"
-canonical = "8606490c619de5d4fe2247f195920f64e1c7d3233871d2a9d24b05e49af5bbf8"
+exact = "c477aa0f3762605dc3a99672827531aaf33f3705e15c3ccf07cb61422aec1ddc"
+canonical = "c477aa0f3762605dc3a99672827531aaf33f3705e15c3ccf07cb61422aec1ddc"
 policy = "merge"
 
 [parts.".vscode/extensions.json".vscode]
@@ -875,8 +884,8 @@ policy = "merge"
 
 [parts.justfile.just]
 scope = "block"
-exact = "c7ffbe2f274a0cf7fd37c9f073aceb0a23cf8f04bce5d392b10e5386327dcb8a"
-canonical = "a37c26782c3d3855b9dfce402f780eb56151c53bd836d37963ba501b0badec24"
+exact = "8c4ade6b8d4151c58d535f423db720ec21bf15ff5ba7823bb76d1e10c61981dc"
+canonical = "5ad7173ca4b7e14373fb4173f5ba7517d58e8b9b43763e3d819cd15bea72d62d"
 
 [parts."ruff.toml".python]
 scope = "keys"

@@ -96,7 +96,7 @@ const SKELETON: &str = "\
 # Where profiles come from, each named once: a git repository at a ref, or a directory.
 #
 #   [sources]
-#   atxp = { git = \"https://github.com/atomix-labs/atxp\", tag = \"v0.10.0\" }
+#   atxp = { git = \"https://github.com/atomix-labs/atxp\", tag = \"v0.11.0\" }
 #
 # The profiles to apply, in order, by source and name, with the features to turn on.
 #
