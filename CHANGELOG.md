@@ -3,6 +3,34 @@
 Every release, newest first, written by [git-cliff](https://git-cliff.org) from the commits.
 [BREAKING-CHANGES.md](BREAKING-CHANGES.md) says how to move across a breaking change.
 
+## [0.5.0](https://github.com/atomix-labs/devset/releases/tag/v0.5.0) - 2026-09-27
+
+### Features
+
+- [7b4967e](https://github.com/atomix-labs/devset/commit/7b4967e4b94b75d56d67e5c156d86f66ab2f6dd4) *(devset-cli)* Take each default in one note, and ask only what has none
+
+### Bug Fixes
+
+- [6dfc415](https://github.com/atomix-labs/devset/commit/6dfc415c72168b011becc62f445074a628c27256) *(devset-cli)* Say a run changed nothing, not that it is up to date
+- [6cf7964](https://github.com/atomix-labs/devset/commit/6cf796424cac68ace2206ee6b1d891f5464bd7fd) *(devset-core)* Keep a JSON object on one line when a key joins it
+
+### Documentation
+
+- [4303619](https://github.com/atomix-labs/devset/commit/430361922fcc1937d33cd256593d8b89af04d465) Sort the manual by what the reader is doing, and fill its gaps
+- [37df9fa](https://github.com/atomix-labs/devset/commit/37df9fa1c841225ff9b09d94c0c34d6911aec43f) Add examples that run in CI
+- [50c96f9](https://github.com/atomix-labs/devset/commit/50c96f9b472b2b8fc457fa2a881031621a27d29b) Generate the file references from the schemas
+- [4286eea](https://github.com/atomix-labs/devset/commit/4286eeaefe6691cdd7e7a3aaa4ac7302c58ef8dc) Say atxp is provided by Atomix Labs, a collection to start from
+- [832a24e](https://github.com/atomix-labs/devset/commit/832a24e3eb32fcfc60cabc1dc8d5439eba5aa426) Record the demo for v0.4.1
+
+### Miscellaneous
+
+- [b89c7f6](https://github.com/atomix-labs/devset/commit/b89c7f69457935c47ee721c8ea9d8d6e6fe7c6eb) Take atxp v0.9.1
+- [f5f8219](https://github.com/atomix-labs/devset/commit/f5f821984727a40917aabd46d8da84632a8e55cf) *(devset-cli)* Read redirections and placeholder values in documented commands
+- [006e15b](https://github.com/atomix-labs/devset/commit/006e15b915abd5f668099e2c49574d7a385740ad) Turn on mermaid for the book
+- [63bcac9](https://github.com/atomix-labs/devset/commit/63bcac9940b1944b6b2a25cc6bfc2ae188b90de3) Take atxp v0.8.1
+
+**Full Changelog**: <https://github.com/atomix-labs/devset/compare/v0.4.1...v0.5.0>
+
 ## [0.4.1](https://github.com/atomix-labs/devset/releases/tag/v0.4.1) - 2026-09-27
 
 ### Documentation
