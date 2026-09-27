@@ -1,21 +1,23 @@
 [book]
 title       = "devset"
-description = "Versioned file bundles, applied to a directory and updated without losing local edits"
+description = "Share your repositories' configuration, and keep it in sync without losing local edits."
 language    = "en"
 
 [output.html]
 git-repository-url   = "https://github.com/atomix-labs/devset"
 edit-url-template    = "https://github.com/atomix-labs/devset/edit/main/docs/{path}"
 site-url             = "/devset/"
-default-theme        = "rust"
-preferred-dark-theme = "ayu"
+default-theme        = "light"
+preferred-dark-theme = "navy"
 
 # What the book loads: its look, and what each feature brings.
 additional-css = [
     "vendor/katex/katex.min.css",
+    "theme/palette.css",
     "theme/prompt.css",
     "theme/width.css",
     "theme/details.css",
+    "theme/logo.css",
 ]
 additional-js = ["mermaid.min.js", "mermaid-init.js", "api-link.js"]
 

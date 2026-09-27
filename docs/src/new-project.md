@@ -12,7 +12,7 @@ In an empty directory, or a new repository's top level:
 
 ```sh
 mkdir hello && cd hello && git init
-devset add atxp/rust --git https://github.com/atomix-labs/atxp --tag v0.8.1 --var repository=you/hello
+devset add atxp/rust --git https://github.com/atomix-labs/atxp --tag v0.9.1 --var repository=you/hello
 ```
 
 `add` starts the target, names the source `atxp`, pins its tag, and applies the

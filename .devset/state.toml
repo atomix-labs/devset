@@ -287,8 +287,8 @@ exact = "601cd92904a54cfaa4374e85bdb37d9b5dac2a9e9f4bdbf99bbce97784ffd1dc"
 canonical = "601cd92904a54cfaa4374e85bdb37d9b5dac2a9e9f4bdbf99bbce97784ffd1dc"
 
 [files.".just/cargo-manifest.py"]
-exact = "3cd20fdb5965c924e0d40827c159bfed013ef1b06258af6781b2ad295ac2aabc"
-canonical = "3cd20fdb5965c924e0d40827c159bfed013ef1b06258af6781b2ad295ac2aabc"
+exact = "4ec6dbb97bb9da407c6ac9d03a79e780850ae3f6be1239707e9dbbe5e8ab19e0"
+canonical = "4ec6dbb97bb9da407c6ac9d03a79e780850ae3f6be1239707e9dbbe5e8ab19e0"
 
 [files.".just/cargo-nextest.just"]
 exact = "adf05bda5558d9fa95df7f07e3d861fc1906e0e80a95bc1703d3a0ff78669b0e"
@@ -543,6 +543,15 @@ exact = "2fbca54f0c823af3704380d73ebe3c91bd3b65d8c17c96556910f8f4e0ae021d"
 canonical = "2fbca54f0c823af3704380d73ebe3c91bd3b65d8c17c96556910f8f4e0ae021d"
 policy = "merge"
 
+[files."docs/theme/logo.css"]
+exact = "afe7428b2c36d2960c24d15ef2aa559c685e37663567e1f06b9b06f332a87fd2"
+canonical = "afe7428b2c36d2960c24d15ef2aa559c685e37663567e1f06b9b06f332a87fd2"
+
+[files."docs/theme/palette.css"]
+exact = "227f8ccee4b7ff2557ea8d5bc69432b76271b650c00a5fed0ae74f2b5bb38f05"
+canonical = "227f8ccee4b7ff2557ea8d5bc69432b76271b650c00a5fed0ae74f2b5bb38f05"
+policy = "merge"
+
 [files."docs/theme/prompt.css"]
 exact = "e170869c94fee27e1964b6d1fbcaa3c09f923c348f5972469da7ffc1f3ed674d"
 canonical = "e170869c94fee27e1964b6d1fbcaa3c09f923c348f5972469da7ffc1f3ed674d"
@@ -752,8 +761,8 @@ canonical = "75905f895ca860f37df4530f2578fcb238f6d8f36384b7366a5f9b4673bfa7fd"
 
 [parts.".rumdl.toml".markdown]
 scope = "keys"
-exact = "d16a6c2162a07ccda7afb6ee33d9c1ca65efe48efe22a3a26c9f92d49e270905"
-canonical = "d16a6c2162a07ccda7afb6ee33d9c1ca65efe48efe22a3a26c9f92d49e270905"
+exact = "8606490c619de5d4fe2247f195920f64e1c7d3233871d2a9d24b05e49af5bbf8"
+canonical = "8606490c619de5d4fe2247f195920f64e1c7d3233871d2a9d24b05e49af5bbf8"
 policy = "merge"
 
 [parts.".vscode/extensions.json".vscode]
@@ -831,9 +840,14 @@ canonical = "688e3a53753b421f7fdcc42316db2de85d3fb22c6ab67fbce99b77c19680e4a4"
 
 [parts."docs/book.toml".mdbook]
 scope = "keys"
-exact = "3820dea08e6d83d624eca4ef4d1fb56d1dbb1967ecbff897f5038877e25eb3d6"
-canonical = "3820dea08e6d83d624eca4ef4d1fb56d1dbb1967ecbff897f5038877e25eb3d6"
+exact = "0f6879796ae238f371ab026542228172701e3226ce85fef87ac9c119b79635d2"
+canonical = "0f6879796ae238f371ab026542228172701e3226ce85fef87ac9c119b79635d2"
 policy = "merge"
+
+[parts."docs/theme/head.hbs".mdbook]
+scope = "block"
+exact = "5ffa6b2da5b212e50d5c86718c43c84f1b0403976af76545e996c00b6efeb33a"
+canonical = "5ffa6b2da5b212e50d5c86718c43c84f1b0403976af76545e996c00b6efeb33a"
 
 [parts."dprint.json".dprint]
 scope = "keys"
