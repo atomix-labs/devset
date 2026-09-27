@@ -55,7 +55,7 @@ In a repository, even an empty one, name a source once and apply profiles from
 it by name, with the features you want:
 
 ```sh
-devset add atxp/rust --git https://github.com/atomix-labs/atxp --tag v0.6.2 --features docs
+devset add atxp/rust --git https://github.com/atomix-labs/atxp --tag v0.7.0 --features docs
 devset add atxp/mdbook --features mermaid
 ```
 

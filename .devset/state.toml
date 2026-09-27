@@ -42,8 +42,8 @@ exact = "996697b5f33ffdc94fd6c54bc23cb1d3cab27645dded9228f45a67dfdc13dc71"
 canonical = "996697b5f33ffdc94fd6c54bc23cb1d3cab27645dded9228f45a67dfdc13dc71"
 
 [files.".claude/skills/using-devset/SKILL.md"]
-exact = "2b8546a37d266c7d48ef714b60ca25d95ee69533dbf1b3765dca7d0e894bbbac"
-canonical = "2b8546a37d266c7d48ef714b60ca25d95ee69533dbf1b3765dca7d0e894bbbac"
+exact = "1b58e22f094fc69b393afe5ad006e4c801799970f8ebf89a26e689a43b9a9a1a"
+canonical = "1b58e22f094fc69b393afe5ad006e4c801799970f8ebf89a26e689a43b9a9a1a"
 
 [files.".claude/skills/writing-rustdoc/SKILL.md"]
 exact = "4b07c68097913df37a0bcfc7474dd62dbc58a0e75421c5837b8ecbfca33ee8cb"
@@ -110,8 +110,8 @@ exact = "a6ecd03717231e7498c01c3ebcbb9c4c22278797b43d05cf01801fc006382f2b"
 canonical = "204e3d01b814804489a65ee76b2f3e820436957320309b45fa912d1e426fc7af"
 
 [files.".config/mise/conf.d/devset-devset.toml"]
-exact = "2059806642108f29182b80762ee92e5d25bbb5fe31404b8c4a3cc6d751b51585"
-canonical = "2059806642108f29182b80762ee92e5d25bbb5fe31404b8c4a3cc6d751b51585"
+exact = "1f31f90e81a8e35d08a5a27dcdc5723203e121b5d9dee37903c338e1814a5ab6"
+canonical = "1f31f90e81a8e35d08a5a27dcdc5723203e121b5d9dee37903c338e1814a5ab6"
 
 [files.".config/mise/conf.d/devset-dprint.toml"]
 exact = "dfcfdcf5b432fa82ed896b95c7ac499f0e8219f11c9e4a8a3bc457a5e3f0f88f"
@@ -300,8 +300,8 @@ exact = "a2f04bf6942490a7b486675dca5ac6f19d26ba111b7f671cc225eb105e05df41"
 canonical = "a2f04bf6942490a7b486675dca5ac6f19d26ba111b7f671cc225eb105e05df41"
 
 [files.".just/devset.py"]
-exact = "292f2beacf3ee75cd538f8e2fd939c3d98662b0c0b24f8d22906109657048549"
-canonical = "292f2beacf3ee75cd538f8e2fd939c3d98662b0c0b24f8d22906109657048549"
+exact = "74877ac5a11bb8cd374985924504db134c134ce57de695b21358e9fda5a5fd0c"
+canonical = "74877ac5a11bb8cd374985924504db134c134ce57de695b21358e9fda5a5fd0c"
 
 [files.".just/dprint.just"]
 exact = "6919685ae0c386030d90b00dd64ec0edbe3b3e07e663aa225631ce15185eb229"
@@ -566,8 +566,8 @@ canonical = "c1b77d647da73c905c644a3a19b8a36ef0578ac036852adbd559ebe858d32b43"
 
 [parts.".claude/settings.json".agents]
 scope = "keys"
-exact = "af323cf2a38eb2a7682751baa5b2526840ecac1b227819280aa9cb13173bf69e"
-canonical = "af323cf2a38eb2a7682751baa5b2526840ecac1b227819280aa9cb13173bf69e"
+exact = "fe2202380ee5d3692453d48649bffb97b3e7e8073d9c4426841d9c37dd9eec6f"
+canonical = "fe2202380ee5d3692453d48649bffb97b3e7e8073d9c4426841d9c37dd9eec6f"
 policy = "merge"
 
 [parts.".config/mise/mise.lock".cargo-bump]
@@ -602,8 +602,8 @@ canonical = "74c639cd191f287879f19587cf75f9af01ebc474649fdafc00ffd82fdbdfa892"
 
 [parts.".config/mise/mise.lock".devset]
 scope = "keys"
-exact = "adb98e89dc7892dbf850d9cc26e7d0b215919ba2b2ab3b7c39e3a396a8ff6919"
-canonical = "adb98e89dc7892dbf850d9cc26e7d0b215919ba2b2ab3b7c39e3a396a8ff6919"
+exact = "362c9c329b07cf56717d6b7272064c16a5264f02f87686e721e65d20aa51620a"
+canonical = "362c9c329b07cf56717d6b7272064c16a5264f02f87686e721e65d20aa51620a"
 
 [parts.".config/mise/mise.lock".dprint]
 scope = "keys"
