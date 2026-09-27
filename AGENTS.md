@@ -38,8 +38,8 @@ with the profile, on `devset update`. Never edit `.devset/`.
 ## Commands
 
 ```sh
-SNAPSHOTS=overwrite cargo test --test cli  # rewrite the end-to-end snapshots a change meant to change
-just fix-docs                              # after changing a command's help or a schema
+SNAPSHOTS=overwrite cargo test --workspace  # rewrite the snapshots and schemas a change meant to change
+just fix-docs                               # after changing a command's help
 ```
 
 ## Rules
@@ -51,9 +51,10 @@ just fix-docs                              # after changing a command's help or 
 - **Snapshots are the review.** After `SNAPSHOTS=overwrite`, read every diff in
   `bin/devset-cli/tests/cli/snapshots/`; a snapshot holding devset's version
   matches it with `[..]`, or the next release breaks it.
-- **Generated pages are generated.** `docs/src/reference/` and
-  `docs/src/schema/` come from the build: change the source, then `just
-  fix-docs`.
+- **Generated pages are generated.** `docs/src/reference/` comes from the help:
+  change `cli.rs`, then `just fix-docs`. `docs/src/schema/` comes from
+  devset-core's types: change them, then `SNAPSHOTS=overwrite cargo test -p
+  devset-core --test schemas`.
 - **Breaking changes are named.** A change to a command, a flag, `status
   --json`, the exit codes, a file people write, what `.devset/` records, or
   `devset-core`'s public API adds `!` to its commit and its entry to

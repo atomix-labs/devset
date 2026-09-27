@@ -52,7 +52,7 @@ features.
 
 Each active profile is a **layer**: the target's own, and every profile they
 require. A layer is named by its profile's name, which is what `from`, `devset
-remove` and `devset features` take; so two active profiles may not share one,
+remove` and `devset explain` take; so two active profiles may not share one,
 whichever sources they come from. Layers apply in order, each requirement before
 the profile that requires it.
 
@@ -124,11 +124,11 @@ Features follow Cargo's rules:
   turns them on, they are on, and devset warns and names the requirer.
 - **Named.** An unknown feature is an error, with a near match.
 
-`devset features` shows each layer's features, and who turned each on; `devset
-features <layer>` adds the ones it leaves off. The lock records them.
+`devset explain` shows each layer's features, and who turned each on; `devset
+explain <layer>` adds the ones it leaves off. The lock records them.
 
 ```console
-$ devset features
+$ devset explain
 atxp/ci  [pages]  (required by mdbook)
     pages  <- mdbook/pages
 atxp/mdbook  [api, katex, pages]  (required by rust)

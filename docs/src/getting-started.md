@@ -49,18 +49,19 @@ nothing else.
 
 ## A First Target
 
-A target is a directory devset manages. `devset new` starts one in a new
-directory, `devset init` in the one you are in:
+A target is a directory devset manages. `devset init` makes one, in the
+directory you name, created if missing, or in the one you are in:
 
 ```console
-$ devset new hello
+$ devset init hello
      Created hello/.devset/config.toml
 help: add a layer: `devset add <source>/<profile> --git <url>`, or `--path <dir>`
 ```
 
 `.devset/config.toml` starts as a commented skeleton: where profiles come from,
-and which to apply. Neither command runs git or needs a source; a target with no
-layer is a target all the same.
+and which to apply. `init` runs no git and needs no source; a target with no
+layer is a target all the same. At a git repository's top level, or in an empty
+directory, `init` can wait: the first `devset add` starts the target itself.
 
 ## A First Profile
 
@@ -88,7 +89,7 @@ name = "base"
 policy = "merge"
 ```
 
-`devset new --profile <dir>` writes a profile's skeleton, its manifest a
+`devset init <dir> --profile` writes a profile's skeleton, its manifest a
 commented tour of what it can say. Then, in the repository, add it as a layer,
 naming the source `house`:
 

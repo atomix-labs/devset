@@ -88,18 +88,19 @@ names each that fails. `just fix` fixes what a formatter or linter can, and
 ```sh
 just check         # formatting, lints, tests, the docs and the book, as CI runs them
 just nightly       # the slower checks: each feature alone, advisories, the web's links
-just fix-docs      # after changing a command's help or a schema: the manual's generated pages
+just fix-docs      # after changing a command's help: the manual's reference, and every atxp tag named
 ```
 
 The end-to-end tests compare each command's output with a snapshot in
-`bin/devset-cli/tests/cli/snapshots/`. A change that means to change output
-rewrites them:
+`bin/devset-cli/tests/cli/snapshots/`, and a test in devset-core compares the
+manual's JSON schemas, `docs/src/schema/`, with the types they describe. A
+change that means to change either rewrites them:
 
 ```sh
-SNAPSHOTS=overwrite cargo test --test cli
+SNAPSHOTS=overwrite cargo test --workspace
 ```
 
-and the snapshots' diff is part of the review.
+and the diff is part of the review.
 
 ## Code
 

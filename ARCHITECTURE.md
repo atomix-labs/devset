@@ -35,12 +35,12 @@ commit    every file, blob and record, written atomically, state last
 | `plan`    | `Survey`, a `Mode`, the `Target` | `Plan`     | `plan.rs`    |
 | `commit`  | `Plan`, the `Target`             | its steps  | `commit.rs`  |
 
-`status`, `diff`, `features` and `explain` stop at `survey` or before; a dry run
-stops at `plan`; `new`, `init`, `add`, `remove`, `apply` and `update` run it
-all. `Refresh` says which sources move (none, one, or all) and `Mode` what
-`plan` may do: never destroy bytes, restore `owned` files too, or install
-resolved conflicts. `Rollback`, beside the chain, takes back an unfinished
-update from what `commit` saved before it wrote.
+`status`, `diff` and `explain` stop at `survey` or before; a dry run stops at
+`plan`; `init`, `add`, `remove`, `apply` and `update` run it all. `Refresh` says
+which sources move (none, one, or all) and `Mode` what `plan` may do: never
+destroy bytes, restore `owned` files too, or install resolved conflicts.
+`Rollback`, beside the chain, takes back an unfinished run from what `commit`
+saved before it wrote.
 
 ### The Run, in Order
 
@@ -137,26 +137,27 @@ writes one.
 
 ## `devset-cli`
 
-| Module     | Holds                                                                                                          |
-| ---------- | -------------------------------------------------------------------------------------------------------------- |
-| `main`     | The entry point: each command's handler, and its exit code                                                     |
-| `cli`      | The command line: every command and argument, and its help                                                     |
-| `ask`      | Answering variables: prompted in a terminal, defaulted otherwise                                               |
-| `skeleton` | What `new --profile` and `new --collection` write                                                              |
-| `report`   | What happened and where things stand: the apply log, `status`, its JSON, `diff`, `features`, `explain`, `list` |
-| `github`   | Under GitHub Actions: annotations on the pull request, and a job summary                                       |
-| `help`     | The next step to suggest for each error                                                                        |
-| `shell`    | Terminal output: status lines, notes and errors, quiet or not                                                  |
-| `words`    | Phrasing the report and the help share: counts, lists, near misses                                             |
+| Module     | Holds                                                                                              |
+| ---------- | -------------------------------------------------------------------------------------------------- |
+| `main`     | The entry point: each command's handler, and its exit code                                         |
+| `cli`      | The command line: every command and argument, and its help                                         |
+| `ask`      | Answering variables: prompted in a terminal, defaulted otherwise                                   |
+| `skeleton` | What `init --profile` and `init --collection` write                                                |
+| `report`   | What happened and where things stand: the apply log, `status`, its JSON, `diff`, `explain`, `list` |
+| `github`   | Under GitHub Actions: annotations on the pull request, and a job summary                           |
+| `help`     | The next step to suggest for each error                                                            |
+| `shell`    | Terminal output: status lines, notes and errors, quiet or not                                      |
+| `words`    | Phrasing the report and the help share: counts, lists, near misses                                 |
 
-Output follows cargo's conventions, with the crates cargo uses: the result on
-stdout, everything else on stderr, verbs aligned on the right in cargo's
-colours, and errors rendered by `annotate-snippets` as rustc renders its own.
-[Output and Exit Codes][output] in the manual is what a user can rely on.
+Output follows cargo's conventions, with the crates cargo uses: what a command
+answers on stdout, its log and everything else on stderr, verbs aligned on the
+right in cargo's colours, and errors rendered by `annotate-snippets` as rustc
+renders its own. [Output and Exit Codes][output] in the manual is what a user
+can rely on.
 
 What others parse is an interface: `status --json`, the exit codes, and the
-files people write, whose schemas `devset schema` prints. A change to any of
-them is breaking, as [CONTRIBUTING.md](CONTRIBUTING.md) says.
+files people write, whose schemas the manual publishes. A change to any of them
+is breaking, as [CONTRIBUTING.md](CONTRIBUTING.md) says.
 
 ## Tests
 

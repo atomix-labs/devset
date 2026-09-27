@@ -23,7 +23,7 @@ setting differently, devset does not choose between them: it refuses until the
 target decides, naming the setting.
 
 ```console
-$ devset init --path ../q
+$ devset add --path ../q
 error: p and q set merge.on-conflict differently
   |
   = help: decide it in .devset/config.toml by setting merge.on-conflict

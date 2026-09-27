@@ -51,13 +51,12 @@ The package is `devset-cli`; the binary is `devset`.
 
 ## Quick Start
 
-A target names its sources once, and applies profiles from them by name, with
-the features it wants:
+In a repository, even an empty one, name a source once and apply profiles from
+it by name, with the features you want:
 
 ```sh
-devset new hello atxp/rust --git https://github.com/atomix-labs/atxp --tag v0.6.2 --features docs
-cd hello
-devset add atxp/mdbook --features katex
+devset add atxp/rust --git https://github.com/atomix-labs/atxp --tag v0.6.2 --features docs
+devset add atxp/mdbook --features mermaid
 ```
 
 A profile is a directory in a source: `profile.toml`, which says how devset
@@ -82,8 +81,9 @@ when   = { features = ["deny"] }
 Then, in CI and later:
 
 ```sh
-devset status --exit-code     # in CI: fails when a file has drifted
-devset update                 # later: takes the sources' changes, merging your edits
+devset status --exit-code          # in CI: fails when a file has drifted
+devset update                      # later: names newer releases of each source
+devset update atxp --tag <tag>     # and takes one, merging your edits
 ```
 
 ## What It Does
