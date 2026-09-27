@@ -1,4 +1,8 @@
-$ devset init --path ../p/rust
+$ devset init
+     Created .devset/config.toml
+help: add a layer: `devset add <source>/<profile> --git <url>`, or `--path <dir>`
+[exit 0]
+$ devset add --path ../p/rust
      Created crates.md
      Created crates/hello/Cargo.toml
      Created notes.xyz [block: rust]

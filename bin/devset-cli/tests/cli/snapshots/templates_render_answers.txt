@@ -1,14 +1,17 @@
-$ devset init --path ../p
+$ devset add --path ../p
+    Starting a target: .devset/config.toml
 error: 1 variable unanswered: author
   |
   = help: answer with `--var author=…`
 [exit 2]
-$ devset init --path ../p --var auther=Ada
+$ devset add --path ../p --var auther=Ada
+    Starting a target: .devset/config.toml
 error: no profile declares a variable named auther
   |
   = help: did you mean `author`?
 [exit 2]
-$ devset init --path ../p --var author=Ada
+$ devset add --path ../p --var author=Ada
+    Starting a target: .devset/config.toml
 note: answered cpu = "native", the default
   |
   = help: pass `--var cpu=…` to choose another

@@ -20,7 +20,7 @@ fn sources_are_named_once() {
     );
     sb.release("v1");
     sb.profile("house/deploy", "deploy", &[("deploy.toml", "owned", "deploy\n")]);
-    let mut log = sb.devset("repo", &["init", "rust", "--git", "../profiles.git", "--tag", "v1"]);
+    let mut log = sb.devset("repo", &["add", "rust", "--git", "../profiles.git", "--tag", "v1"]);
     log += &sb.devset("repo", &["add", "book"]);
     log += &sb.devset("repo", &["add", "--path", "../house/deploy"]);
     log += &sb.devset("repo", &["add", "mermaid"]);
@@ -35,7 +35,7 @@ fn sources_are_named_once() {
 fn a_source_regroups_its_profiles_without_breaking_a_target() {
     let sb = Sandbox::new();
     sb.profile("p/lint", "lint", &[("lint.toml", "owned", "lint\n")]);
-    let mut log = sb.devset("repo", &["init", "p/lint", "--path", "../p"]);
+    let mut log = sb.devset("repo", &["add", "p/lint", "--path", "../p"]);
     fs::create_dir_all(sb.path("p/tooling")).unwrap();
     fs::rename(sb.path("p/lint"), sb.path("p/tooling/lint")).unwrap();
     log += &sb.devset("repo", &["status", "--exit-code"]);

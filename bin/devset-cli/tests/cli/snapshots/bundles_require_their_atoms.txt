@@ -1,4 +1,5 @@
-$ devset init profiles/both --path ../profiles
+$ devset add profiles/both --path ../profiles
+    Starting a target: .devset/config.toml
      Created a.toml
      Created b.toml
     Finished 2 changes

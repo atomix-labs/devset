@@ -1,4 +1,4 @@
-$ devset -q init --path ../p
+$ devset -q add --path ../p
 [exit 0]
 $ devset status --exit-code
 p/p 1.0.0  (changed since it was applied)

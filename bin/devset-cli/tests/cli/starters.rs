@@ -33,11 +33,12 @@ fn source(sb: &Sandbox) {
 fn a_starter_composes_with_parts_in_one_run() {
     let sb = Sandbox::new();
     source(&sb);
-    let mut log = sb.devset("repo", &["init", "p/rust", "--path", "../p"]);
+    let mut log = sb.devset("repo", &["add", "p/rust", "--path", "../p"]);
     write!(log, "--- Cargo.toml\n{}", sb.read("repo/Cargo.toml")).unwrap();
     log += &sb.devset("repo", &["status", "-v"]);
     sb.write("mine/Cargo.toml", "[package]\nname = \"mine\"\n");
-    log += &sb.devset("mine", &["init", "p/rust", "--path", "../p"]);
+    log += &sb.devset("mine", &["init"]);
+    log += &sb.devset("mine", &["add", "p/rust", "--path", "../p"]);
     let mine = sb.read("mine/Cargo.toml");
     assert!(
         mine.starts_with("[package]\nname = \"mine\"\n"),
@@ -61,10 +62,11 @@ fn a_part_starts_from_its_own_starter() {
         )],
     );
     sb.write("p/book/files/book.starter.toml", "[book]\ntitle = \"Book\"\n");
-    let mut log = sb.devset("repo", &["init", "--path", "../p/book"]);
+    let mut log = sb.devset("repo", &["add", "--path", "../p/book"]);
     write!(log, "--- docs/book.toml\n{}", sb.read("repo/docs/book.toml")).unwrap();
     sb.write("mine/docs/book.toml", "[book]\ntitle = \"Mine\"\n");
-    log += &sb.devset("mine", &["init", "--path", "../p/book"]);
+    log += &sb.devset("mine", &["init"]);
+    log += &sb.devset("mine", &["add", "--path", "../p/book"]);
     write!(log, "--- mine/docs/book.toml\n{}", sb.read("mine/docs/book.toml")).unwrap();
     sb.assert(&log, snapbox::file!["snapshots/a_part_starts_from_its_own_starter.txt"]);
 }
@@ -74,7 +76,7 @@ fn a_path_takes_its_variables() {
     let sb = Sandbox::new();
     sb.entries("p/book", "book", &[("{{ book_dir }}/book.toml", "", "[book]\n")]);
     sb.extend("p/book", "[vars.book_dir]\ndefault = \"docs\"\n");
-    let mut log = sb.devset("repo", &["init", "--path", "../p/book"]);
+    let mut log = sb.devset("repo", &["add", "--path", "../p/book"]);
     assert!(sb.path("repo/docs/book.toml").exists(), "the default");
     log += &sb.devset("repo", &["apply", "--var", "book_dir=site"]);
     assert!(sb.path("repo/site/book.toml").exists(), "a new answer moves the file");
@@ -94,7 +96,7 @@ fn from_picks_a_starter_and_keeps_every_part() {
         "lints",
         &[("Cargo.toml", "scope = \"keys\"", "[workspace.lints.rust]\nunsafe_code = \"deny\"\n")],
     );
-    let mut log = sb.devset("repo", &["init", "p/lints", "--path", "../p"]);
+    let mut log = sb.devset("repo", &["add", "p/lints", "--path", "../p"]);
     log += &sb.devset("repo", &["add", "p/ws1"]);
     log += &sb.devset("repo", &["add", "p/ws2"]);
     let config = sb.read("repo/.devset/config.toml");
@@ -122,7 +124,7 @@ fn a_starter_written_again_takes_its_parts() {
     );
     sb.profile("p/rust", "rust", &[]);
     sb.extend("p/rust", "[requires]\nws = {}\nlints = {}\n");
-    let mut log = sb.devset("repo", &["init", "p/rust", "--path", "../p"]);
+    let mut log = sb.devset("repo", &["add", "p/rust", "--path", "../p"]);
     fs::remove_file(sb.path("repo/Cargo.toml")).unwrap();
     log += &sb.devset("repo", &["apply"]);
     assert!(!sb.path("repo/Cargo.toml").exists(), "a deleted starter stays deleted");
@@ -145,7 +147,7 @@ fn two_starters_are_settled_by_the_target() {
         );
         sb.write(&format!("p/{name}/files/start.toml"), &format!("[book]\ntitle = \"{name}'s\"\n"));
     }
-    let mut log = sb.devset("repo", &["init", "p/zeta", "--path", "../p"]);
+    let mut log = sb.devset("repo", &["add", "p/zeta", "--path", "../p"]);
     log += &sb.devset("repo", &["add", "p/alpha"]);
     let config = sb.read("repo/.devset/config.toml");
     let config = format!(

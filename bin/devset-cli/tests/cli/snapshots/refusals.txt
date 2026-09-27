@@ -3,65 +3,72 @@ error: no devset target in [ROOT] or any parent
   |
   = help: start one here with `devset init`; `devset add` starts one itself at a repository's top level, or in an empty directory
 [exit 2]
-$ devset init --tag v1
+$ devset add --tag v1
 error: the following required arguments were not provided:
-  --git <GIT>
+  <LAYER|--git <GIT>|--path <PATH>>
 
-Usage: devset init --git <GIT> --tag <TAG> [LAYER]
+Usage: devset add --tag <TAG> <LAYER|--git <GIT>|--path <PATH>>
 
 For more information, try '--help'.
 [exit 2]
-$ devset init --path ../nope
+$ devset add --path ../nope
+    Starting a target: .devset/config.toml
 error: ../nope holds no profile: no profile.toml in it
   |
   = help: a source holds profiles, each a directory with a profile.toml; `devset new --profile <dir>` starts one
 [exit 2]
-$ devset init --path ../reserved
+$ devset add --path ../reserved
+    Starting a target: .devset/config.toml
 error: invalid path ".git/hooks/pre-commit": reserved component
  --> ../reserved/profile.toml:4:8
   |
 4 | [files.".git/hooks/pre-commit"]
   |        ^^^^^^^^^^^^^^^^^^^^^^^
 [exit 2]
-$ devset init --path ../missing
+$ devset add --path ../missing
+    Starting a target: .devset/config.toml
 error: profile missing lists gone.toml, but files/gone.toml does not exist
   |
   = help: add files/gone.toml to the profile, or remove what lists it
 [exit 2]
-$ devset init --path ../typo
+$ devset add --path ../typo
+    Starting a target: .devset/config.toml
 error: unknown field `polcy`, expected one of `policy`, `validate`, `template`, `scope`, `comment`, `executable`, `scaffold`, `starter`, `when`
  --> ../typo/profile.toml:5:1
   |
 5 | polcy = "once"
   | ^^^^^
 [exit 2]
-$ devset init --path ../newer
+$ devset add --path ../newer
+    Starting a target: .devset/config.toml
 error: profile newer requires devset >=99; this is [..]
   |
   = help: upgrade devset, or pin the source to an older version
 [exit 2]
-$ devset init --path ../fold
+$ devset add --path ../fold
+    Starting a target: .devset/config.toml
 error: README.md and readme.md are the same file on case-insensitive filesystems
   |
   = help: rename one of them in the profile
 [exit 2]
-$ devset init --path ../ok
+$ devset add --path ../ok
+    Starting a target: .devset/config.toml
      Created a.toml
     Finished 1 change
 [exit 0]
-$ devset init --path ../ok
+$ devset add --path ../ok
 error: the layer ok is already applied
   |
   = help: turn on its features with `devset add ok --features <feature>`
 [exit 2]
-$ devset init --path ../clash
+$ devset add --path ../clash
 error: a.toml is provided by ok and clash
   |
   = help: choose one in .devset/config.toml:
               [files."a.toml"]
               from = "ok"   # or "clash"
 [exit 2]
-$ devset init --path ../../ok
+$ devset init
 error: [ROOT]/repo/sub is inside the devset target at [ROOT]/repo
   |
   = help: run devset from [ROOT]/repo

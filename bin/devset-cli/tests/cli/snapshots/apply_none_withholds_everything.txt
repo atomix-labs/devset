@@ -1,4 +1,5 @@
-$ devset init --git ../profiles.git --branch main --path p
+$ devset add --git ../profiles.git --branch main --path p
+    Starting a target: .devset/config.toml
     Fetching ../profiles.git
      Created a.toml
      Created b.toml

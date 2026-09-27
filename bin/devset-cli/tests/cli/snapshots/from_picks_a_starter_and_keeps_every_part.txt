@@ -1,4 +1,5 @@
-$ devset init p/lints --path ../p
+$ devset add p/lints --path ../p
+    Starting a target: .devset/config.toml
      Created Cargo.toml [keys: lints]
     Finished 1 change
 [exit 0]

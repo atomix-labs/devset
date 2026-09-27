@@ -1,23 +1,27 @@
-$ devset init cycle/a --path ../cycle
+$ devset add cycle/a --path ../cycle
+    Starting a target: .devset/config.toml
 error: requirements form a cycle: a → b → a
   |
   = help: drop one requirement to break the cycle
 [exit 2]
-$ devset init clash/both --path ../clash
+$ devset add clash/both --path ../clash
+    Starting a target: .devset/config.toml
 error: same.toml is provided by x and y
   |
   = help: choose one in .devset/config.toml:
               [files."same.toml"]
               from = "x"   # or "y"
 [exit 2]
-$ devset init --path ../bad
+$ devset add --path ../bad
+    Starting a target: .devset/config.toml
 error: `tag`, `branch`, `rev` and `path` name another source, with `git`; a profile in this one is required by name alone
  --> ../bad/profile.toml:6:5
   |
 6 | x = { path = "../x" }
   |     ^^^^^^^^^^^^^^^^^
 [exit 2]
-$ devset init --path ../lost
+$ devset add --path ../lost
+    Starting a target: .devset/config.toml
 error: ../lost has no profile named nowhere
   |
   = help: it holds lost; `devset list` shows them, and `devset update <source>` takes a newer commit of the source

@@ -1,4 +1,5 @@
-$ devset init --path ../p/book
+$ devset add --path ../p/book
+    Starting a target: .devset/config.toml
 note: answered book_dir = "docs", the default
   |
   = help: pass `--var book_dir=…` to choose another

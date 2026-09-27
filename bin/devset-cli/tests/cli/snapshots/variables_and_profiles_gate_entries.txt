@@ -1,4 +1,5 @@
-$ devset init p/project --path ../p
+$ devset add p/project --path ../p
+    Starting a target: .devset/config.toml
 note: answered license = "MIT", the default
   |
   = help: pass `--var license=…` to choose another

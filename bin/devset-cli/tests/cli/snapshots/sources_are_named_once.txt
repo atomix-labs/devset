@@ -1,4 +1,5 @@
-$ devset init rust --git ../profiles.git --tag v1
+$ devset add rust --git ../profiles.git --tag v1
+    Starting a target: .devset/config.toml
     Fetching ../profiles.git
      Created rustfmt.toml
     Finished 1 change

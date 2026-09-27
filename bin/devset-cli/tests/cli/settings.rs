@@ -18,7 +18,7 @@ fn settings_precedence() {
     sb.write("q/profile.toml", &format!("{q}\n[merge]\non-conflict = \"apply-others\"\n"));
 
     // A suggested driver is announced, never run.
-    let mut log = sb.devset("repo", &["init", "--path", "../p"]);
+    let mut log = sb.devset("repo", &["add", "--path", "../p"]);
     // The layers disagree and the target has not decided.
     log += &sb.devset("repo", &["add", "--path", "../q"]);
     // The target decides, adopts the driver, and overrides a layer's policy.

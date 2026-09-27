@@ -14,7 +14,7 @@ fn status_json() {
         "demo",
         &[("a.toml", "owned", "a = 1\n"), ("b.toml", "merge", "b = 1\n")],
     );
-    sb.devset("repo", &["init", "--path", "../profile"]);
+    sb.devset("repo", &["add", "--path", "../profile"]);
     sb.write("repo/a.toml", "a = 2\n");
     sb.assert(
         &sb.devset("repo", &["status", "--json"]),
@@ -39,7 +39,7 @@ fn schemas() {
 fn quiet_and_github() {
     let sb = Sandbox::new();
     sb.profile("p", "p", &[("a.toml", "owned", "a\n"), ("b.toml", "owned", "b\n")]);
-    let mut log = sb.devset("repo", &["-q", "init", "--path", "../p"]);
+    let mut log = sb.devset("repo", &["-q", "add", "--path", "../p"]);
     sb.write("repo/a.toml", "edited\n");
     sb.profile(
         "p",
@@ -75,7 +75,7 @@ fn diff_shows_how_files_differ() {
     sb.write("p/files/logo.png", "PNG\0one");
     let manifest = sb.read("p/profile.toml");
     sb.write("p/profile.toml", &format!("{manifest}\n[files.\"logo.png\"]\n"));
-    let mut log = sb.devset("repo", &["init", "--path", "../p"]);
+    let mut log = sb.devset("repo", &["add", "--path", "../p"]);
     log += &sb.devset("repo", &["diff"]);
     sb.write("repo/a.toml", "x = 2\n");
     sb.write("repo/b.toml", "y = 1\nw = 0\n");

@@ -19,7 +19,7 @@ fn variables_and_profiles_gate_entries() {
     );
     sb.extend("p/project", "[vars.license]\ndefault = \"MIT\"\n");
     sb.profile("p/lint", "lint", &[("lint.toml", "owned", "lint\n")]);
-    let mut log = sb.devset("repo", &["init", "p/project", "--path", "../p"]);
+    let mut log = sb.devset("repo", &["add", "p/project", "--path", "../p"]);
     assert!(!sb.path("repo/LICENSE-APACHE").exists(), "the answer picks the licence");
     log += &sb.devset("repo", &["apply", "--var", "license=MIT OR Apache-2.0"]);
     assert!(sb.path("repo/LICENSE-APACHE").exists(), "both, for both");
@@ -49,7 +49,7 @@ fn existence_settles_in_one_run() {
         ],
     );
     sb.entries("p/base", "base", &[("a.txt", "", "a\n")]);
-    let mut log = sb.devset("repo", &["init", "p/book", "--path", "../p"]);
+    let mut log = sb.devset("repo", &["add", "p/book", "--path", "../p"]);
     assert!(!sb.path("repo/c.txt").exists(), "nothing to build on yet");
     log += &sb.devset("repo", &["add", "p/agents"]);
     log += &sb.devset("repo", &["add", "p/base"]);
@@ -75,7 +75,7 @@ fn a_gate_turning_off_releases_its_entries() {
         &[("book.toml", docs, "book\n"), ("guide.md", docs, "guide\n"), ("fmt.toml", "", "fmt\n")],
     );
     sb.extend("p/rust", "[features]\ndefault = [\"docs\"]\ndocs = []\n");
-    let mut log = sb.devset("repo", &["init", "p/rust", "--path", "../p"]);
+    let mut log = sb.devset("repo", &["add", "p/rust", "--path", "../p"]);
     sb.write("repo/guide.md", "guide, edited\n");
     let config = sb.read("repo/.devset/config.toml");
     sb.write("repo/.devset/config.toml", &format!("{config}default-features = false\n"));
@@ -94,7 +94,8 @@ fn a_gate_on_its_own_path_keeps_what_it_adopted() {
     let own = "policy = \"merge\"\nwhen = { exists = [\".editorconfig\"] }";
     sb.entries("p/editor", "editor", &[(".editorconfig", own, "root = true\n")]);
     sb.write("repo/.editorconfig", "root = true\n");
-    let mut log = sb.devset("repo", &["init", "--path", "../p/editor"]);
+    let mut log = sb.devset("repo", &["init"]);
+    log += &sb.devset("repo", &["add", "--path", "../p/editor"]);
     log += &sb.devset("repo", &["apply"]);
     log += &sb.devset("repo", &["apply"]);
     assert!(sb.path("repo/.editorconfig").exists(), "a file it adopted is never its to take");
@@ -116,7 +117,8 @@ fn gates_see_directories_and_a_profiles_own_markers() {
     );
     sb.extend("p/rust", "[features]\ndefault = [\"notes\"]\nnotes = []\n");
     sb.write("repo/notes.xyz", "mine\n");
-    let mut log = sb.devset("repo", &["init", "--path", "../p/rust"]);
+    let mut log = sb.devset("repo", &["init"]);
+    log += &sb.devset("repo", &["add", "--path", "../p/rust"]);
     assert!(sb.path("repo/crates.md").exists(), "a directory written in the run exists");
     let config = sb.read("repo/.devset/config.toml");
     sb.write("repo/.devset/config.toml", &format!("{config}default-features = false\n"));

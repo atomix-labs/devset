@@ -1,4 +1,5 @@
-$ devset init p/book --path ../p
+$ devset add p/book --path ../p
+    Starting a target: .devset/config.toml
     Finished up to date
 [exit 0]
 $ devset add p/agents

@@ -1,4 +1,5 @@
-$ devset init --path ../p
+$ devset add --path ../p
+    Starting a target: .devset/config.toml
      Created a.txt
     Finished 1 change
 note: profile p suggests a merge driver; devset never runs a program a profile names

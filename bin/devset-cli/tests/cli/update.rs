@@ -13,7 +13,7 @@ fn profile_changes_update_and_release() {
         "demo",
         &[("a.toml", "owned", "a = 1\n"), ("b.toml", "owned", "b = 1\n")],
     );
-    let mut log = sb.devset("repo", &["init", "--path", "../profile"]);
+    let mut log = sb.devset("repo", &["add", "--path", "../profile"]);
     assert_eq!(sb.blobs("repo"), 2, "one blob per base");
 
     sb.profile("profile", "demo", &[("a.toml", "owned", "a = 2\n")]);
@@ -33,7 +33,7 @@ fn git_sources_are_pinned_by_the_lock() {
     sb.release("v1");
 
     let mut log =
-        sb.devset("repo", &["init", "--git", "../profiles.git", "--tag", "v1", "--path", "rust"]);
+        sb.devset("repo", &["add", "--git", "../profiles.git", "--tag", "v1", "--path", "rust"]);
     log += &sb.devset("repo", &["status"]);
     write!(log, "--- lock.toml\n{}", sb.read("repo/.devset/lock.toml")).unwrap();
 
@@ -63,7 +63,7 @@ fn update_merges_local_edits() {
         "v1",
     );
     let mut log =
-        sb.devset("repo", &["init", "--git", "../profiles.git", "--branch", "main", "--path", "p"]);
+        sb.devset("repo", &["add", "--git", "../profiles.git", "--branch", "main", "--path", "p"]);
     sb.write("repo/deny.toml", "[licenses]\nallow = [\"MIT\"]\n\n[bans]\ndeny = [\"openssl\"]\n");
     sb.publish(
         "p",
@@ -88,7 +88,7 @@ fn invalid_merges_conflict() {
     let sb = Sandbox::new();
     sb.publish("p", "p", &[("c.toml", "merge", "name = \"app\"\nreplicas = 1\nport = 80\n")], "v1");
     let mut log =
-        sb.devset("repo", &["init", "--git", "../profiles.git", "--branch", "main", "--path", "p"]);
+        sb.devset("repo", &["add", "--git", "../profiles.git", "--branch", "main", "--path", "p"]);
     sb.write("repo/c.toml", "name = \"app\"\ntimeout = 30\nreplicas = 1\nport = 80\n");
     sb.publish(
         "p",
@@ -114,8 +114,8 @@ fn update_one_layer() {
     sb.git("work", &["add", "-A"]);
     sb.git("work", &["commit", "-qm", "b"]);
     sb.git("work", &["push", "-q", "../profiles.git", "main"]);
-    let mut log = sb.devset("repo", &["init", "--git", "../profiles.git", "--path", "a"]);
-    log += &sb.devset("repo", &["init", "--git", "../profiles.git", "--path", "b"]);
+    let mut log = sb.devset("repo", &["add", "--git", "../profiles.git", "--path", "a"]);
+    log += &sb.devset("repo", &["add", "--git", "../profiles.git", "--path", "b"]);
     sb.publish("a", "a", &[("a.txt", "owned", "a2\n")], "v2");
     sb.profile("work/b", "b", &[("b.txt", "owned", "b2\n")]);
     sb.git("work", &["commit", "-qam", "b2"]);
@@ -134,7 +134,7 @@ fn update_one_layer() {
 fn update_names_are_suggested() {
     let sb = Sandbox::new();
     sb.profile("p", "rust", &[("a.toml", "owned", "a\n")]);
-    let mut log = sb.devset("repo", &["init", "--path", "../p"]);
+    let mut log = sb.devset("repo", &["add", "--path", "../p"]);
     log += &sb.devset("repo", &["update", "rsut"]);
     sb.assert(&log, snapbox::file!["snapshots/update_names_are_suggested.txt"]);
 }

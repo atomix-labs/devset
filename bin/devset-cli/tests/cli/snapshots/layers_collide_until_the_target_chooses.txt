@@ -1,4 +1,5 @@
-$ devset init --path ../base
+$ devset add --path ../base
+    Starting a target: .devset/config.toml
      Created fmt.toml
     Finished 1 change
 [exit 0]

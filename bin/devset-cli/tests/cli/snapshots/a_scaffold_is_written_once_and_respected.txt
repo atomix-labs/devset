@@ -1,4 +1,5 @@
-$ devset init p/book --path ../p
+$ devset add p/book --path ../p
+    Starting a target: .devset/config.toml
      Created docs/book.toml
      Created docs/src/SUMMARY.md
      Created theme.css

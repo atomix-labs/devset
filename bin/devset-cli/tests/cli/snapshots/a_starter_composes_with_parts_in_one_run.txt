@@ -1,4 +1,5 @@
-$ devset init p/rust --path ../p
+$ devset add p/rust --path ../p
+    Starting a target: .devset/config.toml
 note: answered project = "hello", the default
   |
   = help: pass `--var project=…` to choose another
@@ -34,7 +35,11 @@ In sync:
 
 1 file matches the profile.
 [exit 0]
-$ devset init p/rust --path ../p
+$ devset init
+     Created .devset/config.toml
+help: add a layer: `devset add <source>/<profile> --git <url>`, or `--path <dir>`
+[exit 0]
+$ devset add p/rust --path ../p
 note: answered project = "hello", the default
   |
   = help: pass `--var project=…` to choose another

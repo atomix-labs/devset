@@ -1,4 +1,5 @@
-$ devset init p/lint --path ../p
+$ devset add p/lint --path ../p
+    Starting a target: .devset/config.toml
      Created lint.toml
     Finished 1 change
 [exit 0]

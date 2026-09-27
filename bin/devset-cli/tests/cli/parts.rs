@@ -13,7 +13,8 @@ fn keys_join_the_target_file() {
         "repo/Cargo.toml",
         "[workspace]\nmembers = [\"a\"]\n\n[workspace.lints.clippy]\n# ours\nmodule_name_repetitions = \"allow\"\nunwrap_used = \"warn\"\n",
     );
-    let mut log = sb.devset("repo", &["init", "--path", "../lints"]);
+    let mut log = sb.devset("repo", &["init"]);
+    log += &sb.devset("repo", &["add", "--path", "../lints"]);
     let cargo = sb.read("repo/Cargo.toml");
     assert!(cargo.contains("unwrap_used = \"warn\""), "adopted: a key the file holds stays");
     assert!(cargo.contains("pedantic"), "and one it lacks is written");
@@ -49,8 +50,9 @@ fn a_key_that_changes_hands_stays() {
     sb.entries("old", "old", &[("Cargo.toml", keys, lints)]);
     sb.entries("new", "new", &[("new.toml", "", "n = 1\n")]);
     sb.write("repo/Cargo.toml", "[workspace]\nmembers = [\"a\"]\n");
-    let mut log = sb.devset("repo", &["init", "--path", "../old"]);
-    log += &sb.devset("repo", &["init", "--path", "../new"]);
+    let mut log = sb.devset("repo", &["init"]);
+    log += &sb.devset("repo", &["add", "--path", "../old"]);
+    log += &sb.devset("repo", &["add", "--path", "../new"]);
     sb.entries("old", "old", &[]);
     sb.entries("new", "new", &[("new.toml", "", "n = 1\n"), ("Cargo.toml", keys, lints)]);
     log += &sb.devset("repo", &["apply"]);
@@ -80,7 +82,8 @@ fn a_dropped_profile_takes_back_what_is_still_its_own() {
     );
     sb.write("repo/justfile", "default:\n    @just --list\n");
     sb.write("repo/Cargo.toml", "[workspace]\nmembers = [\"a\"]\n");
-    let mut log = sb.devset("repo", &["init", "--path", "../gone"]);
+    let mut log = sb.devset("repo", &["init"]);
+    log += &sb.devset("repo", &["add", "--path", "../gone"]);
     write!(log, "--- .devset/state.toml\n{}", sb.read("repo/.devset/state.toml")).unwrap();
     sb.write("repo/edited.toml", "b = 2\n");
     sb.entries("gone", "gone", &[]);
@@ -131,7 +134,7 @@ fn keys_merge_leaf_by_leaf() {
     sb.entries("work/p", "p", &[("deny.toml", entry, v1)]);
     sb.release("v1");
     let mut log =
-        sb.devset("repo", &["init", "--git", "../profiles.git", "--branch", "main", "--path", "p"]);
+        sb.devset("repo", &["add", "--git", "../profiles.git", "--branch", "main", "--path", "p"]);
     let edited = sb
         .read("repo/deny.toml")
         .replace("wildcards = \"deny\"", "wildcards = \"allow\" # a local exception");
@@ -186,7 +189,8 @@ fn layers_share_a_file_in_parts() {
     );
     sb.profile("whole", "whole", &[("Cargo.toml", "owned", "[package]\nname = \"x\"\n")]);
     sb.write("repo/Cargo.toml", "[workspace]\nmembers = []\n");
-    let mut log = sb.devset("repo", &["init", "--path", "../lints"]);
+    let mut log = sb.devset("repo", &["init"]);
+    log += &sb.devset("repo", &["add", "--path", "../lints"]);
     log += &sb.devset("repo", &["add", "--path", "../rust"]);
     write!(log, "--- Cargo.toml\n{}", sb.read("repo/Cargo.toml")).unwrap();
     log += &sb.devset("repo", &["status", "-v"]);
@@ -236,7 +240,8 @@ fn json_and_yaml_keys_keep_comments() {
         "repo/.github/dependabot.yml",
         "# ours\nversion: 2\nregistries:\n  crates:\n    type: cargo-registry\n    url: https://example.com\n",
     );
-    let mut log = sb.devset("repo", &["init", "--path", "../editor"]);
+    let mut log = sb.devset("repo", &["init"]);
+    log += &sb.devset("repo", &["add", "--path", "../editor"]);
     for file in [".vscode/settings.json", ".github/dependabot.yml"] {
         write!(log, "--- {file}\n{}", sb.read(&format!("repo/{file}"))).unwrap();
     }
@@ -256,8 +261,9 @@ fn blocks_are_marked_and_stay_where_moved() {
     sb.entries("rust", "rust", &[(".gitignore", block, "/target\n")]);
     sb.entries("node", "node", &[(".gitignore", block, "node_modules/\n")]);
     sb.write("repo/.gitignore", "/deployments/local/*\n");
-    let mut log = sb.devset("repo", &["init", "--path", "../rust"]);
-    log += &sb.devset("repo", &["init", "--path", "../node"]);
+    let mut log = sb.devset("repo", &["init"]);
+    log += &sb.devset("repo", &["add", "--path", "../rust"]);
+    log += &sb.devset("repo", &["add", "--path", "../node"]);
     write!(log, "--- .gitignore\n{}", sb.read("repo/.gitignore")).unwrap();
     let moved = "# >>> devset: rust >>>\n/target\n# <<< devset: rust <<<\n/deployments/local/*\n.env\n\n# >>> devset: node >>>\nnode_modules/\n# <<< devset: node <<<\n";
     sb.write("repo/.gitignore", moved);
@@ -280,7 +286,8 @@ fn empty_markers_place_a_block() {
     sb.entries("rust", "rust", &[(".gitignore", "scope = \"block\"", "/target\n")]);
     let placed = "# ours\n# >>> devset: rust >>>\n# <<< devset: rust <<<\n.env\n";
     sb.write("repo/.gitignore", placed);
-    sb.devset("repo", &["init", "--path", "../rust"]);
+    sb.devset("repo", &["init"]);
+    sb.devset("repo", &["add", "--path", "../rust"]);
     assert_eq!(
         sb.read("repo/.gitignore"),
         "# ours\n# >>> devset: rust >>>\n/target\n# <<< devset: rust <<<\n.env\n",
@@ -297,7 +304,8 @@ fn parts_keep_their_file_valid() {
     sb.entries("keys", "keys", &[("notes.txt", "scope = \"keys\"", "a = 1\n")]);
     sb.entries("json", "json", &[("package.json", "scope = \"block\"", "\"x\": 1\n")]);
     sb.write("repo/Cargo.toml", "[workspace]\nmembers = []\n");
-    let mut log = sb.devset("repo", &["init", "--path", "../p"]);
+    let mut log = sb.devset("repo", &["init"]);
+    log += &sb.devset("repo", &["add", "--path", "../p"]);
     assert_eq!(sb.read("repo/Cargo.toml"), "[workspace]\nmembers = []\n", "left as it was");
     write!(
         log,
@@ -305,9 +313,10 @@ fn parts_keep_their_file_valid() {
         sb.read("repo/.devset/conflicts/Cargo.toml")
     )
     .unwrap();
-    log += &sb.devset("r2", &["init", "--path", "../keys"]);
-    log += &sb.devset("r3", &["init", "--path", "../json"]);
+    log += &sb.devset("r2", &["add", "--path", "../keys"]);
+    log += &sb.devset("r3", &["add", "--path", "../json"]);
     sb.write("r4/Cargo.toml", "[workspace\n");
-    log += &sb.devset("r4", &["init", "--path", "../p"]);
+    log += &sb.devset("r4", &["init"]);
+    log += &sb.devset("r4", &["add", "--path", "../p"]);
     sb.assert(&log, snapbox::file!["snapshots/parts_keep_their_file_valid.txt"]);
 }

@@ -1,9 +1,10 @@
-$ devset init --git ../profiles.git --path a
+$ devset add --git ../profiles.git --path a
+    Starting a target: .devset/config.toml
     Fetching ../profiles.git
      Created a.txt
     Finished 1 change
 [exit 0]
-$ devset init --git ../profiles.git --path b
+$ devset add --git ../profiles.git --path b
     Fetching ../profiles.git
      Created b.txt
     Finished 1 change

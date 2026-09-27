@@ -10,7 +10,7 @@ fn conflicts_wait_in_sidecars() {
     let sb = Sandbox::new();
     sb.publish("p", "p", &[("a.toml", "merge", "x = 1\n"), ("b.toml", "owned", "b = 1\n")], "v1");
     let mut log =
-        sb.devset("repo", &["init", "--git", "../profiles.git", "--branch", "main", "--path", "p"]);
+        sb.devset("repo", &["add", "--git", "../profiles.git", "--branch", "main", "--path", "p"]);
     sb.write("repo/a.toml", "x = 2\n");
     sb.publish("p", "p", &[("a.toml", "merge", "x = 3\n"), ("b.toml", "owned", "b = 2\n")], "v2");
     let github = [("GITHUB_ACTIONS", "true")];
@@ -35,7 +35,7 @@ fn apply_none_withholds_everything() {
     let sb = Sandbox::new();
     sb.publish("p", "p", &[("a.toml", "merge", "x = 1\n"), ("b.toml", "owned", "b = 1\n")], "v1");
     let mut log =
-        sb.devset("repo", &["init", "--git", "../profiles.git", "--branch", "main", "--path", "p"]);
+        sb.devset("repo", &["add", "--git", "../profiles.git", "--branch", "main", "--path", "p"]);
     sb.write(
         "repo/.devset/config.toml",
         &format!(
@@ -69,7 +69,7 @@ fn abort_takes_the_update_back() {
     let sb = Sandbox::new();
     sb.publish("p", "p", &[("a.toml", "merge", "x = 1\n"), ("b.toml", "owned", "b = 1\n")], "v1");
     let mut log =
-        sb.devset("repo", &["init", "--git", "../profiles.git", "--branch", "main", "--path", "p"]);
+        sb.devset("repo", &["add", "--git", "../profiles.git", "--branch", "main", "--path", "p"]);
     sb.write("repo/a.toml", "x = 2\n");
     let records = || (sb.read("repo/.devset/lock.toml"), sb.read("repo/.devset/state.toml"));
     let (before, bases) = (records(), sb.blobs("repo"));
@@ -106,7 +106,7 @@ fn abort_discards_a_withheld_update() {
     let sb = Sandbox::new();
     sb.publish("p", "p", &[("a.toml", "merge", "x = 1\n"), ("b.toml", "owned", "b = 1\n")], "v1");
     let mut log =
-        sb.devset("repo", &["init", "--git", "../profiles.git", "--branch", "main", "--path", "p"]);
+        sb.devset("repo", &["add", "--git", "../profiles.git", "--branch", "main", "--path", "p"]);
     let config = sb.read("repo/.devset/config.toml");
     sb.write(
         "repo/.devset/config.toml",
@@ -127,7 +127,7 @@ fn abort_discards_a_withheld_update() {
 fn unfinished_updates_fail_the_gate() {
     let sb = Sandbox::new();
     sb.publish("p", "p", &[("a.toml", "merge", "x = 1\n"), ("b.toml", "owned", "b = 1\n")], "v1");
-    sb.devset("repo", &["init", "--git", "../profiles.git", "--branch", "main", "--path", "p"]);
+    sb.devset("repo", &["add", "--git", "../profiles.git", "--branch", "main", "--path", "p"]);
     let config = sb.read("repo/.devset/config.toml");
     sb.write(
         "repo/.devset/config.toml",
@@ -147,7 +147,7 @@ fn conflicts_without_a_merge() {
     sb.write("p/files/b.dat", "B\0one");
     let manifest = sb.read("p/profile.toml");
     sb.write("p/profile.toml", &format!("{manifest}\n[files.\"b.dat\"]\npolicy = \"merge\"\n"));
-    let mut log = sb.devset("repo", &["init", "--path", "../p"]);
+    let mut log = sb.devset("repo", &["add", "--path", "../p"]);
     // A base store that was never committed, then cloned: the bases are gone.
     fs::remove_dir_all(sb.path("repo/.devset/base")).unwrap();
     sb.write("repo/m.toml", "a = 1\nb = 2\n");
@@ -170,7 +170,7 @@ fn a_layer_added_while_conflicts_are_withheld_stays() {
     sb.profile("work/q", "q", &[("q.toml", "owned", "q = 1\n")]);
     sb.release("v2");
     let mut log =
-        sb.devset("repo", &["init", "--git", "../profiles.git", "--tag", "v1", "--path", "p"]);
+        sb.devset("repo", &["add", "--git", "../profiles.git", "--tag", "v1", "--path", "p"]);
     let config = sb.read("repo/.devset/config.toml");
     sb.write(
         "repo/.devset/config.toml",

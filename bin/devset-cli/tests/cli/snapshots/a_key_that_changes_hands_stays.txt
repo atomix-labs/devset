@@ -1,8 +1,12 @@
-$ devset init --path ../old
+$ devset init
+     Created .devset/config.toml
+help: add a layer: `devset add <source>/<profile> --git <url>`, or `--path <dir>`
+[exit 0]
+$ devset add --path ../old
      Created Cargo.toml [keys: old]
     Finished 1 change
 [exit 0]
-$ devset init --path ../new
+$ devset add --path ../new
      Created new.toml
     Finished 1 change
 [exit 0]

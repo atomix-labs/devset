@@ -1,4 +1,8 @@
-$ devset init --path ../editor
+$ devset init
+     Created .devset/config.toml
+help: add a layer: `devset add <source>/<profile> --git <url>`, or `--path <dir>`
+[exit 0]
+$ devset add --path ../editor
      Adopted .github/dependabot.yml [keys: editor]
      Adopted .vscode/settings.json [keys: editor]
     Finished 2 changes

@@ -17,7 +17,8 @@ fn adoption_and_the_drift_gate() {
         ],
     );
     sb.write("repo/deny.toml", "[bans]\ndeny = [\"openssl\"]\n");
-    let mut log = sb.devset("repo", &["init", "--path", "../profile"]);
+    let mut log = sb.devset("repo", &["init"]);
+    log += &sb.devset("repo", &["add", "--path", "../profile"]);
     assert_eq!(
         sb.read("repo/deny.toml"),
         "[bans]\ndeny = [\"openssl\"]\n",
@@ -44,7 +45,7 @@ fn adoption_and_the_drift_gate() {
 fn cosmetic_edits_are_not_drift() {
     let sb = Sandbox::new();
     sb.profile("profile", "demo", &[("a.toml", "owned", "a = 1\n")]);
-    let mut log = sb.devset("repo", &["init", "--path", "../profile"]);
+    let mut log = sb.devset("repo", &["add", "--path", "../profile"]);
     sb.write("repo/a.toml", "\u{FEFF}a = 1  \r\n\n\n");
     log += &sb.devset("repo", &["status", "--exit-code"]);
     log += &sb.devset("repo", &["apply", "--force"]);
@@ -60,7 +61,7 @@ fn cosmetic_edits_are_not_drift() {
 fn once_is_written_once() {
     let sb = Sandbox::new();
     sb.profile("profile", "demo", &[("justfile", "once", "v1\n")]);
-    let mut log = sb.devset("repo", &["init", "--path", "../profile"]);
+    let mut log = sb.devset("repo", &["add", "--path", "../profile"]);
     sb.profile("profile", "demo", &[("justfile", "once", "v2\n")]);
     log += &sb.devset("repo", &["apply", "--force"]);
     assert_eq!(sb.read("repo/justfile"), "v1\n", "never rewritten");
@@ -74,7 +75,7 @@ fn once_is_written_once() {
 fn dry_run_writes_nothing() {
     let sb = Sandbox::new();
     sb.profile("profile", "demo", &[("a.toml", "owned", "a = 1\n")]);
-    let log = sb.devset("repo", &["init", "--path", "../profile", "--dry-run"]);
+    let log = sb.devset("repo", &["add", "--path", "../profile", "--dry-run"]);
     assert!(!sb.path("repo/.devset").exists(), "no state");
     assert!(!sb.path("repo/a.toml").exists(), "no files");
     sb.assert(&log, snapbox::file!["snapshots/dry_run_writes_nothing.txt"]);
@@ -88,7 +89,7 @@ fn executable_files_are_written_executable() {
         [("setup.sh", "executable = true", script), ("notes.txt", "", "notes\n")]
     };
     sb.entries("tools", "tools", &files("#!/bin/sh\necho ready\n"));
-    let mut log = sb.devset("repo", &["init", "--path", "../tools"]);
+    let mut log = sb.devset("repo", &["add", "--path", "../tools"]);
     let mode = |rel: &str| fs::metadata(sb.path(rel)).unwrap().permissions().mode() & 0o777;
     assert_eq!(mode("repo/setup.sh"), 0o755, "an executable file is written 755");
     assert_eq!(mode("repo/notes.txt") & 0o111, 0, "and no other file is");

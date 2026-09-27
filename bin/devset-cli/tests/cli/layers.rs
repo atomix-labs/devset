@@ -21,7 +21,7 @@ fn layers_collide_until_the_target_chooses() {
     let sb = Sandbox::new();
     sb.profile("base", "base", &[("fmt.toml", "owned", "base\n")]);
     sb.profile("rust", "rust", &[("fmt.toml", "owned", "rust\n"), ("rust.toml", "owned", "r\n")]);
-    let mut log = sb.devset("repo", &["init", "--path", "../base"]);
+    let mut log = sb.devset("repo", &["add", "--path", "../base"]);
     log += &sb.devset("repo", &["add", "--path", "../rust"]);
     let layers = config(&[("base", "../base"), ("rust", "../rust")], &["base/base", "rust/rust"]);
     sb.write(
@@ -44,7 +44,7 @@ fn remove_takes_a_layer_and_its_overrides() {
     let sb = Sandbox::new();
     sb.profile("base", "base", &[("a.toml", "owned", "a\n"), ("shared.toml", "owned", "1\n")]);
     sb.profile("team", "team", &[("t.toml", "owned", "t\n"), ("shared.toml", "owned", "2\n")]);
-    let mut log = sb.devset("repo", &["init", "--path", "../base"]);
+    let mut log = sb.devset("repo", &["add", "--path", "../base"]);
     let layers = config(&[("base", "../base"), ("team", "../team")], &["base/base", "team/team"]);
     sb.write(
         "repo/.devset/config.toml",
@@ -69,7 +69,7 @@ fn layers_stay_pinned_when_another_is_removed() {
     sb.publish("a", "a", &[("a.toml", "owned", "a1\n")], "a1");
     sb.publish("b", "b", &[("b.toml", "owned", "b1\n")], "b1");
     let git = ["--git", "../profiles.git", "--branch", "main"];
-    sb.devset("repo", &[&["init"][..], &git, &["--path", "a"]].concat());
+    sb.devset("repo", &[&["add"][..], &git, &["--path", "a"]].concat());
     sb.devset("repo", &[&["add"][..], &git, &["--path", "b"]].concat());
     sb.publish("b", "b", &[("b.toml", "owned", "b2\n")], "b2");
     let mut log = sb.devset("repo", &["remove", "a"]);
@@ -86,7 +86,7 @@ fn bundles_require_their_atoms() {
     sb.profile("profiles/b", "b", &[("b.toml", "owned", "b = 1\n")]);
     sb.profile("profiles/both", "both", &[]);
     sb.extend("profiles/both", "[requires]\na = {}\nb = {}\n");
-    let mut log = sb.devset("repo", &["init", "profiles/both", "--path", "../profiles"]);
+    let mut log = sb.devset("repo", &["add", "profiles/both", "--path", "../profiles"]);
     assert_eq!(
         (sb.read("repo/a.toml"), sb.read("repo/b.toml")),
         ("a = 1\n".into(), "b = 1\n".into()),
@@ -112,7 +112,7 @@ fn a_source_moves_as_one() {
     sb.git("work", &["commit", "-qm", "v1"]);
     sb.git(".", &["clone", "-q", "--bare", "work", "profiles.git"]);
     let mut log =
-        sb.devset("repo", &["init", "acme/rust", "--git", "../profiles.git", "--branch", "main"]);
+        sb.devset("repo", &["add", "acme/rust", "--git", "../profiles.git", "--branch", "main"]);
     sb.write("work/profiles/a/files/a.toml", "a = 2\n");
     sb.git("work", &["commit", "-qam", "v2"]);
     sb.git("work", &["push", "-q", "../profiles.git", "main"]);
@@ -135,7 +135,7 @@ fn an_organisation_builds_on_a_collection() {
     };
     sb.profile("org", "org", &[("org.toml", "owned", "org = true\n")]);
     sb.extend("org", &requires("v1"));
-    let mut log = sb.devset("repo", &["init", "--path", "../org"]);
+    let mut log = sb.devset("repo", &["add", "--path", "../org"]);
     assert_eq!(
         sb.read("repo/rustfmt.toml"),
         "max_width = 100\n",
@@ -170,10 +170,10 @@ fn requirements_are_refused_when_they_cannot_hold() {
     sb.extend("bad", "[requires]\nx = { path = \"../x\" }\n");
     sb.profile("lost", "lost", &[]);
     sb.extend("lost", "[requires]\nnowhere = {}\n");
-    let mut log = sb.devset("r1", &["init", "cycle/a", "--path", "../cycle"]);
-    log += &sb.devset("r2", &["init", "clash/both", "--path", "../clash"]);
-    log += &sb.devset("r3", &["init", "--path", "../bad"]);
-    log += &sb.devset("r4", &["init", "--path", "../lost"]);
+    let mut log = sb.devset("r1", &["add", "cycle/a", "--path", "../cycle"]);
+    log += &sb.devset("r2", &["add", "clash/both", "--path", "../clash"]);
+    log += &sb.devset("r3", &["add", "--path", "../bad"]);
+    log += &sb.devset("r4", &["add", "--path", "../lost"]);
     sb.assert(&log, snapbox::file!["snapshots/requirements_are_refused_when_they_cannot_hold.txt"]);
 }
 
@@ -181,7 +181,7 @@ fn requirements_are_refused_when_they_cannot_hold() {
 fn a_layer_listed_twice_is_refused() {
     let sb = Sandbox::new();
     sb.profile("base", "base", &[("a.toml", "owned", "a\n")]);
-    sb.devset("repo", &["init", "--path", "../base"]);
+    sb.devset("repo", &["add", "--path", "../base"]);
     sb.write(
         "repo/.devset/config.toml",
         &config(&[("base", "../base")], &["base/base", "base/base"]),

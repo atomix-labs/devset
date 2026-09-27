@@ -1,4 +1,4 @@
-$ devset init --path ../q
+$ devset add --path ../q
      Created q.txt
     Finished 1 change
 [exit 0]

@@ -1,4 +1,5 @@
-$ devset init --path ../profile --dry-run
+$ devset add --path ../profile --dry-run
+       Would start a target: .devset/config.toml
        Would create a.toml
     Finished dry run: 1 change, nothing written
 [exit 0]

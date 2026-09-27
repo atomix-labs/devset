@@ -1,4 +1,5 @@
-$ devset init acme/rust --git ../profiles.git --branch main
+$ devset add acme/rust --git ../profiles.git --branch main
+    Starting a target: .devset/config.toml
     Fetching ../profiles.git
      Created a.toml
      Created r.toml

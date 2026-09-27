@@ -25,15 +25,15 @@ fn refusals() {
     sb.write("newer/profile.toml", "[profile]\nname = \"newer\"\ndevset = \">=99\"\n");
 
     let mut log = sb.devset(".", &["status"]);
-    log += &sb.devset("repo", &["init", "--tag", "v1"]);
-    log += &sb.devset("repo", &["init", "--path", "../nope"]);
+    log += &sb.devset("repo", &["add", "--tag", "v1"]);
+    log += &sb.devset("repo", &["add", "--path", "../nope"]);
     for bad in ["reserved", "missing", "typo", "newer", "fold"] {
-        log += &sb.devset(&format!("t-{bad}"), &["init", "--path", &format!("../{bad}")]);
+        log += &sb.devset(&format!("t-{bad}"), &["add", "--path", &format!("../{bad}")]);
     }
-    log += &sb.devset("repo", &["init", "--path", "../ok"]);
-    log += &sb.devset("repo", &["init", "--path", "../ok"]);
-    log += &sb.devset("repo", &["init", "--path", "../clash"]);
-    log += &sb.devset("repo/sub", &["init", "--path", "../../ok"]);
+    log += &sb.devset("repo", &["add", "--path", "../ok"]);
+    log += &sb.devset("repo", &["add", "--path", "../ok"]);
+    log += &sb.devset("repo", &["add", "--path", "../clash"]);
+    log += &sb.devset("repo/sub", &["init"]);
     fs::remove_file(sb.path("repo/a.toml")).unwrap();
     symlink("elsewhere", sb.path("repo/a.toml")).unwrap();
     log += &sb.devset("repo", &["status"]);
@@ -53,14 +53,14 @@ fn mistakes_are_named_with_their_fix() {
     sb.profile("t", "t", &[("t.txt", "owned", "hi {{ nmae }}\n")]);
     let manifest = sb.read("t/profile.toml").replace("policy = \"owned\"\n", "template = true\n");
     sb.write("t/profile.toml", &format!("{manifest}\n[vars.name]\ndefault = \"x\"\n"));
-    let mut log = sb.devset("r1", &["init", "--path", "../profiles"]);
-    log += &sb.devset("r2", &["init", "--path", "../profiles/rust/files"]);
-    log += &sb.devset("r3", &["init", "rsut", "--git", "../profiles.git"]);
-    log += &sb.devset("r4", &["init", "--git", "../profiles.git", "--branch", "nope"]);
-    log += &sb.devset("r5", &["init", "--path", "../t"]);
-    log += &sb.devset("r6", &["init", "--path", ""]);
-    log += &sb.devset("r7", &["init", "--path", "../twins"]);
-    log += &sb.devset("r8", &["init", "--path", "../book", "--features", "mermiad"]);
+    let mut log = sb.devset("r1", &["add", "--path", "../profiles"]);
+    log += &sb.devset("r2", &["add", "--path", "../profiles/rust/files"]);
+    log += &sb.devset("r3", &["add", "rsut", "--git", "../profiles.git"]);
+    log += &sb.devset("r4", &["add", "--git", "../profiles.git", "--branch", "nope"]);
+    log += &sb.devset("r5", &["add", "--path", "../t"]);
+    log += &sb.devset("r6", &["add", "--path", ""]);
+    log += &sb.devset("r7", &["add", "--path", "../twins"]);
+    log += &sb.devset("r8", &["add", "--path", "../book", "--features", "mermiad"]);
     sb.devset("r9", &["init"]);
     log += &sb.devset("r9", &["add", "book"]);
     sb.write("r10/.devset/config.toml", "[[layers]]\nprofile = \"nope/rust\"\n");

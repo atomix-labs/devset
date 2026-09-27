@@ -1,4 +1,5 @@
-$ devset init p/zeta --path ../p
+$ devset add p/zeta --path ../p
+    Starting a target: .devset/config.toml
      Created book.toml [keys: zeta]
     Finished 1 change
 [exit 0]

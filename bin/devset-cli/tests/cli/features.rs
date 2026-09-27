@@ -42,7 +42,7 @@ fn source(sb: &Sandbox) {
 fn features_unify_across_requirers() {
     let sb = Sandbox::new();
     source(&sb);
-    let mut log = sb.devset("repo", &["init", "p/rust", "--path", "../p", "--features", "docs"]);
+    let mut log = sb.devset("repo", &["add", "p/rust", "--path", "../p", "--features", "docs"]);
     for (file, there) in [
         ("katex.css", true),
         ("api.js", true),
@@ -63,7 +63,7 @@ fn features_unify_across_requirers() {
 fn a_feature_turned_off_releases_what_it_added() {
     let sb = Sandbox::new();
     source(&sb);
-    let mut log = sb.devset("repo", &["init", "p/rust", "--path", "../p", "--features", "docs"]);
+    let mut log = sb.devset("repo", &["add", "p/rust", "--path", "../p", "--features", "docs"]);
     sb.write("repo/pages.yml", "pages, edited\n");
     let config = sb.read("repo/.devset/config.toml").replace("features = [\"docs\"]\n", "");
     sb.write("repo/.devset/config.toml", &config);
@@ -81,7 +81,7 @@ fn a_feature_turned_off_releases_what_it_added() {
 fn add_and_remove_change_a_layers_features() {
     let sb = Sandbox::new();
     source(&sb);
-    let mut log = sb.devset("repo", &["init", "p/rust", "--path", "../p"]);
+    let mut log = sb.devset("repo", &["add", "p/rust", "--path", "../p"]);
     log += &sb.devset("repo", &["add", "p/rust", "--features", "docs"]);
     assert!(sb.path("repo/pages.yml").exists(), "a feature added to a layer applies");
     log += &sb.devset("repo", &["add", "p/rust", "--features", "docs"]);
@@ -91,7 +91,7 @@ fn add_and_remove_change_a_layers_features() {
     assert!(!sb.path("repo/pages.yml").exists(), "and a feature removed from it goes");
     write!(log, "--- .devset/config.toml\n{}", sb.read("repo/.devset/config.toml")).unwrap();
 
-    log += &sb.devset("book", &["init", "p/book", "--path", "../p"]);
+    log += &sb.devset("book", &["add", "p/book", "--path", "../p"]);
     log += &sb.devset("book", &["add", "p/book", "--no-default-features"]);
     assert!(!sb.path("book/katex.css").exists(), "its default features go");
     log += &sb.devset("book", &["remove", "book", "--features", "katex"]);

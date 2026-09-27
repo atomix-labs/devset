@@ -1,26 +1,31 @@
-$ devset init --path ../profiles
+$ devset add --path ../profiles
+    Starting a target: .devset/config.toml
 error: ../profiles holds 2 profiles; name the one to add
   |
   = help: its profiles are base and rust
 [exit 2]
-$ devset init --path ../profiles/rust/files
+$ devset add --path ../profiles/rust/files
+    Starting a target: .devset/config.toml
 error: ../profiles/rust/files holds no profile: no profile.toml in it
   |
   = help: a source holds profiles, each a directory with a profile.toml; `devset new --profile <dir>` starts one
 [exit 2]
-$ devset init rsut --git ../profiles.git
+$ devset add rsut --git ../profiles.git
+    Starting a target: .devset/config.toml
     Fetching ../profiles.git
 error: ../profiles.git has no profile named rsut
   |
   = help: did you mean `rust`?
 [exit 2]
-$ devset init --git ../profiles.git --branch nope
+$ devset add --git ../profiles.git --branch nope
+    Starting a target: .devset/config.toml
     Fetching ../profiles.git
 error: ../profiles.git has no branch nope
   |
   = help: list its branches with `git ls-remote --heads ../profiles.git`
 [exit 2]
-$ devset init --path ../t
+$ devset add --path ../t
+    Starting a target: .devset/config.toml
 note: answered name = "x", the default
   |
   = help: pass `--var name=…` to choose another
@@ -28,15 +33,18 @@ error: template t.txt uses `nmae`, which no profile declares
   |
   = help: did you mean `name`?
 [exit 2]
-$ devset init --path 
+$ devset add --path 
+    Starting a target: .devset/config.toml
 error: invalid source: `path` is empty
 [exit 2]
-$ devset init --path ../twins
+$ devset add --path ../twins
+    Starting a target: .devset/config.toml
 error: two profiles in ../twins are named rust: one and two
   |
   = help: rename one of them: a name tells profiles apart in a source
 [exit 2]
-$ devset init --path ../book --features mermiad
+$ devset add --path ../book --features mermiad
+    Starting a target: .devset/config.toml
 error: profile book has no feature mermiad
   |
   = help: did you mean `mermaid`?

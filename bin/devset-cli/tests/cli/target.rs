@@ -10,7 +10,7 @@ fn worktrees_and_subdirectories_find_their_target() {
     let sb = Sandbox::new();
     sb.profile("profile", "demo", &[("a.toml", "owned", "a = 1\n")]);
     sb.git("repo", &["init", "-q", "-b", "main"]);
-    let mut log = sb.devset("repo", &["init", "--path", "../profile"]);
+    let mut log = sb.devset("repo", &["add", "--path", "../profile"]);
     sb.git("repo", &["add", "-A"]);
     sb.git("repo", &["commit", "-qm", "adopt devset"]);
     sb.git("repo", &["worktree", "add", "-q", "../wt"]);
@@ -23,10 +23,10 @@ fn state_lives_in_dot_devset() {
     let sb = Sandbox::new();
     sb.profile("base", "base", &[("a.toml", "owned", "a = 1\n")]);
     sb.profile("extra", "extra", &[("b.toml", "owned", "b = 1\n")]);
-    let mut log = sb.devset("repo", &["init", "--path", "../base"]);
+    let mut log = sb.devset("repo", &["add", "--path", "../base"]);
     let config = sb.read("repo/.devset/config.toml");
     sb.write("repo/.devset/config.toml", &format!("# layers, in order\n{config}"));
-    log += &sb.devset("repo", &["init", "--path", "../extra"]);
+    log += &sb.devset("repo", &["add", "--path", "../extra"]);
     for file in ["config.toml", "state.toml", ".gitignore", ".gitattributes"] {
         write!(log, "--- .devset/{file}\n{}", sb.read(&format!("repo/.devset/{file}"))).unwrap();
     }

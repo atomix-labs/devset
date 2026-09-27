@@ -1,4 +1,5 @@
-$ devset init --git ../profiles.git --tag v1 --path p
+$ devset add --git ../profiles.git --tag v1 --path p
+    Starting a target: .devset/config.toml
     Fetching ../profiles.git
      Created a.toml
     Finished 1 change

@@ -1,4 +1,5 @@
-$ devset init p/rust --path ../p --features docs
+$ devset add p/rust --path ../p --features docs
+    Starting a target: .devset/config.toml
      Created api.js
      Created book.toml
      Created ci.yml

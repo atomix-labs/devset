@@ -1,4 +1,5 @@
-$ devset init p/rust --path ../p
+$ devset add p/rust --path ../p
+    Starting a target: .devset/config.toml
      Created api.js
      Created book.toml
      Created katex.css
@@ -51,7 +52,8 @@ p = { path = "../p" }
 
 [[layers]]
 profile = "p/rust"
-$ devset init p/book --path ../p
+$ devset add p/book --path ../p
+    Starting a target: .devset/config.toml
      Created book.toml
      Created katex.css
     Finished 2 changes

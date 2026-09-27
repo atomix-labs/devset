@@ -24,7 +24,7 @@ fn book(sb: &Sandbox) {
 fn a_scaffold_is_written_once_and_respected() {
     let sb = Sandbox::new();
     book(&sb);
-    let mut log = sb.devset("repo", &["init", "p/book", "--path", "../p"]);
+    let mut log = sb.devset("repo", &["add", "p/book", "--path", "../p"]);
     write!(log, "--- .devset/state.toml\n{}", sb.read("repo/.devset/state.toml")).unwrap();
     fs::remove_file(sb.path("repo/docs/src/SUMMARY.md")).unwrap();
     sb.write("repo/docs/book.toml", "[book]\ntitle = \"Mine\"\n");
@@ -43,7 +43,8 @@ fn a_scaffold_finds_the_targets_own() {
     let sb = Sandbox::new();
     book(&sb);
     sb.write("repo/docs/book.toml", "[book]\ntitle = \"Theirs\"\n");
-    let mut log = sb.devset("repo", &["init", "p/book", "--path", "../p"]);
+    let mut log = sb.devset("repo", &["init"]);
+    log += &sb.devset("repo", &["add", "p/book", "--path", "../p"]);
     assert!(!sb.path("repo/docs/src/SUMMARY.md").exists(), "the target has its own book");
     fs::remove_file(sb.path("repo/docs/book.toml")).unwrap();
     log += &sb.devset("repo", &["apply"]);
@@ -62,7 +63,7 @@ fn a_changed_answer_moves_no_scaffold() {
         &[("{{ book_dir }}/book.toml", "scaffold = \"book\"", "[book]\n")],
     );
     sb.extend("p/book", "[vars.book_dir]\ndefault = \"docs\"\n\n[scaffolds.book]\nunless = \"{{ book_dir }}/book.toml\"\n");
-    let mut log = sb.devset("repo", &["init", "--path", "../p/book"]);
+    let mut log = sb.devset("repo", &["add", "--path", "../p/book"]);
     log += &sb.devset("repo", &["apply", "--var", "book_dir=site"]);
     assert!(sb.path("repo/docs/book.toml").exists(), "a scaffold written stays where it is");
     assert!(!sb.path("repo/site/book.toml").exists(), "and is not written again");

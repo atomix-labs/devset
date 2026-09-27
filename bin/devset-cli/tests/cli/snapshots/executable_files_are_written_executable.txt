@@ -1,4 +1,5 @@
-$ devset init --path ../tools
+$ devset add --path ../tools
+    Starting a target: .devset/config.toml
      Created notes.txt
      Created setup.sh
     Finished 2 changes

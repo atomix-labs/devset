@@ -1,4 +1,5 @@
-$ devset init --path ../p
+$ devset add --path ../p
+    Starting a target: .devset/config.toml
      Created a.toml
     Finished 1 change
 [exit 0]

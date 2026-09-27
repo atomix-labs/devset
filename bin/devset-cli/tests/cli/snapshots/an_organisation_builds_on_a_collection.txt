@@ -1,4 +1,5 @@
-$ devset init --path ../org
+$ devset add --path ../org
+    Starting a target: .devset/config.toml
     Fetching [ROOT]/profiles.git
      Created org.toml
      Created rustfmt.toml
