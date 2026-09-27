@@ -1,7 +1,7 @@
 $ devset status
 error: no devset target in [ROOT] or any parent
   |
-  = help: start one: `devset init`, or `devset new <dir>`, with a first layer if you like
+  = help: start one here with `devset init`; `devset add` starts one itself at a repository's top level, or in an empty directory
 [exit 2]
 $ devset init --tag v1
 error: the following required arguments were not provided:

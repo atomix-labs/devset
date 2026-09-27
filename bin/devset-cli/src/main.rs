@@ -86,7 +86,7 @@ fn run(shell: &Shell, command: Command) -> Result<ExitCode, Error> {
             start(shell, (&cwd, Utf8Path::new("")), &cache()?, add, answers, dry_run)
         },
         Command::Add { add, default_features, answers, dry_run } => {
-            let mut target = Target::find(&cwd)?;
+            let mut target = found_or_started(shell, &cwd, dry_run)?;
             let cache = cache()?;
             let defaults = match (add.no_default_features, default_features) {
                 (true, _) => Some(false),
@@ -201,6 +201,26 @@ fn start(
     }
     shell.help("add a layer: `devset add <source>/<profile> --git <url>`, or `--path <dir>`")?;
     Ok(ExitCode::SUCCESS)
+}
+
+/// The target containing `cwd`; or, where there is none and `cwd` may start one, a new target
+/// there, which the first commit writes.
+fn found_or_started(shell: &Shell, cwd: &Utf8Path, dry_run: bool) -> Result<Target, Error> {
+    let found = Target::find(cwd);
+    if let Err(Error::Target(TargetError::NotFound { .. })) = &found
+        && startable(cwd)
+    {
+        let (verb, what) = if dry_run { ("Would", "start ") } else { ("Starting", "") };
+        shell.status(verb, GOOD, format_args!("{what}a target: .devset/config.toml"))?;
+        return Target::open_or_new(cwd);
+    }
+    found
+}
+
+/// Whether `dir` may start a target unasked: a git repository's top level, or an empty directory.
+fn startable(dir: &Utf8Path) -> bool {
+    dir.join(".git").exists()
+        || fs_err::read_dir(dir).is_ok_and(|mut entries| entries.next().is_none())
 }
 
 /// The layer `add` names, its source named in `target` when `add` locates a new one, written

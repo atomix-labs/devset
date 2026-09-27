@@ -1,0 +1,34 @@
+$ devset add p/base --path ../p
+    Starting a target: .devset/config.toml
+     Created a.toml
+    Finished 1 change
+[exit 0]
+$ devset add p/base --path ../p
+    Starting a target: .devset/config.toml
+     Created a.toml
+    Finished 1 change
+[exit 0]
+$ devset add p/base --path ../p
+error: no devset target in [ROOT]/loose or any parent
+  |
+  = help: start one here with `devset init`; `devset add` starts one itself at a repository's top level, or in an empty directory
+[exit 2]
+$ devset init
+     Created .devset/config.toml
+help: add a layer: `devset add <source>/<profile> --git <url>`, or `--path <dir>`
+[exit 0]
+$ devset add p/base --path ../p
+     Created a.toml
+    Finished 1 change
+[exit 0]
+$ devset add p/base --git ../p --branch main
+    Starting a target: .devset/config.toml
+    Fetching ../p
+     Created a.toml
+    Finished 1 change
+[exit 0]
+$ devset add p/base --path ../p --dry-run
+       Would start a target: .devset/config.toml
+       Would create a.toml
+    Finished dry run: 1 change, nothing written
+[exit 0]

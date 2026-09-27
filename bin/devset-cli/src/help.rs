@@ -134,7 +134,8 @@ fn pick(path: &RelPath, layers: &[ProfileName]) -> String {
 fn target(error: &TargetError) -> Option<String> {
     match error {
         TargetError::NotFound { .. } => Some(
-            "start one: `devset init`, or `devset new <dir>`, with a first layer if you like"
+            "start one here with `devset init`; `devset add` starts one itself at a repository's \
+             top level, or in an empty directory"
                 .into(),
         ),
         TargetError::Nested { root, .. } => Some(format!("run devset from {root}")),

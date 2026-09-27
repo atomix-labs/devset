@@ -80,7 +80,8 @@ Examples:
         #[arg(long)]
         dry_run: bool,
     },
-    /// Add a profile as a layer, or features to a layer, and apply it.
+    /// Add a profile as a layer, or features to one, and apply it; starts the target where there is
+    /// none.
     #[command(
         group(ArgGroup::new("what").required(true).multiple(true).args(["layer", "git", "path"])),
         after_help = "\
