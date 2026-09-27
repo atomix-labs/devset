@@ -21,7 +21,7 @@ rust/
 name        = "rust"
 version     = "1.4.0"
 description = "Formatting, lints and CI for a Rust repository"
-devset      = ">=0.2"
+devset      = ">=0.5"
 
 [files."rustfmt.toml"]
 [files.".github/workflows/ci.yml"]

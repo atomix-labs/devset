@@ -1,13 +1,14 @@
 """The manual's generated pages, the command reference from each `devset <command> --help` and the
-file references from the published schemas; and the release of atxp every document names, which is
-the one devset applies.
+file references from the published schemas; the release of atxp every document names, which is
+the one devset applies; and the devset a profile in the manual asks for, this release's series.
 
 Usage: docs.py check | fix
 
 `fix` writes the pages from this checkout's devset, after naming atxp's release as the pin in every
-document, the help and the skeleton `init` writes. `check` fails, naming each file, when a page is
-not what this checkout's devset prints, the book's summary leaves a command's page out, or a file
-names another release of atxp than the one `.devset/config.toml` pins.
+document, the help and the skeleton `init` writes, and devset's series in every profile the manual
+shows. `check` fails, naming each file, when a page is not what this checkout's devset prints, the
+book's summary leaves a command's page out, a file names another release of atxp than the one
+`.devset/config.toml` pins, or a profile asks for another devset than this release's series.
 """
 
 import json
@@ -28,6 +29,9 @@ ATXP = re.compile(r'(atomix-labs/atxp\b[^\n]*?(?:--tag |tag = \\?"))(v\d+\.\d+\.
 # purpose, so the demo has a release to move to.
 UPDATE = re.compile(r"(devset update atxp --tag )(v\d+\.\d+\.\d+)")
 DEMOS = Path("docs/demo")
+# The devset a profile asks for, `devset = ">=<major>.<minor>"`: in the manual, this release's
+# series, as `devset init --profile` writes it.
+FLOOR = re.compile(r'(\bdevset\s*=\s*">=)(\d+\.\d+)(?=")')
 # What names atxp's release besides the manual: the README, the help, and the skeleton `init` writes.
 NAMING = ("README.md", "bin/devset-cli/src/cli.rs", "bin/devset-cli/src/main.rs", "lib/devset-core/src/target.rs")
 # Marks a reference page as written here; a page without it is written by hand.
@@ -227,20 +231,31 @@ def pin():
     return tomllib.loads(Path(".devset/config.toml").read_text())["sources"]["atxp"]["tag"]
 
 
+def series():
+    """This release's series, `major.minor`, from the workspace's version."""
+    version = tomllib.loads(Path("Cargo.toml").read_text())["workspace"]["package"]["version"]
+    return ".".join(version.split(".")[:2])
+
+
 def naming():
-    """Each file that names atxp's release, with the pattern that finds it there."""
-    files = [(Path(name), ATXP) for name in NAMING] + [(path, ATXP) for path in sorted(SRC.rglob("*.md"))]
-    return files + [(path, UPDATE) for path in sorted(DEMOS.rglob("*.tape"))]
+    """Each file that names a release, with how to say what it names, the pattern that finds it
+    there, and the release it must be: atxp's pin, or devset's series."""
+    atxp, floor = pin(), series()
+    manual = sorted(SRC.rglob("*.md"))
+    files = [(Path(name), "atxp {}", ATXP, atxp) for name in NAMING]
+    files += [(path, "atxp {}", ATXP, atxp) for path in manual]
+    files += [(path, "atxp {}", UPDATE, atxp) for path in sorted(DEMOS.rglob("*.tape"))]
+    return files + [(path, "devset >={}", FLOOR, floor) for path in [Path("README.md"), *manual]]
 
 
-def misnamed(want):
-    """Each file naming a release of atxp other than `want`, with the releases it names, and the
-    pattern that finds them."""
+def misnamed():
+    """Each file naming another release than it must, with what it names, the releases, the
+    pattern that finds them, and the release it must name."""
     found = {}
-    for path, pattern in naming():
-        tags = {match.group(2) for match in pattern.finditer(path.read_text())} - {want}
-        if tags:
-            found[path] = (sorted(tags), pattern)
+    for path, what, pattern, want in naming():
+        names = {match.group(2) for match in pattern.finditer(path.read_text())} - {want}
+        if names:
+            found.setdefault(path, []).append((what, sorted(names), pattern, want))
     return found
 
 
@@ -266,19 +281,22 @@ def check():
         print(f"{path}: stale; run `just fix-docs`", file=sys.stderr)
     for path in unlisted:
         print(f"{SUMMARY}: no chapter links {path.relative_to(SRC)}", file=sys.stderr)
-    want = pin()
-    named = misnamed(want)
-    for path, (tags, _) in named.items():
-        print(f"{path}: names atxp {', '.join(tags)}, not {want}; run `just fix-docs`", file=sys.stderr)
+    named = misnamed()
+    for path, wrong in named.items():
+        for what, names, _, want in wrong:
+            named_now = ", ".join(what.format(name) for name in names)
+            print(f"{path}: names {named_now}, not {what.format(want)}; run `just fix-docs`", file=sys.stderr)
     return 1 if outdated or unlisted or named else 0
 
 
 def fix():
-    """Names the pinned release of atxp everywhere, then writes every page, and removes the pages
-    of commands there are no more."""
-    want = pin()
-    for path, (_, pattern) in misnamed(want).items():
-        path.write_text(pattern.sub(lambda match: match.group(1) + want, path.read_text()))
+    """Names the pinned release of atxp and devset's series everywhere, then writes every page, and
+    removes the pages of commands there are no more."""
+    for path, wrong in misnamed().items():
+        text = path.read_text()
+        for _, _, pattern, want in wrong:
+            text = pattern.sub(lambda match, want=want: match.group(1) + want, text)
+        path.write_text(text)
     written = pages() | schemas()
     for path in leftovers(written):
         path.unlink()

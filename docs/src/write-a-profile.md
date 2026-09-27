@@ -19,7 +19,7 @@ target should have it, and name it in the manifest:
 [profile]
 name        = "lint"
 description = "The team's EditorConfig and rustfmt settings"
-devset      = ">=0.4"
+devset      = ">=0.5"
 
 [files.".editorconfig"]
 

@@ -14,7 +14,7 @@ pins that whole source for every profile that requires it:
 [profile]
 name        = "house"
 description = "Our repositories: atxp's rust bundle with the book, and our deploy workflow"
-devset      = ">=0.4"
+devset      = ">=0.5"
 
 [requires]
 rust = { git = "https://github.com/atomix-labs/atxp", tag = "v0.10.0", features = ["docs"] }
