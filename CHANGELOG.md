@@ -3,6 +3,23 @@
 Every release, newest first, written by [git-cliff](https://git-cliff.org) from the commits.
 [BREAKING-CHANGES.md](BREAKING-CHANGES.md) says how to move across a breaking change.
 
+## [0.5.1](https://github.com/atomix-labs/devset/releases/tag/v0.5.1) - 2026-09-27
+
+### Features
+
+- [052af9b](https://github.com/atomix-labs/devset/commit/052af9b7bbea3a50217848a2d39c7762f0a02fae) *(devset-cli)* Name the three newest releases, and count the rest
+
+### Documentation
+
+- [b61ed5e](https://github.com/atomix-labs/devset/commit/b61ed5e92cacd32325957c775f2b5286fc8c658f) Record devset's demo from its own build, moving to devset's pin
+- [7355506](https://github.com/atomix-labs/devset/commit/735550666ec464e2e1e1b0c8079cc38b90a68262) Record the demo for v0.5.0
+
+### Miscellaneous
+
+- [51b8598](https://github.com/atomix-labs/devset/commit/51b85986669e7e2a18e961cd40fb4a606d9eb090) Take atxp v0.10.0
+
+**Full Changelog**: <https://github.com/atomix-labs/devset/compare/v0.5.0...v0.5.1>
+
 ## [0.5.0](https://github.com/atomix-labs/devset/releases/tag/v0.5.0) - 2026-09-27
 
 ### Features
