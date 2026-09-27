@@ -12,9 +12,9 @@ error: no profile declares a variable named auther
 [exit 2]
 $ devset add --path ../p --var author=Ada
     Starting a target: .devset/config.toml
-note: answered cpu = "native", the default
+note: answered cpu = "native", its default
   |
-  = help: pass `--var cpu=…` to choose another
+  = help: `.devset/answers.toml` keeps each answer; `--var <name>=<value>` changes one
      Created Cargo.toml
      Created cfg.toml
     Finished 2 changes

@@ -73,10 +73,10 @@ and an edited `merge` file merged.
 
 ## Answers
 
-devset asks for any variable not yet answered when it runs in a terminal,
-offering the default. Elsewhere, or with `--no-input`, it takes each default and
-says so, and a variable with no default is an error that names the `--var` flag
-to pass:
+A variable not yet answered takes its default, and devset names every default it
+took in one note; a variable with no default is asked for in a terminal.
+Elsewhere, or with `--no-input`, a variable with no default is an error that
+names the `--var` flag to pass:
 
 ```sh
 devset add --path ../profiles/rust --var author=Ada

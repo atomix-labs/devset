@@ -1,8 +1,8 @@
 $ devset add p/rust --path ../p
     Starting a target: .devset/config.toml
-note: answered project = "hello", the default
+note: answered project = "hello", its default
   |
-  = help: pass `--var project=…` to choose another
+  = help: `.devset/answers.toml` keeps each answer; `--var <name>=<value>` changes one
      Created Cargo.toml
      Created Cargo.toml [keys: lints]
      Created Cargo.toml [keys: release]
@@ -40,9 +40,9 @@ $ devset init
 help: add a layer: `devset add <source>/<profile> --git <url>`, or `--path <dir>`
 [exit 0]
 $ devset add p/rust --path ../p
-note: answered project = "hello", the default
+note: answered project = "hello", its default
   |
-  = help: pass `--var project=…` to choose another
+  = help: `.devset/answers.toml` keeps each answer; `--var <name>=<value>` changes one
      Adopted Cargo.toml
      Created Cargo.toml [keys: lints]
      Created Cargo.toml [keys: release]

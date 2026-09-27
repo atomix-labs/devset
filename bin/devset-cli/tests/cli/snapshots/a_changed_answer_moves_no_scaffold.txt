@@ -1,8 +1,8 @@
 $ devset add --path ../p/book
     Starting a target: .devset/config.toml
-note: answered book_dir = "docs", the default
+note: answered book_dir = "docs", its default
   |
-  = help: pass `--var book_dir=…` to choose another
+  = help: `.devset/answers.toml` keeps each answer; `--var <name>=<value>` changes one
      Created docs/book.toml
     Finished 1 change
 [exit 0]

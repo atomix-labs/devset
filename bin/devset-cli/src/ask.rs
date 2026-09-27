@@ -1,4 +1,4 @@
-//! Answering profile variables: prompted when interactive, defaulted otherwise.
+//! Answering profile variables: each default taken, and a variable with none asked in a terminal.
 
 use std::io;
 
@@ -30,38 +30,44 @@ pub(crate) fn resolved(
     }
 }
 
-/// Answers `questions` on `target`: by prompting, or by taking each default.
+/// Answers `questions` on `target`: each that has a default takes it, named in one note; each that
+/// has none is asked, in a terminal.
 ///
 /// # Errors
-/// [`VarError::Unanswered`], with the questions that have no default, devset may not prompt;
+/// [`VarError::Unanswered`], with the questions that have no default, where devset may not prompt;
 /// nothing is answered then.
 fn answer(shell: &Shell, target: &mut Target, questions: Vec<Question>) -> Result<(), Error> {
-    if !shell.interactive() {
-        let missing: Vec<Question> =
-            questions.iter().filter(|q| q.default.is_none()).cloned().collect();
-        if !missing.is_empty() {
-            return Err(VarError::Unanswered { questions: missing }.into());
+    let (defaulted, open): (Vec<Question>, Vec<Question>) =
+        questions.into_iter().partition(|question| question.default.is_some());
+    if !open.is_empty() && !shell.interactive() {
+        return Err(VarError::Unanswered { questions: open }.into());
+    }
+    if !defaulted.is_empty() {
+        let help = "`.devset/answers.toml` keeps each answer; `--var <name>=<value>` changes one";
+        shell.note(&taken(&defaulted), Some(help))?;
+    }
+    for Question { name, default, .. } in defaulted {
+        if let Some(default) = default {
+            target.answer(name, default);
         }
     }
     let theme = ColorfulTheme::default();
-    for Question { name, prompt, default } in questions {
-        let answer = match default {
-            _ if shell.interactive() => {
-                let input = Input::<String>::with_theme(&theme).with_prompt(prompt);
-                let input = match default {
-                    Some(default) => input.default(default),
-                    None => input,
-                };
-                input.interact_text().map_err(io::Error::other)?
-            },
-            Some(default) => {
-                let text = format!("answered {name} = \"{default}\", the default");
-                shell.note(&text, Some(&format!("pass `--var {name}=…` to choose another")))?;
-                default
-            },
-            None => continue,
-        };
-        target.answer(name, answer);
+    for Question { name, prompt, .. } in open {
+        let input = Input::<String>::with_theme(&theme).with_prompt(prompt);
+        target.answer(name, input.interact_text().map_err(io::Error::other)?);
     }
     Ok(())
+}
+
+/// What taking the defaults of `defaulted` answered: the one, with its value, or how many, by name.
+fn taken(defaulted: &[Question]) -> String {
+    let default = |question: &Question| question.default.clone().unwrap_or_default();
+    match defaulted {
+        [one] => format!("answered {} = \"{}\", its default", one.name, default(one)),
+        many => {
+            let names: Vec<String> =
+                many.iter().map(|question| question.name.to_string()).collect();
+            format!("answered {} variables with their defaults: {}", many.len(), names.join(", "))
+        },
+    }
 }

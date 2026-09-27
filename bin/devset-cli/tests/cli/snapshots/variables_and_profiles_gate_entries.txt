@@ -1,8 +1,8 @@
 $ devset add p/project --path ../p
     Starting a target: .devset/config.toml
-note: answered license = "MIT", the default
+note: answered license = "MIT", its default
   |
-  = help: pass `--var license=…` to choose another
+  = help: `.devset/answers.toml` keeps each answer; `--var <name>=<value>` changes one
      Created LICENSE-MIT
     Finished 1 change
 [exit 0]

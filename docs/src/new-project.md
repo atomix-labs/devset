@@ -16,11 +16,11 @@ devset add atxp/rust --git https://github.com/atomix-labs/atxp --tag v0.9.1 --va
 ```
 
 `add` starts the target, names the source `atxp`, pins its tag, and applies the
-bundle and every profile it requires, each a layer of its own. In a terminal,
-devset asks for each variable the profiles declare, showing its default; Enter
-takes it. `--var name=value` answers one ahead, and `--no-input` takes every
-default and fails only on a variable that has none, naming the flag to pass: the
-form for a script.
+bundle and every profile it requires, each a layer of its own. Each variable the
+profiles declare takes its default, and devset names them all in one note;
+`--var name=value` answers one otherwise, now or later. A variable with no
+default, as `repository` is, is asked for in a terminal, and with `--no-input`,
+the form for a script, it is an error naming the flag to pass.
 
 ## See What It Wrote
 

@@ -26,9 +26,9 @@ error: ../profiles.git has no branch nope
 [exit 2]
 $ devset add --path ../t
     Starting a target: .devset/config.toml
-note: answered name = "x", the default
+note: answered name = "x", its default
   |
-  = help: pass `--var name=…` to choose another
+  = help: `.devset/answers.toml` keeps each answer; `--var <name>=<value>` changes one
 error: template t.txt uses `nmae`, which no profile declares
   |
   = help: did you mean `name`?
