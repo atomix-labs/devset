@@ -465,6 +465,14 @@ pub enum TargetError {
         /// The file, as the command line names it.
         path: Utf8PathBuf,
     },
+    /// A name `explain` was given that is neither a layer's nor a managed file's.
+    #[error("{name} is neither a layer nor a file devset manages")]
+    Unexplained {
+        /// The name, as given.
+        name: String,
+        /// Every layer's name, then every managed path.
+        names: Vec<String>,
+    },
     /// A path named on the command line is not a file devset manages.
     #[error("{path} is not a file devset manages")]
     NotManaged {

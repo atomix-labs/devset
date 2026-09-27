@@ -24,11 +24,11 @@ $ devset apply
 $ devset add p/book --no-default-features --features links
 warning: profile rust turns on the default features of book, which its layer switches off
   |
-  = help: `devset features book` shows what is on, and why
+  = help: `devset explain book` shows what is on, and why
      Created lychee.toml
     Finished 1 change
 [exit 0]
-$ devset features book
+$ devset explain book
 p/book 1.0.0  [api, katex, links]
     api    <- rust
     katex  <- default, book/api

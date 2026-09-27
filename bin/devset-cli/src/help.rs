@@ -186,6 +186,10 @@ fn target(error: &TargetError) -> Option<String> {
                   choose another directory"
                 .into(),
         ),
+        TargetError::Unexplained { name, names } => Some(nearest(name, names).map_or_else(
+            || "`devset explain` lists the layers; `devset status -v` the files".to_owned(),
+            |near| format!("did you mean `{near}`?"),
+        )),
         TargetError::NotManaged { path, managed } => Some(nearest(path, managed).map_or_else(
             || "`devset status -v` lists the managed files".to_owned(),
             |near| format!("did you mean `{near}`?"),

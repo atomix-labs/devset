@@ -52,8 +52,8 @@ fn features_unify_across_requirers() {
     ] {
         assert_eq!(sb.path(&format!("repo/{file}")).exists(), there, "{file}");
     }
-    log += &sb.devset("repo", &["features"]);
-    log += &sb.devset("repo", &["features", "book"]);
+    log += &sb.devset("repo", &["explain"]);
+    log += &sb.devset("repo", &["explain", "book"]);
     log += &sb.devset("repo", &["status", "-v"]);
     write!(log, "--- .devset/lock.toml\n{}", sb.read("repo/.devset/lock.toml")).unwrap();
     sb.assert(&log, snapbox::file!["snapshots/features_unify_across_requirers.txt"]);
@@ -72,7 +72,7 @@ fn a_feature_turned_off_releases_what_it_added() {
     assert_eq!(sb.read("repo/pages.yml"), "pages, edited\n", "an edited file stays, untracked");
     log += &sb.devset("repo", &["add", "p/book", "--no-default-features", "--features", "links"]);
     assert!(sb.path("repo/lychee.toml").exists(), "`dep:` activates an optional requirement");
-    log += &sb.devset("repo", &["features", "book"]);
+    log += &sb.devset("repo", &["explain", "book"]);
     log += &sb.devset("repo", &["add", "p/ci", "--features", "nihgtly"]);
     sb.assert(&log, snapbox::file!["snapshots/a_feature_turned_off_releases_what_it_added.txt"]);
 }
@@ -100,4 +100,22 @@ fn add_and_remove_change_a_layers_features() {
     assert!(sb.path("book/katex.css").exists(), "a feature on by default stays on");
     write!(log, "--- .devset/config.toml\n{}", sb.read("book/.devset/config.toml")).unwrap();
     sb.assert(&log, snapbox::file!["snapshots/add_and_remove_change_a_layers_features.txt"]);
+}
+
+#[test]
+fn explain_tells_a_layer_from_a_file() {
+    let sb = Sandbox::new();
+    sb.profile(
+        "p/base",
+        "base",
+        &[("a.toml", "owned", "a\n"), ("base", "owned", "a file named as the layer\n")],
+    );
+    sb.extend("p/base", "[features]\ndefault = []\nextra = []\n");
+    let mut log = sb.devset("t", &["add", "p/base", "--path", "../p", "--features", "extra"]);
+    log += &sb.devset("t", &["explain"]);
+    log += &sb.devset("t", &["explain", "a.toml"]);
+    log += &sb.devset("t", &["explain", "base"]);
+    log += &sb.devset("t", &["explain", "./base"]);
+    log += &sb.devset("t", &["explain", "bsae"]);
+    sb.assert(&log, snapbox::file!["snapshots/explain_tells_a_layer_from_a_file.txt"]);
 }

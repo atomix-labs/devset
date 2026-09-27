@@ -172,22 +172,17 @@ Examples:
         #[command(flatten)]
         answers: Answers,
     },
-    /// Show each layer's features: which are on, and who turned them on.
+    /// Show why a layer or a file is as it is: a layer's features and who turned each on, or each
+    /// layer that lists a file, and its gates.
     #[command(after_help = "\
 Examples:
-  devset features          every layer
-  devset features mdbook   one, with the features it leaves off")]
-    Features {
-        /// Only the layer whose profile has this name.
-        layer: Option<ProfileName>,
-    },
-    /// Show why a file is managed as it is: each layer that lists it, and its gates.
-    #[command(after_help = "\
-Examples:
-  devset explain docs/book.toml")]
+  devset explain                  every layer, with its features and who turned each on
+  devset explain mdbook           one layer, with the features it leaves off
+  devset explain docs/book.toml   one file: each layer that lists it, and its gates")]
     Explain {
-        /// The file, from the current directory.
-        path: Utf8PathBuf,
+        /// A layer, by its profile's name, or a file, from the current directory: `./name` for a
+        /// file a layer's name matches.
+        name: Option<String>,
     },
     /// List the profiles a source holds, with their features.
     #[command(after_help = "\

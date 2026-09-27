@@ -1,0 +1,32 @@
+$ devset add p/base --path ../p --features extra
+    Starting a target: .devset/config.toml
+     Created a.toml
+     Created base
+    Finished 2 changes
+[exit 0]
+$ devset explain
+p/base 1.0.0  [extra]
+    extra  <- target
+[exit 0]
+$ devset explain a.toml
+a.toml
+    p/base  file  owned  applies
+        unchanged
+[exit 0]
+$ devset explain base
+p/base 1.0.0  [extra]
+    extra  <- target
+note: base is also a file devset manages
+  |
+  = help: `devset explain ./base` explains it
+[exit 0]
+$ devset explain ./base
+base
+    p/base  file  owned  applies
+        unchanged
+[exit 0]
+$ devset explain bsae
+error: bsae is neither a layer nor a file devset manages
+  |
+  = help: did you mean `base`?
+[exit 2]

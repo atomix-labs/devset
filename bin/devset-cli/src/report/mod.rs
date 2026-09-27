@@ -225,7 +225,7 @@ pub(crate) fn warnings(shell: &Shell, warnings: &[Warning]) -> io::Result<()> {
                     "profile {by} turns on the default features of {profile}, which its layer \
                      switches off"
                 ),
-                Some(&format!("`devset features {profile}` shows what is on, and why")),
+                Some(&format!("`devset explain {profile}` shows what is on, and why")),
             )?,
         }
     }

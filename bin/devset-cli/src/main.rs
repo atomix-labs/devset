@@ -140,17 +140,21 @@ fn run(shell: &Shell, command: Command) -> Result<ExitCode, Error> {
             };
             apply(shell, &mut Target::find(&cwd)?, &cache()?, how, answers, dry_run)
         },
-        Command::Features { layer } => {
-            let target = Target::find(&cwd)?;
-            let resolved = resolve(&target, &cache()?, Refresh::None)?;
-            report::features(&resolved, layer.as_ref())?;
-            Ok(ExitCode::SUCCESS)
-        },
-        Command::Explain { path } => {
+        Command::Explain { name } => {
             let target = Target::find(&cwd)?;
             let survey = survey(resolve(&target, &cache()?, Refresh::None)?, &target)?;
-            let path = listed(&survey, &target, &cwd, &path)?;
-            report::explain(&survey, &path)?;
+            match name.map(|given| explained(&survey, &target, &cwd, &given)).transpose()? {
+                None => report::features(survey.resolved(), None)?,
+                Some(Explained::Layer { name, file }) => {
+                    report::features(survey.resolved(), Some(&name))?;
+                    if file {
+                        let text = format!("{name} is also a file devset manages");
+                        shell
+                            .note(&text, Some(&format!("`devset explain ./{name}` explains it")))?;
+                    }
+                },
+                Some(Explained::File(path)) => report::explain(&survey, &path)?,
+            }
             Ok(ExitCode::SUCCESS)
         },
         Command::List { source, location } => list(&cwd, &cache()?, source.as_ref(), location),
@@ -479,21 +483,51 @@ fn managed(
         .collect()
 }
 
-/// `given`, relative to `cwd`, as a path some layer of `target` lists, applied or not.
-fn listed(
-    survey: &Survey, target: &Target, cwd: &Utf8Path, given: &Utf8Path,
-) -> Result<RelPath, Error> {
+/// What `explain` was given: a layer, or a file.
+enum Explained {
+    /// A layer, by its profile's name.
+    Layer {
+        /// Its name.
+        name: ProfileName,
+        /// Whether a managed file has the name too, which `./name` explains.
+        file: bool,
+    },
+    /// A path some layer lists.
+    File(RelPath),
+}
+
+/// Every path some layer of `survey` lists, applied or not.
+fn listed_paths(survey: &Survey) -> Vec<RelPath> {
     let layers = survey.resolved().layers();
     let mut listed: Vec<RelPath> =
         layers.iter().flat_map(|layer| layer.files().keys().cloned()).collect();
     listed.extend(survey.entries().iter().map(|entry| entry.path.clone()));
     listed.sort();
     listed.dedup();
-    let path = inside(target, cwd, given);
-    path.filter(|path| listed.contains(path)).ok_or_else(|| {
-        let path = relative(target, cwd, given);
-        TargetError::NotManaged { path, managed: listed }.into()
-    })
+    listed
+}
+
+/// `given` as a layer of `survey`, or as a path, from `cwd`, that some layer lists: a layer's name
+/// when a layer has it, and a file's otherwise, as `./name` always is.
+fn explained(
+    survey: &Survey, target: &Target, cwd: &Utf8Path, given: &str,
+) -> Result<Explained, Error> {
+    let listed = listed_paths(survey);
+    let layer = given
+        .parse::<ProfileName>()
+        .ok()
+        .filter(|name| survey.resolved().layer(name.as_str()).is_some());
+    let file = inside(target, cwd, Utf8Path::new(given)).filter(|path| listed.contains(path));
+    match (layer, file) {
+        (Some(name), file) => Ok(Explained::Layer { name, file: file.is_some() }),
+        (None, Some(path)) => Ok(Explained::File(path)),
+        (None, None) => {
+            let layers = survey.resolved().layers().iter().map(|layer| layer.name().to_string());
+            let names = layers.chain(listed.iter().map(ToString::to_string)).collect();
+            let name = relative(target, cwd, Utf8Path::new(given));
+            Err(TargetError::Unexplained { name, names }.into())
+        },
+    }
 }
 
 /// `given`, relative to `cwd`, named from `target`'s root when it is inside it.

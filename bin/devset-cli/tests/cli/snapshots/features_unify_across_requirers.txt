@@ -8,7 +8,7 @@ $ devset add p/rust --path ../p --features docs
      Created rustfmt.toml
     Finished 6 changes
 [exit 0]
-$ devset features
+$ devset explain
 p/ci 1.0.0  [pages]  (required by book)
     pages    <- book/pages
 p/book 1.0.0  [api, katex, pages]  (required by rust)
@@ -18,7 +18,7 @@ p/book 1.0.0  [api, katex, pages]  (required by rust)
 p/rust 1.0.0  [docs]
     docs  <- target
 [exit 0]
-$ devset features book
+$ devset explain book
 p/book 1.0.0  [api, katex, pages]  (required by rust)
     api    <- rust
     katex  <- default, book/api

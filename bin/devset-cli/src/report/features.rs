@@ -1,4 +1,5 @@
-//! `features`: each layer's features, who turned each on, and, for one layer, those left off.
+//! `explain` of layers: each layer's features, who turned each on, and, for one layer, those left
+//! off.
 
 use std::io::{self, Write};
 
