@@ -432,6 +432,13 @@ mod tests {
             // `mise exec <tool> -- devset …` runs devset too.
             let part = part.trim();
             let part = part.rsplit_once(" -- ").map_or(part, |(_, rest)| rest);
+            // A redirection is the shell's, not the command's.
+            let part = [" > ", " >> ", " < ", " 2> "]
+                .iter()
+                .filter_map(|op| part.find(op))
+                .min()
+                .and_then(|at| part.get(..at))
+                .unwrap_or(part);
             let Some(rest) = part.strip_prefix("devset ") else { continue };
             let words = shlex::split(&filled(rest)).expect("words the shell splits");
             let words = iter::once("devset".to_owned()).chain(words).collect();
@@ -470,7 +477,10 @@ mod tests {
                 let named = matches!(e.kind(), ErrorKind::MissingRequiredArgument)
                     || e.kind() == ErrorKind::InvalidValue
                         && e.to_string().contains("none was supplied");
-                if run || !named {
+                // A placeholder stands for a value, which may be one of a few.
+                let placeholder = e.kind() == ErrorKind::InvalidValue
+                    && e.to_string().contains("invalid value 'x'");
+                if !placeholder && (run || !named) {
                     failed.push(format!("{path}: {line}\n{}", e.render()));
                 }
             }
