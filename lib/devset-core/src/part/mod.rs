@@ -538,6 +538,33 @@ unsafe_code = \"deny\"
     }
 
     #[test]
+    fn json_a_key_that_joins_an_object_on_one_line_keeps_it_there() {
+        let shape = keys(".github/automation.json");
+        let file = "{\n  \"bump\": { \"mode\": \"pr\" },\n  \"nightly\": { \"skip\": true }\n}\n";
+        let out = splice(&shape, file, "{ \"bump\": { \"merge\": true } }");
+        assert!(
+            out.contains("\n  \"bump\": { \"mode\": \"pr\", \"merge\": true },\n"),
+            "the object stays on its line, the key after its own: {out}"
+        );
+        assert!(out.contains("\"nightly\": { \"skip\": true }"), "the rest is as it was: {out}");
+        let nested = "{\n  \"a\": { \"b\": { \"c\": 1 } }\n}\n";
+        let out = splice(&shape, nested, "{ \"a\": { \"b\": { \"d\": 2 } } }");
+        assert!(
+            out.contains("\"a\": { \"b\": { \"c\": 1, \"d\": 2 } }"),
+            "and so does each object around it: {out}"
+        );
+        let compact = "{\n  \"a\": {\"c\": 1}\n}\n";
+        let out = splice(&shape, compact, "{ \"a\": { \"d\": 2 } }");
+        assert!(out.contains("\"a\": {\"c\": 1, \"d\": 2}"), "unpadded where it was: {out}");
+        let commented = "{\n  \"a\": { \"c\": 1 /* ours */ }\n}\n";
+        let out = splice(&shape, commented, "{ \"a\": { \"d\": 2 } }");
+        assert!(
+            out.contains("/* ours */") && out.contains("\"d\": 2"),
+            "a comment is never folded into a line it may end: {out}"
+        );
+    }
+
+    #[test]
     fn yaml_keys_keep_comments() {
         let shape = keys(".github/dependabot.yml");
         let file =

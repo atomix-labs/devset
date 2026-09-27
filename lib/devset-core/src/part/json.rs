@@ -2,7 +2,9 @@
 //! comments, trailing commas and layout survive, and a value the payload gives is written as the
 //! payload writes it.
 
-use jsonc_parser::cst::{CstInputValue, CstObject, CstObjectProp, CstRootNode};
+use jsonc_parser::cst::{
+    CstInputValue, CstNode, CstObject, CstObjectProp, CstRootNode, ObjectPropName,
+};
 use serde_json::Value;
 
 use super::keys::{Written, lookup};
@@ -22,7 +24,8 @@ pub(super) fn semantic(text: &str) -> Result<Value, Failure> {
 
 /// `text` with each edit made, in order. A value the payload gives is written as the payload
 /// writes it, and so is a key the file lacks, whole, where the edits leave it as the payload has
-/// it: an object the payload writes on one line stays on one.
+/// it: an object the payload writes on one line stays on one, and so does one the file writes on
+/// one line that a key joins.
 pub(super) fn apply(text: &str, edits: &[Edit<'_>], payload: &Written) -> Result<String, Failure> {
     // The payload as written, and its values; a payload that does not parse lends no layout.
     let parsed = CstRootNode::parse(&payload.source, &jsonc()).ok();
@@ -108,10 +111,21 @@ impl Marks {
         CstInputValue::String(marker)
     }
 
+    /// Whether `value`, a value's text, is a marker whose writing spans lines.
+    fn spans_lines(&self, value: &str) -> bool {
+        let number = value
+            .strip_prefix(&format!("\"{}", self.prefix))
+            .and_then(|rest| rest.strip_suffix('"'));
+        let writing =
+            number.and_then(|n| n.parse::<usize>().ok()).and_then(|n| self.writings.get(n));
+        writing.is_some_and(|writing| writing.text.contains('\n'))
+    }
+
     /// `out` with each marker swapped for its writing, whose lines after the first move from the
-    /// payload's indent to the file's.
+    /// payload's indent to the file's. The last is swapped first, as a later marker's writing may
+    /// hold an earlier one.
     fn fill(self, mut out: String) -> String {
-        for (number, writing) in self.writings.into_iter().enumerate() {
+        for (number, writing) in self.writings.into_iter().enumerate().rev() {
             let marker = format!("\"{}{number}\"", self.prefix);
             let Some(at) = out.find(&marker) else {
                 continue;
@@ -133,6 +147,7 @@ fn edit(text: &str, edits: &[Edit<'_>], layout: Option<&Layout<'_>>) -> Result<S
     let root = CstRootNode::parse(text, &jsonc())
         .map_err(|e| (Some(e.range().start..e.range().end), e.kind().to_string()))?;
     let object = root.object_value_or_set();
+    let inline = inline(&object, &[]);
     let mut marks = Marks::new(text, layout.map_or("", |layout| layout.source));
     let mut whole: Vec<&[String]> = Vec::new();
     for &(key, value) in edits {
@@ -152,7 +167,55 @@ fn edit(text: &str, edits: &[Edit<'_>], layout: Option<&Layout<'_>>) -> Result<S
             None => set(&object, key, input(value)),
         }
     }
+    // Deepest first, so an object that holds another writes it as that one was written.
+    for (key, padded) in inline.iter().rev() {
+        if let Some(writing) = collapsed(&object, key, *padded, &marks) {
+            set(&object, key, marks.mark(writing));
+        }
+    }
     Ok(marks.fill(root.to_string()))
+}
+
+/// Each object under `object` that its text writes on one line, by its key under `prefix`, outer
+/// before inner, and whether it pads its braces with a space.
+fn inline(object: &CstObject, prefix: &[String]) -> Vec<(Vec<String>, bool)> {
+    let mut found = Vec::new();
+    for property in object.properties() {
+        let (Some(name), Some(inner)) = (property.decoded_name(), property.object_value()) else {
+            continue;
+        };
+        let key: Vec<String> = prefix.iter().cloned().chain([name]).collect();
+        let text = inner.to_string();
+        if !text.contains('\n') && !inner.properties().is_empty() {
+            found.push((key.clone(), text.starts_with("{ ")));
+        }
+        found.extend(inline(&inner, &key));
+    }
+    found
+}
+
+/// The object at `key`, which the file wrote on one line, written on one again where an edit
+/// spread it over several; `None` where it is still on one, or now holds what one line cannot: a
+/// comment, or a value that spans lines.
+fn collapsed(object: &CstObject, key: &[String], padded: bool, marks: &Marks) -> Option<Writing> {
+    let inner = property(object, key)?.object_value()?;
+    if !inner.to_string().contains('\n') || inner.children().iter().any(CstNode::is_comment) {
+        return None;
+    }
+    let mut entries = Vec::new();
+    for property in inner.properties() {
+        let name = match property.name()? {
+            ObjectPropName::String(name) => name.to_string(),
+            ObjectPropName::Word(name) => name.to_string(),
+        };
+        let value = property.value()?.to_string();
+        if value.contains('\n') || marks.spans_lines(&value) {
+            return None;
+        }
+        entries.push(format!("{name}: {value}"));
+    }
+    let (open, close) = if padded { ("{ ", " }") } else { ("{", "}") };
+    Some(Writing { text: format!("{open}{}{close}", entries.join(", ")), indent: None })
 }
 
 /// The property at `key` under `object`, if every step on the way is an object.
