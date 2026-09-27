@@ -377,9 +377,27 @@ impl<'a> Planner<'a> {
     /// own starter. A starter written anew takes every part again, one deleted with the file
     /// included; and a file a whole entry `kept` is never deleted for the parts it loses.
     fn parts(
-        &mut self, entries: Vec<Entry>, start: Option<Vec<u8>>, kept: bool,
+        &mut self, mut entries: Vec<Entry>, start: Option<Vec<u8>>, kept: bool,
     ) -> Result<Vec<Step>> {
         let resolved = self.resolved;
+        // A key a part's base holds but its profile dropped, which another part's profile now
+        // provides, is that part's: the part that dropped it leaves it be.
+        let provided = entries
+            .iter()
+            .map(|entry| match entry.want.and_then(|_| resolved.portion(entry)) {
+                Some(portion) => Ok(portion.shape.keys(resolved.payload(entry)?)),
+                None => Ok(BTreeSet::new()),
+            })
+            .collect::<Result<Vec<_>>>()?;
+        for (index, (entry, own)) in entries.iter_mut().zip(&provided).enumerate() {
+            let theirs: Vec<&Key> = provided
+                .iter()
+                .enumerate()
+                .filter(|(other, _)| *other != index)
+                .flat_map(|(_, keys)| keys)
+                .collect();
+            entry.keys.retain(|key| own.contains(key) || !theirs.iter().any(|k| overlap(key, k)));
+        }
         let Some(path) = entries.first().map(|entry| entry.path.clone()) else {
             return Ok(Vec::new());
         };

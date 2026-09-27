@@ -64,6 +64,33 @@ fn a_key_that_changes_hands_stays() {
 }
 
 #[test]
+fn a_key_changes_hands_while_its_old_owner_keeps_others() {
+    let sb = Sandbox::new();
+    let keys = "scope = \"keys\"";
+    let both = "[workspace.lints.rust]\nunsafe_code = \"forbid\"\nmissing_docs = \"warn\"\n";
+    sb.entries("old", "old", &[("Cargo.toml", keys, both)]);
+    sb.entries("new", "new", &[("new.toml", "", "n = 1\n")]);
+    sb.write("repo/Cargo.toml", "[workspace]\nmembers = [\"a\"]\n");
+    let mut log = sb.devset("repo", &["init"]);
+    log += &sb.devset("repo", &["add", "--path", "../old"]);
+    log += &sb.devset("repo", &["add", "--path", "../new"]);
+    let kept = "[workspace.lints.rust]\nmissing_docs = \"warn\"\n";
+    let taken = "[workspace.lints.rust]\nunsafe_code = \"forbid\"\n";
+    sb.entries("old", "old", &[("Cargo.toml", keys, kept)]);
+    sb.entries("new", "new", &[("new.toml", "", "n = 1\n"), ("Cargo.toml", keys, taken)]);
+    log += &sb.devset("repo", &["apply"]);
+    let cargo = sb.read("repo/Cargo.toml");
+    assert!(cargo.contains("unsafe_code = \"forbid\""), "the key the new owner took stays");
+    assert!(cargo.contains("missing_docs = \"warn\""), "and the one the old owner kept");
+    write!(log, "--- Cargo.toml\n{cargo}").unwrap();
+    log += &sb.devset("repo", &["status", "--exit-code"]);
+    sb.assert(
+        &log,
+        snapbox::file!["snapshots/a_key_changes_hands_while_its_old_owner_keeps_others.txt"],
+    );
+}
+
+#[test]
 fn a_dropped_profile_takes_back_what_is_still_its_own() {
     let sb = Sandbox::new();
     let (block, keys, once) = ("scope = \"block\"", "scope = \"keys\"", "policy = \"once\"");

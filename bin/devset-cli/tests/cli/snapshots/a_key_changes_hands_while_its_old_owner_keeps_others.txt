@@ -1,0 +1,30 @@
+$ devset init
+     Created .devset/config.toml
+help: add a layer: `devset add <source>/<profile> --git <url>`, or `--path <dir>`
+[exit 0]
+$ devset add --path ../old
+     Created Cargo.toml [keys: old]
+    Finished 1 change
+[exit 0]
+$ devset add --path ../new
+     Created new.toml
+    Finished 1 change
+[exit 0]
+$ devset apply
+     Adopted Cargo.toml [keys: new]
+     Updated Cargo.toml [keys: old]
+    Finished 2 changes
+[exit 0]
+--- Cargo.toml
+[workspace]
+members = ["a"]
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+missing_docs = "warn"
+$ devset status --exit-code
+old/old 1.0.0
+new/new 1.0.0
+
+All 2 files match the profile.
+[exit 0]
