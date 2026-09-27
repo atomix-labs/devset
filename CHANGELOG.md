@@ -3,6 +3,23 @@
 Every release, newest first, written by [git-cliff](https://git-cliff.org) from the commits.
 [BREAKING-CHANGES.md](BREAKING-CHANGES.md) says how to move across a breaking change.
 
+## [0.4.1](https://github.com/atomix-labs/devset/releases/tag/v0.4.1) - 2026-09-27
+
+### Documentation
+
+- [84e7a57](https://github.com/atomix-labs/devset/commit/84e7a575871eadcce556c360a4e8672bd6f00c3b) Open the README on its header and demo
+- [62e7be0](https://github.com/atomix-labs/devset/commit/62e7be08c39f4b60b91f39aa53ba6095c8414b0c) Record devset's demo
+- [de20f67](https://github.com/atomix-labs/devset/commit/de20f67c21ce47b5941254d2da44c65a2832a0f6) Draw devset's logo
+
+### Miscellaneous
+
+- [b486d93](https://github.com/atomix-labs/devset/commit/b486d9308675be98206e7b5fe8e3ca9abaff4d0a) Take atxp v0.8.0
+- [d931225](https://github.com/atomix-labs/devset/commit/d931225f3f59935de101b3d3885ba43bfd300737) *(devset-cli)* Parse every command the README and the manual show
+- [dc2cf24](https://github.com/atomix-labs/devset/commit/dc2cf244f48354273f5ceec535e6214d9419bd10) Take atxp v0.7.0
+- [dc0c896](https://github.com/atomix-labs/devset/commit/dc0c89652f732b933ebd9b3d5f98f225419bf96f) *(devset-cli)* Match any atxp release in the skeleton's snapshots
+
+**Full Changelog**: <https://github.com/atomix-labs/devset/compare/v0.4.0...v0.4.1>
+
 ## [0.4.0](https://github.com/atomix-labs/devset/releases/tag/v0.4.0) - 2026-09-27
 
 ### Features
