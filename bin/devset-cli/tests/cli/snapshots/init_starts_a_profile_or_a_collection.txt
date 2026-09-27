@@ -7,7 +7,7 @@ help: list its files in my-lint/profile.toml and put them under my-lint/files/; 
 [profile]
 name        = "my-lint"
 description = "One line: what this profile sets up"
-devset      = ">=0.3"
+devset      = ">=[..]"
 
 # Profiles this one builds on, by name in its source; each applies before it.
 # [requires]
