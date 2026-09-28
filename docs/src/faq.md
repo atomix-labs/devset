@@ -114,3 +114,8 @@ needs nothing.
 
 Delete `.devset/`, and whatever runs devset: every file stays as it is.
 [Stop Using devset](stop-using.md)
+
+## My Question Is Not Here
+
+Ask it in [Discussions](https://github.com/atomix-labs/devset/discussions),
+under Q&A, where the answer helps the next person too.

@@ -1,5 +1,8 @@
 blank_issues_enabled: false
 contact_links:
+  - name: Ask a question
+    url: https://github.com/atomix-labs/devset/discussions/new?category=q-a
+    about: A question, or an idea to talk over before it is a request
   - name: FAQ
     url: https://atomix-labs.github.io/devset/faq.html
     about: The questions people ask of tools like devset, and devset's answers

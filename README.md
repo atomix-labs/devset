@@ -186,7 +186,8 @@ just check    # formatting, lints, tests and the docs, as CI runs them
 ```
 
 [CONTRIBUTING.md][Contributing] has the rest: how a pull request lands, the
-tests and snapshots, and the style. [Report a bug] or [request a feature].
+tests and snapshots, and the style. [Report a bug], [request a feature], or ask
+a question in [Discussions].
 
 ## License
 
@@ -210,7 +211,8 @@ MIT: see [LICENSE][license].
 [Architecture]: https://github.com/atomix-labs/devset/blob/main/ARCHITECTURE.md
 [Contributing]: https://github.com/atomix-labs/devset/blob/main/CONTRIBUTING.md
 [Security]: https://github.com/atomix-labs/devset/blob/main/SECURITY.md
-[Report a bug]: https://github.com/atomix-labs/devset/issues/new?template=bug_report.md
-[request a feature]: https://github.com/atomix-labs/devset/issues/new?template=feature_request.md
+[Discussions]: https://github.com/atomix-labs/devset/discussions
+[Report a bug]: https://github.com/atomix-labs/devset/issues/new?template=bug_report.yml
+[request a feature]: https://github.com/atomix-labs/devset/issues/new?template=feature_request.yml
 [docs.rs]: https://docs.rs/devset-core
 [license]: https://github.com/atomix-labs/devset/blob/main/LICENSE
