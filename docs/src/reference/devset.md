@@ -30,7 +30,7 @@ Global Options:
       --no-color  Never colour output
 
 Examples:
-  devset add atxp/rust --git https://github.com/atomix-labs/atxp --tag v0.13.1
+  devset add atxp/rust --git https://github.com/atomix-labs/atxp --tag v0.13.2
   devset add atxp/mdbook --features katex
   devset status
   devset update --dry-run

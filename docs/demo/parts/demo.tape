@@ -32,7 +32,7 @@ Enter
 Wait@30s
 Sleep 3s
 
-Type "devset update atxp --tag v0.13.1"
+Type "devset update atxp --tag v0.13.2"
 Sleep 400ms
 Enter
 Wait@30s

@@ -29,5 +29,5 @@ Global Options:
 Examples:
   devset list                                   every source the target names
   devset list atxp                              one of them
-  devset list --git https://github.com/atomix-labs/atxp --tag v0.13.1
+  devset list --git https://github.com/atomix-labs/atxp --tag v0.13.2
 ```
