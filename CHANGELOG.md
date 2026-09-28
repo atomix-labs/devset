@@ -3,6 +3,35 @@
 Every release, newest first, written by [git-cliff](https://git-cliff.org) from the commits.
 [BREAKING-CHANGES.md](BREAKING-CHANGES.md) says how to move across a breaking change.
 
+## [0.5.3](https://github.com/atomix-labs/devset/releases/tag/v0.5.3) - 2026-09-28
+
+### Features
+
+- [d21a2d9](https://github.com/atomix-labs/devset/commit/d21a2d95646f32ebe03a41de9426eef93a8028dd) Ship shell completions in each release archive ([#46](https://github.com/atomix-labs/devset/pull/46))
+
+### Performance
+
+- [69be7c7](https://github.com/atomix-labs/devset/commit/69be7c76cc919c04d2a9c8d20fb205bf80853f42) *(docs)* Build the demo's devset in the dev profile ([#38](https://github.com/atomix-labs/devset/pull/38))
+
+### Documentation
+
+- [dae2956](https://github.com/atomix-labs/devset/commit/dae29562fe55f786b64039b8f966c75443a04adf) Offer a managed-with-devset badge, and point to the collections' topic ([#45](https://github.com/atomix-labs/devset/pull/45))
+- [dd6159c](https://github.com/atomix-labs/devset/commit/dd6159ce09ed8c50abbef12aafba56f59aaa5507) Say how to upgrade and remove devset, and where it runs ([#44](https://github.com/atomix-labs/devset/pull/44))
+- [24c9bea](https://github.com/atomix-labs/devset/commit/24c9bead2775052e675dd411dc23cb44c0e096ca) Record the demo ([#43](https://github.com/atomix-labs/devset/pull/43))
+- [64b0b07](https://github.com/atomix-labs/devset/commit/64b0b079b47ffc24b9a2298f6d217d55e79ef768) Show a contributor how to set up devset ([#37](https://github.com/atomix-labs/devset/pull/37))
+- [67cbd95](https://github.com/atomix-labs/devset/commit/67cbd950d3106bc7f600f384989af9797da91812) Record the demo for v0.5.2 ([#34](https://github.com/atomix-labs/devset/pull/34))
+
+### Miscellaneous
+
+- [91a60b0](https://github.com/atomix-labs/devset/commit/91a60b0e184793e0b295d3cd8ee573232722dc23) Take atxp v0.14.0 ([#42](https://github.com/atomix-labs/devset/pull/42))
+- [e4e9a13](https://github.com/atomix-labs/devset/commit/e4e9a13cf3ccbdeda5800ffeb0d01ff9d921f323) Take atxp v0.13.2 ([#41](https://github.com/atomix-labs/devset/pull/41))
+- [2253257](https://github.com/atomix-labs/devset/commit/2253257a3c0f2eb7ed837e3e71fc97e887077f1a) Take atxp v0.13.1 ([#40](https://github.com/atomix-labs/devset/pull/40))
+- [f0b8dd0](https://github.com/atomix-labs/devset/commit/f0b8dd0882c0499b9dbef69233daa123d4fc642a) Take atxp v0.13.0 ([#39](https://github.com/atomix-labs/devset/pull/39))
+- [b8966ce](https://github.com/atomix-labs/devset/commit/b8966ce9a268a49fda7efbfa309b69b3e128e45d) Take atxp v0.12.1 ([#36](https://github.com/atomix-labs/devset/pull/36))
+- [e2423eb](https://github.com/atomix-labs/devset/commit/e2423eb2486928014f0d09a5b2d6e1f7842021a7) Take atxp v0.11.1
+
+**Full Changelog**: <https://github.com/atomix-labs/devset/compare/v0.5.2...v0.5.3>
+
 ## [0.5.2](https://github.com/atomix-labs/devset/releases/tag/v0.5.2) - 2026-09-27
 
 ### Bug Fixes
@@ -13,7 +42,7 @@ Every release, newest first, written by [git-cliff](https://git-cliff.org) from 
 ### Documentation
 
 - [f33afc4](https://github.com/atomix-labs/devset/commit/f33afc4e7594f5695e812f701e804e410301a47c) Keep the devset a profile in the manual asks for at the series
-- [4bc237b](https://github.com/atomix-labs/devset/commit/4bc237b1c14a239931e30102608e62c09328d53c) Record the demo for v0.5.1 (#31)
+- [4bc237b](https://github.com/atomix-labs/devset/commit/4bc237b1c14a239931e30102608e62c09328d53c) Record the demo for v0.5.1 ([#31](https://github.com/atomix-labs/devset/pull/31))
 
 ### Miscellaneous
 
