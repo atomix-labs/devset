@@ -134,6 +134,14 @@ feature is on, another profile is applied, or a file exists. Put them in a git
 repository, and any repository takes one with `devset add base --git <url> --tag
 <tag>`. [Designing Profiles] has the craft of it.
 
+Collections others publish carry the GitHub topic
+[`devset-collection`](https://github.com/topics/devset-collection). A repository
+devset manages may say so with
+[![managed with devset](https://img.shields.io/badge/managed_with-devset-0969da?style=flat-square&logo=data:image/svg%2bxml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PHRpdGxlPmRldnNldDwvdGl0bGU+PHBhdGggZmlsbD0iI2YwZjZmYyIgZD0ibTE2IDMgMTMgNi41TDE2IDE2IDMgOS41WiIvPjxwYXRoIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2YwZjZmYyIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBzdHJva2Utd2lkdGg9IjIuNSIgZD0ibTMgMTYgMTMgNi41TDI5IDE2TTMgMjIuNSAxNiAyOWwxMy02LjUiLz48L3N2Zz4K)](https://github.com/atomix-labs/devset),
+which
+[Getting Started](https://atomix-labs.github.io/devset/getting-started.html#show-it)
+gives to copy.
+
 ## How It Compares
 
 cookiecutter starts a project from a template and leaves it there; copier and
