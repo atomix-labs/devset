@@ -382,7 +382,7 @@ dependencies = [
 
 [[package]]
 name = "devset-cli"
-version = "0.5.2"
+version = "0.5.3"
 dependencies = [
  "annotate-snippets",
  "anstream",
@@ -409,7 +409,7 @@ dependencies = [
 
 [[package]]
 name = "devset-core"
-version = "0.5.2"
+version = "0.5.3"
 dependencies = [
  "blake3",
  "camino",
