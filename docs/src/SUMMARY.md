@@ -49,6 +49,7 @@
 - [Settings](settings.md)
 - [Output and Exit Codes](reference/output.md)
 - [Schemas](schemas.md)
+- [Platforms and Rust Versions](platforms.md)
 
 # More
 
