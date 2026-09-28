@@ -7,11 +7,13 @@ says how devset is built.
 
 ## Reporting Issues
 
-Open an issue with the template that fits: a **bug report** gives devset's
-version, what you ran, what happened and what you expected, and how to reproduce
-it; a **feature request** says what you want to do that devset does not let you.
-A problem with a profile belongs in the repository that publishes it: for
-atxp's, [atxp's issues](https://github.com/atomix-labs/atxp/issues).
+Open an issue with the form that fits: a **bug report** gives devset's and git's
+versions, what you ran, what happened and what you expected, how to reproduce
+it, and `devset status -v`; a **feature request** says what you want to do that
+devset does not let you. A question, or an idea to talk over first, goes to
+[Discussions](https://github.com/atomix-labs/devset/discussions). A problem with
+a profile belongs in the repository that publishes it: for atxp's,
+[atxp's issues](https://github.com/atomix-labs/atxp/issues).
 
 A vulnerability is reported privately, as [SECURITY.md](SECURITY.md) says.
 
