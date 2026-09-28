@@ -69,7 +69,7 @@ A new Rust project, from atxp's bundle, set up and checked:
 
 ```sh
 mkdir hello && cd hello && git init
-devset add atxp/rust --git https://github.com/atomix-labs/atxp --tag v0.11.1 --var repository=you/hello
+devset add atxp/rust --git https://github.com/atomix-labs/atxp --tag v0.12.1 --var repository=you/hello
 ./setup.sh && just check
 ```
 
@@ -79,7 +79,7 @@ owns part of a file joins, taking only its keys or its block. `--dry-run` shows
 what would change first:
 
 ```sh
-devset add atxp/rust --git https://github.com/atomix-labs/atxp --tag v0.11.1 --dry-run
+devset add atxp/rust --git https://github.com/atomix-labs/atxp --tag v0.12.1 --dry-run
 ```
 
 In CI, fail the build when a file has drifted from its profile:

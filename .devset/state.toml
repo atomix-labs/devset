@@ -97,8 +97,8 @@ exact = "efd4059cd877ad807ce033f3c281bb304d227497e86d78c676dc64aabe1bddee"
 canonical = "efd4059cd877ad807ce033f3c281bb304d227497e86d78c676dc64aabe1bddee"
 
 [files.".config/mise/conf.d/devset-cargo-hack.toml"]
-exact = "d446ea87e6118ccf41895bcf859483d19767ae342cb81f5655dd50442c57ee5b"
-canonical = "d446ea87e6118ccf41895bcf859483d19767ae342cb81f5655dd50442c57ee5b"
+exact = "c9de9fd0882a7a7a26e47d5096060641fcba621e72aa86754fe19d972dba9806"
+canonical = "c9de9fd0882a7a7a26e47d5096060641fcba621e72aa86754fe19d972dba9806"
 
 [files.".config/mise/conf.d/devset-cargo-manifest.toml"]
 exact = "325d8ea7f7f18713f6aa7418f67bd8a33f214e721cdcb7bfa7a91852750b5cdc"
@@ -109,8 +109,8 @@ exact = "b42d621e2eca9a33037d320e7611e3f5020464ea80e296c5db363730662e21c9"
 canonical = "b42d621e2eca9a33037d320e7611e3f5020464ea80e296c5db363730662e21c9"
 
 [files.".config/mise/conf.d/devset-cargo-unused.toml"]
-exact = "a6ecd03717231e7498c01c3ebcbb9c4c22278797b43d05cf01801fc006382f2b"
-canonical = "204e3d01b814804489a65ee76b2f3e820436957320309b45fa912d1e426fc7af"
+exact = "91e3d4290e871b82a4fc0acd9b8b3235ed7a43250b74b945e4828aad31134317"
+canonical = "2cb90a209f614092d7a2bbfef6fc0c806b09526b33ef2b1a9dd290b5a37350d1"
 
 [files.".config/mise/conf.d/devset-devset.toml"]
 exact = "a26dc769f455ffc586233771fe01f6cbb61967ee3cac88bd93ab5e107fd1d724"
@@ -153,8 +153,8 @@ exact = "c15cdbbcae6c3b72efad54ec9c3d2c3aec89978b39808d2bd6213797fdcc5da5"
 canonical = "c15cdbbcae6c3b72efad54ec9c3d2c3aec89978b39808d2bd6213797fdcc5da5"
 
 [files.".config/mise/conf.d/devset-mise.toml"]
-exact = "1274c5d252fd47ce75be2907e123c5e8e4ebdaf9a1790f3dc411d21175ad2c21"
-canonical = "1274c5d252fd47ce75be2907e123c5e8e4ebdaf9a1790f3dc411d21175ad2c21"
+exact = "ea0bfdc3d5e75a54286b711536d68c390d6aee712bd6b90300a5163190b2bf50"
+canonical = "ea0bfdc3d5e75a54286b711536d68c390d6aee712bd6b90300a5163190b2bf50"
 
 [files.".config/mise/conf.d/devset-python.toml"]
 exact = "8900268bc5bdf0b6ebe7fa150850a8937829f79725bd5612ab1ec600b75c88fb"
@@ -239,20 +239,24 @@ exact = "ec3cbc62c615c7537821266d5225ebdddb76e8d7498c1b2ef36553b202c1e401"
 canonical = "ec3cbc62c615c7537821266d5225ebdddb76e8d7498c1b2ef36553b202c1e401"
 
 [files.".github/workflows/check.yml"]
-exact = "ffec8c8d6fc3c5b062767248ae72a1f1961a0deed410f6c26c3b852e7cddc6b1"
-canonical = "ffec8c8d6fc3c5b062767248ae72a1f1961a0deed410f6c26c3b852e7cddc6b1"
+exact = "97117155aee78701cc1fb3ec5c0b4c83922c8f088737e6b1fcf10449892a4a68"
+canonical = "97117155aee78701cc1fb3ec5c0b4c83922c8f088737e6b1fcf10449892a4a68"
 
 [files.".github/workflows/demo.yml"]
 exact = "55d5881c89c0e4b30e0b8daed8f987421d1f4e7dc4d9a958da3165be26d7acd1"
 canonical = "55d5881c89c0e4b30e0b8daed8f987421d1f4e7dc4d9a958da3165be26d7acd1"
 
 [files.".github/workflows/nightly.yml"]
-exact = "ff2d3a3cd026deafa61fe7b2979778b5ce42efedb26d622c696fec4a593ee8a5"
-canonical = "ff2d3a3cd026deafa61fe7b2979778b5ce42efedb26d622c696fec4a593ee8a5"
+exact = "e1c62e7f254881b37780431769d19f0673f2446746b850ed2f34d9fb606608d9"
+canonical = "e1c62e7f254881b37780431769d19f0673f2446746b850ed2f34d9fb606608d9"
 
 [files.".github/workflows/release.yml"]
-exact = "66bd10d134199e205c2754f8c05299cd2a979c74230faec01c93e0c084952ae1"
-canonical = "66bd10d134199e205c2754f8c05299cd2a979c74230faec01c93e0c084952ae1"
+exact = "e347ab270fd0e14adb48cb390b5b19dde4f941fe2312e356b04d07d6c2507f73"
+canonical = "e347ab270fd0e14adb48cb390b5b19dde4f941fe2312e356b04d07d6c2507f73"
+
+[files.".github/workflows/title.yml"]
+exact = "8529a4b6808d279bdebb9488fcc53c063fc6b9892802857fcf26a4104dfef592"
+canonical = "8529a4b6808d279bdebb9488fcc53c063fc6b9892802857fcf26a4104dfef592"
 
 [files.".github/workflows/watch.yml"]
 exact = "51beac8abe7056cba86bd93d9dde1993c4ea9854ea820dc3f6c2e8a659ea51e0"
@@ -327,8 +331,8 @@ exact = "0393ca20a05e6a7f6089b05a892c62d464ba40579649faa0f99ee6560eef4a59"
 canonical = "0393ca20a05e6a7f6089b05a892c62d464ba40579649faa0f99ee6560eef4a59"
 
 [files.".just/git-commits.just"]
-exact = "9fca67db8ccd75372f5b50876e7066b6f6b25d3dfe834a7cbc8e6661a3e9d70f"
-canonical = "9fca67db8ccd75372f5b50876e7066b6f6b25d3dfe834a7cbc8e6661a3e9d70f"
+exact = "60d03daee633864b3a0a620178bd99d2c68bcc5613856a362a1e5a75ae662dc5"
+canonical = "60d03daee633864b3a0a620178bd99d2c68bcc5613856a362a1e5a75ae662dc5"
 
 [files.".just/github-workflow-lint.just"]
 exact = "0c2d08e020c16a193f7536edb88e8d3505a204aec849a061573d30d4902209cf"
@@ -355,8 +359,8 @@ exact = "cdd62d3a0bfad2545b71465595c32dbb00396dc7592c73333565f62e3a2aab51"
 canonical = "cdd62d3a0bfad2545b71465595c32dbb00396dc7592c73333565f62e3a2aab51"
 
 [files.".just/mise.py"]
-exact = "14f0bd52c7653fbefd23ffff0665a60567e722b7ffe078b68778dd8627780ddc"
-canonical = "14f0bd52c7653fbefd23ffff0665a60567e722b7ffe078b68778dd8627780ddc"
+exact = "5f675325379a729987237cdea535911c68f645011716c69e87c0b995e30b1b15"
+canonical = "5f675325379a729987237cdea535911c68f645011716c69e87c0b995e30b1b15"
 
 [files.".just/python.just"]
 exact = "fd5a2ce0b87c59d95cf2ddcc4ae576d74221388967ec37d66b3058ce7b676f70"
@@ -443,8 +447,8 @@ canonical = "70b1ca5ad27cc1b086188fec581d9fa8e83348a5e85ffe1b00eeab5870ed3945"
 policy = "once"
 
 [files."cliff.toml"]
-exact = "a4799a52ebc7c6dc41daa1349e62257083c8a54658230a9d26c92c77d54c3fd1"
-canonical = "a4799a52ebc7c6dc41daa1349e62257083c8a54658230a9d26c92c77d54c3fd1"
+exact = "82274c4d501df9bfed94841b1af906caf143083cddad9e48c38341d48ccd2228"
+canonical = "82274c4d501df9bfed94841b1af906caf143083cddad9e48c38341d48ccd2228"
 
 [files."committed.toml"]
 exact = "e247332cdf9e82db6b29a70b0d6628a6dba1054fcb1e76664602f6cda7cfe20e"
@@ -614,8 +618,8 @@ canonical = "c71149783c08ce8b6c4906a82b6ab75aeefdbef3031abd5fe4d4f6f7b3210b28"
 
 [parts.".config/mise/mise.lock".cargo-hack]
 scope = "keys"
-exact = "7a48976caf9498904a9b6d52d014ca819c2daa3c090db4b6d68fa0c6b60d204f"
-canonical = "7a48976caf9498904a9b6d52d014ca819c2daa3c090db4b6d68fa0c6b60d204f"
+exact = "091dcabc25dea95527345b95c1b42a34fd19589085c1dc2a7b4f92eefdaf50cd"
+canonical = "091dcabc25dea95527345b95c1b42a34fd19589085c1dc2a7b4f92eefdaf50cd"
 
 [parts.".config/mise/mise.lock".cargo-manifest]
 scope = "keys"
@@ -629,8 +633,8 @@ canonical = "076b02f3887d505ca19fe67b10f71aca7cb4e3627643c11026583c31f7bd2546"
 
 [parts.".config/mise/mise.lock".cargo-unused]
 scope = "keys"
-exact = "74c639cd191f287879f19587cf75f9af01ebc474649fdafc00ffd82fdbdfa892"
-canonical = "74c639cd191f287879f19587cf75f9af01ebc474649fdafc00ffd82fdbdfa892"
+exact = "ee98849ce9e359b0ca7c10b2f299a35b99342c0eb05b36920c2de56b9d69432b"
+canonical = "ee98849ce9e359b0ca7c10b2f299a35b99342c0eb05b36920c2de56b9d69432b"
 
 [parts.".config/mise/mise.lock".devset]
 scope = "keys"
@@ -804,8 +808,8 @@ canonical = "bbc3a56be1d4968cb5d096598be8c3bab03f0ae669722cf21a58d33169fc0d0f"
 
 [parts."AGENTS.md".git-commits]
 scope = "block"
-exact = "45cc77ee89e84124fdad1b4cd10b96168665b04909972c94f5aba8a98b08c961"
-canonical = "399b6bdfaa1dca07e9e64c4074bc16a6ee64593b7e1c74a751dc3b99f42ce46d"
+exact = "2160577dedcf0b5ff8de2e5cf96184fcc97c05f301664cd3e17a40888e65fb04"
+canonical = "08202cbacde91784a85a553fdb63e216f90020c0d84fe7cab1445cbc0d99cda7"
 
 [parts."AGENTS.md".mdbook]
 scope = "block"
@@ -814,13 +818,18 @@ canonical = "b13a647382325e16cf666bb2bb1c7541920b29bba08c18b32fb5cb22a9855933"
 
 [parts."CONTRIBUTING.md".git-commits]
 scope = "block"
-exact = "f33bd71d99ca44c40904cf9e2a1942d33258da6653ca263f70b5e2c03d9a9d59"
-canonical = "d6009d01738f8efc5f4f63d1f87ccff416dd4ba4ecb7a9b77062ca756d9fde66"
+exact = "ddf288444f8d4a664c49fcdd34889f82cd5ba9897cfe00c0522db656bf7da0f8"
+canonical = "8370f539a11c7b96fad133ea2d16c668b014b3312c0c83eb4a539b356f697362"
 
 [parts."CONTRIBUTING.md".project]
 scope = "block"
 exact = "df3fd6a2c9daeaa7490523c0e5cf324f56dd78846f606fc8ba30191f0b1997a8"
 canonical = "c3978df92426497a95c09cf81d99010b5a325e16392c361cbc9b90a45e7556ee"
+
+[parts."CONTRIBUTING.md".setup]
+scope = "block"
+exact = "df766fc4aec2cb4387495485d25f23871bfb159ce32810503fb577721566fd52"
+canonical = "1500fac7842e1b2e06ca2c19795ad741fe2e65a7e3b14fc50aeb313f6ff32844"
 
 [parts."Cargo.toml".cargo-profiles]
 scope = "keys"
