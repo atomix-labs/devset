@@ -15,6 +15,7 @@
   <a href="https://crates.io/crates/devset-core"><img alt="crates.io" src="https://img.shields.io/crates/v/devset-core?style=flat-square"></a>
   <a href="https://docs.rs/devset-core"><img alt="docs.rs" src="https://img.shields.io/docsrs/devset-core?style=flat-square"></a>
   <a href="https://atomix-labs.github.io/devset/"><img alt="Book" src="https://img.shields.io/badge/book-read-blue?style=flat-square"></a>
+  <a href="https://github.com/atomix-labs/devset"><img alt="managed with devset" src="https://img.shields.io/badge/managed_with-devset-0969da?style=flat-square&amp;logo=data:image/svg%2bxml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PHRpdGxlPmRldnNldDwvdGl0bGU+PHBhdGggZmlsbD0iI2YwZjZmYyIgZD0ibTE2IDMgMTMgNi41TDE2IDE2IDMgOS41WiIvPjxwYXRoIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2YwZjZmYyIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBzdHJva2Utd2lkdGg9IjIuNSIgZD0ibTMgMTYgMTMgNi41TDI5IDE2TTMgMjIuNSAxNiAyOWwxMy02LjUiLz48L3N2Zz4K"></a>
 </p>
 
 <!-- dprint-ignore-end -->

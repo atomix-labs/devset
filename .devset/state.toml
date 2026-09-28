@@ -747,8 +747,8 @@ canonical = "101c66ee41425f624b75e0d8e0417a28c93be54fef7bd97514a51195d077ddf4"
 
 [parts.".github/automation.json".github-automation]
 scope = "keys"
-exact = "fe326ba7b24d0b06ea4732a0ee0a9e3597e7fdf4f665911738cd3b28359d900f"
-canonical = "fe326ba7b24d0b06ea4732a0ee0a9e3597e7fdf4f665911738cd3b28359d900f"
+exact = "ec5e0df8a74ad9ad7f204e8f7b98ee27cb6af8f22dd73904ef68c33d7de062e9"
+canonical = "ec5e0df8a74ad9ad7f204e8f7b98ee27cb6af8f22dd73904ef68c33d7de062e9"
 policy = "merge"
 
 [parts.".github/automation.json".mdbook]
@@ -862,8 +862,8 @@ canonical = "2f95ae17a56673dc32d8f1e1d80639835d4fd1a647efd36c69ea48e680a87c16"
 
 [parts."README.md".project]
 scope = "block"
-exact = "803406725f43b8e879b7b7f4d8be356a4338572554eb46929743dc4f091999cf"
-canonical = "803406725f43b8e879b7b7f4d8be356a4338572554eb46929743dc4f091999cf"
+exact = "766a7b8b9b7a421533bc46ebf022074002e34af4213b3136a4056ed177838291"
+canonical = "766a7b8b9b7a421533bc46ebf022074002e34af4213b3136a4056ed177838291"
 
 [parts."clippy.toml".rust-clippy]
 scope = "keys"
