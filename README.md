@@ -167,8 +167,18 @@ and cargo-generate, row by row.
 
 ## Contributing
 
-Issues and pull requests are welcome: read [CONTRIBUTING.md][Contributing]
-first. [Report a bug] or [request a feature].
+Issues and pull requests are welcome. To work on devset, fork it, clone your
+fork, and run `./setup.sh`, which installs mise, every tool devset pins and the
+nightly Rust toolchain; `install.sh` is for using devset, not for developing it.
+
+```sh
+git clone https://github.com/<you>/devset.git && cd devset
+./setup.sh
+just check    # formatting, lints, tests and the docs, as CI runs them
+```
+
+[CONTRIBUTING.md][Contributing] has the rest: how a pull request lands, the
+tests and snapshots, and the style. [Report a bug] or [request a feature].
 
 ## License
 
