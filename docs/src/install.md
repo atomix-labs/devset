@@ -31,25 +31,47 @@ curl --proto '=https' --tlsv1.2 -fsSL https://atomix-labs.github.io/devset/insta
 
 ## Other Ways
 
-| You use        | Install                                 | Upgrade                                  | Remove                                    |
-| -------------- | --------------------------------------- | ---------------------------------------- | ----------------------------------------- |
-| mise           | `mise use -g github:atomix-labs/devset` | `mise upgrade github:atomix-labs/devset` | `mise unuse -g github:atomix-labs/devset` |
-| cargo-binstall | `cargo binstall devset-cli`             | the same command                         | `cargo uninstall devset-cli`              |
-| cargo          | `cargo install --locked devset-cli`     | the same command                         | `cargo uninstall devset-cli`              |
+| You use        | Install                                 |
+| -------------- | --------------------------------------- |
+| mise           | `mise use -g github:atomix-labs/devset` |
+| cargo-binstall | `cargo binstall devset-cli`             |
+| cargo          | `cargo install --locked devset-cli`     |
 
 The package is `devset-cli`, and the binary `devset`; `cargo install` builds it
 with Rust 1.98 or later. In a repository, pin devset as its other tools are: a
 `mise.toml` naming `"github:atomix-labs/devset" = "0.5.3"` gives every machine
 and CI job the same one, and moving the pin upgrades them all.
 
-## Upgrade and Remove
+## Upgrade
 
-The installer upgrades as it installs: run the line again for the latest
-release, or with `-v <version>` for another. `--uninstall` removes the binary it
-would install, from the same `-b` directory if you gave one. The table above has
-the other ways'.
+devset upgrades the way it was installed. `devset --version` says which release
+runs, and [the releases](https://github.com/atomix-labs/devset/releases) list
+every one, each with what changed.
 
-Removing the binary leaves devset's cache of fetched sources, under
+| You installed with | Upgrade with                                                          |
+| ------------------ | --------------------------------------------------------------------- |
+| the installer      | the same line again, for the latest; with `-v <version>`, for another |
+| mise               | `mise upgrade github:atomix-labs/devset`                              |
+| cargo-binstall     | `cargo binstall devset-cli`                                           |
+| cargo              | `cargo install --locked devset-cli`                                   |
+
+An upgrade changes no repository: each keeps its sources at the tags its
+`.devset/config.toml` names until `devset update` moves them.
+
+## Uninstall
+
+| You installed with | Uninstall with                                                               |
+| ------------------ | ---------------------------------------------------------------------------- |
+| the installer      | the same line with `sh -s -- --uninstall`, and the same `-b` if you gave one |
+| mise               | `mise unuse -g github:atomix-labs/devset`                                    |
+| cargo-binstall     | `cargo uninstall devset-cli`                                                 |
+| cargo              | `cargo uninstall devset-cli`                                                 |
+
+```sh
+curl --proto '=https' --tlsv1.2 -fsSL https://atomix-labs.github.io/devset/install.sh | sh -s -- --uninstall
+```
+
+Uninstalling leaves devset's cache of fetched sources, under
 `$XDG_CACHE_HOME/devset/` or `~/.cache/devset/`, which is safe to delete, and
 any completion script you wrote. A repository devset manages keeps working
 without it: [Stop Using devset](stop-using.md) says what to delete there.
