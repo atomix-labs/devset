@@ -1,7 +1,7 @@
 # Contributing
 
-How to report a problem, and how to change devset: setting up a checkout, the
-commit convention, what counts as breaking, the checks, the command line's
+How to report a problem, and how to change devset: setting up a checkout, how a
+pull request lands, what counts as breaking, the checks, the command line's
 style, and how the documents are written. [ARCHITECTURE.md](ARCHITECTURE.md)
 says how devset is built.
 
@@ -15,34 +15,55 @@ atxp's, [atxp's issues](https://github.com/atomix-labs/atxp/issues).
 
 A vulnerability is reported privately, as [SECURITY.md](SECURITY.md) says.
 
-## A Checkout
+<!-- >>> devset: setup >>> -->
+
+## Getting Started
+
+`./setup.sh` readies a machine to work on the repository: it installs mise,
+pinned and checked against its release's sha256, then every tool the repository
+pins, at the version its lock records, and runs `just setup`. It needs git, curl
+and bash, installs into your home directory without sudo, and `--dry-run` says
+what it would do. Fork the repository, then:
+
+```sh
+git clone https://github.com/<you>/devset.git
+cd devset
+./setup.sh
+```
+
+Or clone and set up in one line:
+
+```sh
+curl -fsSL https://atomix-labs.github.io/atxp/setup.sh | bash -s -- github.com/atomix-labs/devset
+```
+
+The first run takes a few minutes; run it again after pulling, and it installs
+only what moved. `./setup.sh --activate` adds mise to your shell, so the tools
+are on `PATH` in every new one; without it, `mise exec -- just check` runs them.
+
+<!-- <<< devset: setup <<< -->
 
 devset applies the `rust` bundle of [atxp](https://github.com/atomix-labs/atxp)
 to itself, with the features and the profiles beside it that
 `.devset/config.toml` names, so its tools, checks and CI are atxp's, pinned in
-`.devset/`.
-
-```sh
-./setup.sh      # the tools the lock pins, then the pinned nightly toolchain
-just check      # every check, as CI runs them
-just fix        # every fix
-```
-
-Development runs on the nightly that `rust-toolchain.toml` pins; every crate
-also builds on the `rust-version` it declares, which `just check-rust-msrv`
-checks.
+`.devset/`. Development runs on the nightly that `rust-toolchain.toml` pins,
+which `./setup.sh` installs; every crate also builds on the `rust-version` it
+declares, which `just check-rust-msrv` checks. `install.sh` installs devset to
+use, not to develop.
 
 ## Pull Requests
 
 Keep each pull request to one change: a feature, a fix, or a refactor, not a mix
-of them.
+of them. Every change to `main` is a pull request, merged once its checks pass:
+`check`, every check recipe, and `title`, its title.
 
 <!-- >>> devset: git-commits >>> -->
 
 ## Commits
 
-Commits follow [Conventional Commits](https://www.conventionalcommits.org),
-which `just check-git-commits` holds every commit of a branch to:
+A pull request lands squashed, as one commit its title names, so its **title**
+follows [Conventional Commits](https://www.conventionalcommits.org), which CI
+checks on every edit:
 
 ```text
 type(scope): subject
@@ -52,8 +73,11 @@ type(scope): subject
   `ci`, `chore`, `style` or `revert`.
 - The **subject** is imperative, lower case, with no closing period: it is the
   line the changelog shows.
-- A breaking change adds `!` after the scope, and a `BREAKING CHANGE:` footer
-  saying what to do.
+- A breaking change adds `!` after the scope, and its description says what to
+  do.
+
+The commits on your branch are yours to shape; `just check-git-commits` checks
+them against the same rules, for a branch that reads well in review.
 
 <!-- <<< devset: git-commits <<< -->
 
