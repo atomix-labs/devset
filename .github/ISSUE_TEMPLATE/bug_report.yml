@@ -1,0 +1,50 @@
+name: Bug report
+description: devset does something it should not, or fails to do what the manual says
+labels: [bug]
+type: Bug
+body:
+  - type: input
+    id: devset
+    attributes:
+      label: devset --version
+      description: Its output, and your operating system.
+      placeholder: devset 0.5.2, Ubuntu 24.04 on x86-64
+    validations:
+      required: true
+  - type: input
+    id: git
+    attributes:
+      label: git --version
+      description: Its output; devset runs git to fetch a source.
+      placeholder: git version 2.51.0
+    validations:
+      required: true
+  - type: textarea
+    id: happened
+    attributes:
+      label: What happened
+      description: What you ran, and what it printed. `NO_COLOR=1` output pastes cleanly.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What was expected
+      description: What the manual says it does, or what you expected and why.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: To reproduce
+      description: The smallest profile, target and commands that show it.
+    validations:
+      required: true
+  - type: textarea
+    id: status
+    attributes:
+      label: devset status -v
+      description: Its output in the target, which names every layer, file and part.
+      render: text
+    validations:
+      required: true

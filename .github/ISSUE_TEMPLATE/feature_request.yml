@@ -1,0 +1,24 @@
+name: Feature request
+description: Something you want to do that devset does not let you
+labels: [enhancement]
+type: Feature
+body:
+  - type: textarea
+    id: want
+    attributes:
+      label: What you want to do
+      description: The task, in your repository's terms, not a solution yet.
+    validations:
+      required: true
+  - type: textarea
+    id: stops
+    attributes:
+      label: What stops you
+      description: What you tried with devset as it is, and where it falls short.
+    validations:
+      required: true
+  - type: textarea
+    id: help
+    attributes:
+      label: What would help
+      description: A command, a flag, or a profile field, if you have one in mind.

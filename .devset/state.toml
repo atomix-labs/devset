@@ -9,6 +9,12 @@ decision = "found"
 [scaffolds."git-changelog/changelog"]
 decision = "found"
 
+[scaffolds."github-release/notes"]
+decision = "written"
+
+[scaffolds."github-release/notes".files]
+".github/release-notes.md" = ".github/release-notes.md"
+
 [scaffolds."github-release/release"]
 decision = "found"
 
@@ -189,9 +195,9 @@ exact = "62d0e3c5617728fa47c9f95a7a3a3e0be3c5b73acf1f88157568c385d4124eac"
 canonical = "62d0e3c5617728fa47c9f95a7a3a3e0be3c5b73acf1f88157568c385d4124eac"
 policy = "merge"
 
-[files.".github/ISSUE_TEMPLATE/bug_report.md"]
-exact = "fea73f3ccbd584c7b2a747f1ae7d2b081fcc8eb5d1f53530e2832519043f1613"
-canonical = "fea73f3ccbd584c7b2a747f1ae7d2b081fcc8eb5d1f53530e2832519043f1613"
+[files.".github/ISSUE_TEMPLATE/bug_report.yml"]
+exact = "9c3656a6a4838c2a18ec147efbca21075b216584a07daf5af0a779bd8eda6a21"
+canonical = "9c3656a6a4838c2a18ec147efbca21075b216584a07daf5af0a779bd8eda6a21"
 policy = "once"
 
 [files.".github/ISSUE_TEMPLATE/config.yml"]
@@ -199,9 +205,9 @@ exact = "ced7dae838b019b08f80c8398498b171a4ab867a759bcfc2320f0db301bc64d6"
 canonical = "ced7dae838b019b08f80c8398498b171a4ab867a759bcfc2320f0db301bc64d6"
 policy = "once"
 
-[files.".github/ISSUE_TEMPLATE/feature_request.md"]
-exact = "37294a4c6bbe134c0785052f865675815a6c8279ede7dfafaaed5031f539caae"
-canonical = "37294a4c6bbe134c0785052f865675815a6c8279ede7dfafaaed5031f539caae"
+[files.".github/ISSUE_TEMPLATE/feature_request.yml"]
+exact = "39c1dc8e2960adb84e42d399ac0bf38eaa05910f4722fd7dc3eba40cc9f8f57a"
+canonical = "39c1dc8e2960adb84e42d399ac0bf38eaa05910f4722fd7dc3eba40cc9f8f57a"
 policy = "once"
 
 [files.".github/actionlint.yaml"]
@@ -216,6 +222,11 @@ policy = "merge"
 [files.".github/pull_request_template.md"]
 exact = "2662523c489fd93f8c2023219f7ccb8a77d4816ce278656bae4d6e8c2f8f1421"
 canonical = "2662523c489fd93f8c2023219f7ccb8a77d4816ce278656bae4d6e8c2f8f1421"
+policy = "once"
+
+[files.".github/release-notes.md"]
+exact = "716b087c1a962703c8246b2275af8c2b02e88ea4d4c7b501845416073a6c69c0"
+canonical = "716b087c1a962703c8246b2275af8c2b02e88ea4d4c7b501845416073a6c69c0"
 policy = "once"
 
 [files.".github/scripts/automation.js"]
@@ -243,16 +254,16 @@ exact = "fe709fe3a4aaa6722c6407688701454366c63ddcca92d3118e64630270e553c9"
 canonical = "fe709fe3a4aaa6722c6407688701454366c63ddcca92d3118e64630270e553c9"
 
 [files.".github/workflows/demo.yml"]
-exact = "03327f487ef47826346874e3588ba89d2ab1d3bc5b75122a7dd1ee04910062db"
-canonical = "03327f487ef47826346874e3588ba89d2ab1d3bc5b75122a7dd1ee04910062db"
+exact = "654c695069965a63fe33c683c19a01e32331962fe8bf49c77c135eca393f4ec4"
+canonical = "654c695069965a63fe33c683c19a01e32331962fe8bf49c77c135eca393f4ec4"
 
 [files.".github/workflows/nightly.yml"]
 exact = "7c8c8c486e3a743a1c20bba0cc859f4c27f7555440c328310e696b21d24f70bd"
 canonical = "7c8c8c486e3a743a1c20bba0cc859f4c27f7555440c328310e696b21d24f70bd"
 
 [files.".github/workflows/release.yml"]
-exact = "e347ab270fd0e14adb48cb390b5b19dde4f941fe2312e356b04d07d6c2507f73"
-canonical = "e347ab270fd0e14adb48cb390b5b19dde4f941fe2312e356b04d07d6c2507f73"
+exact = "96daef30d36c8a366b84b2104ed61b14aff1c6fa315eee12e68db005ffcc326f"
+canonical = "96daef30d36c8a366b84b2104ed61b14aff1c6fa315eee12e68db005ffcc326f"
 
 [files.".github/workflows/title.yml"]
 exact = "8529a4b6808d279bdebb9488fcc53c063fc6b9892802857fcf26a4104dfef592"
@@ -267,12 +278,12 @@ exact = "16253fa2b0144339f427808d4070502b7dc50f1155ecde41f4789957e1ee9e24"
 canonical = "16253fa2b0144339f427808d4070502b7dc50f1155ecde41f4789957e1ee9e24"
 
 [files.".just/cargo-binaries.just"]
-exact = "110f9dbe6c75b242b13b5245a96ad4385087db0abf0b0c47be1adc035a577368"
-canonical = "110f9dbe6c75b242b13b5245a96ad4385087db0abf0b0c47be1adc035a577368"
+exact = "cdf3340b7ae6cbe68ed42ce8f1cc88f970d1fcb89fc2c4cfdbf37a652f2d6e4d"
+canonical = "cdf3340b7ae6cbe68ed42ce8f1cc88f970d1fcb89fc2c4cfdbf37a652f2d6e4d"
 
 [files.".just/cargo-binaries.sh"]
-exact = "c0570313d06e5095d2bd15e480c7f97d327a9539f2920237f6734e0a7fdf480b"
-canonical = "c0570313d06e5095d2bd15e480c7f97d327a9539f2920237f6734e0a7fdf480b"
+exact = "f2274cc6588288742033c54209c9b2610faf0d6e772b20eb5d0999c9b97db1f1"
+canonical = "f2274cc6588288742033c54209c9b2610faf0d6e772b20eb5d0999c9b97db1f1"
 
 [files.".just/cargo-bump.just"]
 exact = "7b8a4643cba8bdfdc75c1985f6ccfe6e4ca9d21d0435d77faa466e011ae1a8cd"
@@ -333,6 +344,14 @@ canonical = "0393ca20a05e6a7f6089b05a892c62d464ba40579649faa0f99ee6560eef4a59"
 [files.".just/git-commits.just"]
 exact = "60d03daee633864b3a0a620178bd99d2c68bcc5613856a362a1e5a75ae662dc5"
 canonical = "60d03daee633864b3a0a620178bd99d2c68bcc5613856a362a1e5a75ae662dc5"
+
+[files.".just/github-release.just"]
+exact = "cc4d5b871c234bc0c71d387c56872034422fe59b7496ff2faa42c3fe39979fba"
+canonical = "cc4d5b871c234bc0c71d387c56872034422fe59b7496ff2faa42c3fe39979fba"
+
+[files.".just/github-release/notes.py"]
+exact = "61f1f9a755f9c573ada8866033ed3c1298e48d748f754b86d4452446caed80a3"
+canonical = "61f1f9a755f9c573ada8866033ed3c1298e48d748f754b86d4452446caed80a3"
 
 [files.".just/github-workflow-lint.just"]
 exact = "0c2d08e020c16a193f7536edb88e8d3505a204aec849a061573d30d4902209cf"
@@ -774,8 +793,8 @@ canonical = "75905f895ca860f37df4530f2578fcb238f6d8f36384b7366a5f9b4673bfa7fd"
 
 [parts.".rumdl.toml".markdown]
 scope = "keys"
-exact = "c477aa0f3762605dc3a99672827531aaf33f3705e15c3ccf07cb61422aec1ddc"
-canonical = "c477aa0f3762605dc3a99672827531aaf33f3705e15c3ccf07cb61422aec1ddc"
+exact = "33dbb6fdcf87dc5765b7a57b43c4823e5e842a71a872ff812cf8e33a2decbe16"
+canonical = "33dbb6fdcf87dc5765b7a57b43c4823e5e842a71a872ff812cf8e33a2decbe16"
 policy = "merge"
 
 [parts.".vscode/extensions.json".vscode]

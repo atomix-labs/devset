@@ -17,7 +17,7 @@ description = "Our repositories: atxp's rust bundle with the book, and our deplo
 devset      = ">=0.5"
 
 [requires]
-rust = { git = "https://github.com/atomix-labs/atxp", tag = "v0.14.0", features = ["docs"] }
+rust = { git = "https://github.com/atomix-labs/atxp", tag = "v0.15.0", features = ["docs"] }
 
 [files.".github/workflows/deploy.yml"]
 ```

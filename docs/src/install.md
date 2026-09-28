@@ -68,7 +68,9 @@ gh attestation verify devset-0.5.2-x86_64-unknown-linux-musl.tar.xz --repo atomi
 
 ## Shell Completions
 
-`devset completions <shell>` prints a completion script for bash, elvish, fish,
+Each release's archive holds them, in `completions/` beside the binary:
+`devset.bash`, `_devset` for zsh, `devset.fish`, `devset.elv` and `_devset.ps1`.
+`devset completions <shell>` prints the same script, for bash, elvish, fish,
 PowerShell or zsh:
 
 ```sh
