@@ -146,25 +146,25 @@ url = "https://github.com/orhun/git-cliff/releases/download/v2.14.2/git-cliff-2.
 url_api = "https://api.github.com/repos/orhun/git-cliff/releases/assets/573487203"
 
 [[tools."github:atomix-labs/devset"]]
-version = "0.5.0"
+version = "0.5.2"
 backend = "github:atomix-labs/devset"
 
 [tools."github:atomix-labs/devset"."platforms.linux-arm64"]
-checksum = "sha256:de078e47bf00630ef7d1bf3de5a32bf9bd17c3ac0922d638326a0a0be5f7f469"
-url = "https://github.com/atomix-labs/devset/releases/download/v0.5.0/devset-0.5.0-aarch64-unknown-linux-musl.tar.xz"
-url_api = "https://api.github.com/repos/atomix-labs/devset/releases/assets/593445688"
+checksum = "sha256:58bfc2b4d84ac1157ff5ce17fb2d155565da39d092da2842490c54bb0ef69304"
+url = "https://github.com/atomix-labs/devset/releases/download/v0.5.2/devset-0.5.2-aarch64-unknown-linux-musl.tar.xz"
+url_api = "https://api.github.com/repos/atomix-labs/devset/releases/assets/593784103"
 provenance = "github-attestations"
 
 [tools."github:atomix-labs/devset"."platforms.linux-x64"]
-checksum = "sha256:ec10e9d780b12068650aba8fd2f208a2d773d75985ea36113dd4b47cde7e2349"
-url = "https://github.com/atomix-labs/devset/releases/download/v0.5.0/devset-0.5.0-x86_64-unknown-linux-musl.tar.xz"
-url_api = "https://api.github.com/repos/atomix-labs/devset/releases/assets/593445690"
+checksum = "sha256:9d3cac309d7a90b784a1c79d50d2485d4e141d7a57c4a517bdd12984d74ed8a5"
+url = "https://github.com/atomix-labs/devset/releases/download/v0.5.2/devset-0.5.2-x86_64-unknown-linux-musl.tar.xz"
+url_api = "https://api.github.com/repos/atomix-labs/devset/releases/assets/593784106"
 provenance = "github-attestations"
 
 [tools."github:atomix-labs/devset"."platforms.macos-arm64"]
-checksum = "sha256:edf7202015ea46508930a83bb745888a510bf6c30d73d8cd2e1f9da27ae885d4"
-url = "https://github.com/atomix-labs/devset/releases/download/v0.5.0/devset-0.5.0-aarch64-apple-darwin.tar.xz"
-url_api = "https://api.github.com/repos/atomix-labs/devset/releases/assets/593445692"
+checksum = "sha256:11e6fe9b0c287ae90e398ed0c9166ad3e507976b49a20f9bc221bd3a884023a4"
+url = "https://github.com/atomix-labs/devset/releases/download/v0.5.2/devset-0.5.2-aarch64-apple-darwin.tar.xz"
+url_api = "https://api.github.com/repos/atomix-labs/devset/releases/assets/593784105"
 provenance = "github-attestations"
 
 [[tools."github:badboy/mdbook-mermaid"]]

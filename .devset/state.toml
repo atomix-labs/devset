@@ -113,8 +113,8 @@ exact = "a6ecd03717231e7498c01c3ebcbb9c4c22278797b43d05cf01801fc006382f2b"
 canonical = "204e3d01b814804489a65ee76b2f3e820436957320309b45fa912d1e426fc7af"
 
 [files.".config/mise/conf.d/devset-devset.toml"]
-exact = "506cf9e3eaed4e1d7fe7550fdda0d8ce719dddb5219740f85c7c0fb7a2380b45"
-canonical = "506cf9e3eaed4e1d7fe7550fdda0d8ce719dddb5219740f85c7c0fb7a2380b45"
+exact = "a26dc769f455ffc586233771fe01f6cbb61967ee3cac88bd93ab5e107fd1d724"
+canonical = "a26dc769f455ffc586233771fe01f6cbb61967ee3cac88bd93ab5e107fd1d724"
 
 [files.".config/mise/conf.d/devset-dprint.toml"]
 exact = "dfcfdcf5b432fa82ed896b95c7ac499f0e8219f11c9e4a8a3bc457a5e3f0f88f"
@@ -634,8 +634,8 @@ canonical = "74c639cd191f287879f19587cf75f9af01ebc474649fdafc00ffd82fdbdfa892"
 
 [parts.".config/mise/mise.lock".devset]
 scope = "keys"
-exact = "b1f8c62d7115b87ccccb108de7907e78d126c694def53c5a5a66e0464e30a511"
-canonical = "b1f8c62d7115b87ccccb108de7907e78d126c694def53c5a5a66e0464e30a511"
+exact = "5afc081f487531dadb7ff702746d900e0d5a1801adb7586e5c8d81bfb2a41b98"
+canonical = "5afc081f487531dadb7ff702746d900e0d5a1801adb7586e5c8d81bfb2a41b98"
 
 [parts.".config/mise/mise.lock".dprint]
 scope = "keys"

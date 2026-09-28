@@ -13,7 +13,7 @@ use devset_core::{NameError, SourceError};
 #[derive(Debug, Parser)]
 #[command(name = "devset", version, styles = clap_cargo::style::CLAP_STYLING, after_help = "\
 Examples:
-  devset add atxp/rust --git https://github.com/atomix-labs/atxp --tag v0.11.0
+  devset add atxp/rust --git https://github.com/atomix-labs/atxp --tag v0.11.1
   devset add atxp/mdbook --features katex
   devset status
   devset update --dry-run
@@ -202,7 +202,7 @@ Examples:
 Examples:
   devset list                                   every source the target names
   devset list atxp                              one of them
-  devset list --git https://github.com/atomix-labs/atxp --tag v0.11.0")]
+  devset list --git https://github.com/atomix-labs/atxp --tag v0.11.1")]
     List {
         /// A source the target names.
         #[arg(conflicts_with_all = ["git", "path"])]
