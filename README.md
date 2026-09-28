@@ -54,14 +54,16 @@ curl --proto '=https' --tlsv1.2 -fsSL https://atomix-labs.github.io/devset/insta
 A static binary for Linux, on x86-64 and Arm, or for macOS on Apple silicon,
 checked against its release's checksum and build attestation. Or:
 
-| With           | Install                                 | Update           |
-| -------------- | --------------------------------------- | ---------------- |
-| mise           | `mise use -g github:atomix-labs/devset` | `mise upgrade`   |
-| cargo-binstall | `cargo binstall devset-cli`             | the same command |
-| cargo          | `cargo install --locked devset-cli`     | the same command |
+| You use        | Install                                 | Upgrade                                  | Uninstall                                 |
+| -------------- | --------------------------------------- | ---------------------------------------- | ----------------------------------------- |
+| the installer  | the line above                          | the same line again                      | the line with `sh -s -- --uninstall`      |
+| mise           | `mise use -g github:atomix-labs/devset` | `mise upgrade github:atomix-labs/devset` | `mise unuse -g github:atomix-labs/devset` |
+| cargo-binstall | `cargo binstall devset-cli`             | the same command                         | `cargo uninstall devset-cli`              |
+| cargo          | `cargo install --locked devset-cli`     | the same command                         | `cargo uninstall devset-cli`              |
 
 The package is `devset-cli`, and the binary `devset`; `cargo install` builds it
-with Rust 1.98 or later.
+with Rust 1.98 or later. [Install] has the installer's options, checking a
+download, the shell completions, and what uninstalling leaves.
 
 ## Quick Start
 
@@ -212,6 +214,7 @@ MIT: see [LICENSE][license].
 [Contributing]: https://github.com/atomix-labs/devset/blob/main/CONTRIBUTING.md
 [Security]: https://github.com/atomix-labs/devset/blob/main/SECURITY.md
 [Discussions]: https://github.com/atomix-labs/devset/discussions
+[Install]: https://atomix-labs.github.io/devset/install.html
 [Report a bug]: https://github.com/atomix-labs/devset/issues/new?template=bug_report.yml
 [request a feature]: https://github.com/atomix-labs/devset/issues/new?template=feature_request.yml
 [docs.rs]: https://docs.rs/devset-core

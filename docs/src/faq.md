@@ -110,6 +110,14 @@ each source in its cache, and `.devset/lock.toml` pins the commit, so `apply`
 and `status` work offline once a source is fetched. A local directory source
 needs nothing.
 
+## How Do I Upgrade or Uninstall devset Itself?
+
+The way you installed it: the installer's line again upgrades, and with `sh
+-s -- --uninstall` removes; mise, cargo-binstall and cargo each have their own.
+[Install](install.md#upgrade) has each way's command, and what uninstalling
+leaves. An upgrade moves no repository to a new profile release: `devset update`
+does.
+
 ## How Do I Stop Using Devset?
 
 Delete `.devset/`, and whatever runs devset: every file stays as it is.
