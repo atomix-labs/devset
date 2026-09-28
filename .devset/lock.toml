@@ -208,7 +208,7 @@ tag = "v0.15.2"
 [[profiles]]
 name = "github-automation"
 rev = "74164522aed000d0b3264e1b3c387859e269bcf7"
-digest = "98efd9e0603a7db8b7ae83db0aaaba8ba9034388d123996a36dfa62de5f2fb88"
+digest = "10de1a406c7561a189a35f661540c9f58fc34c0b7561ab3cceae399d77aee764"
 
 [profiles.source]
 git = "https://github.com/atomix-labs/atxp"
@@ -226,11 +226,14 @@ tag = "v0.15.2"
 [[profiles]]
 name = "github-bump"
 rev = "74164522aed000d0b3264e1b3c387859e269bcf7"
-digest = "471df14cfa7afcd2c9a2844d8cef0d473d99c6b730b15022e90e512af85ae184"
+digest = "276a57663ad88b2b5e7bf49b7020cda1075bb7f8936bd18b4b886e4cfaa47876"
 
 [profiles.source]
 git = "https://github.com/atomix-labs/atxp"
 tag = "v0.15.2"
+
+[profiles.features]
+merge = ["target"]
 
 [[profiles]]
 name = "github-ci"
@@ -358,7 +361,7 @@ pages = ["default"]
 [[profiles]]
 name = "project"
 rev = "74164522aed000d0b3264e1b3c387859e269bcf7"
-digest = "482f7b78ff07c372e343383d61da246c82d6ce0723da69731dc8e24515321d48"
+digest = "421624204be2d176d426997b226d1621138348ff49d1dab5bf94c87ab5302474"
 
 [profiles.source]
 git = "https://github.com/atomix-labs/atxp"
@@ -368,6 +371,7 @@ tag = "v0.15.2"
 breaking-changes = ["default"]
 conduct = ["rust/oss"]
 contributing = ["default"]
+devset-badge = ["target"]
 license = ["default"]
 readme = ["default"]
 security = ["default"]

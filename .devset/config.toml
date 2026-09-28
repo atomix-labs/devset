@@ -42,3 +42,11 @@ features = ["mermaid"]
 [[layers]]
 profile = "atxp/cargo-binaries"
 features = ["completions"]
+
+[[layers]]
+profile = "atxp/project"
+features = ["devset-badge"]
+
+[[layers]]
+profile = "atxp/github-bump"
+features = ["merge"]
