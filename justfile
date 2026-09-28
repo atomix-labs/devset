@@ -1,6 +1,7 @@
 # devset's own recipes; the block below them is the `just` profile's.
 
 # Checks the manual's command reference and schemas are what this checkout's devset prints.
+[metadata("rust")]
 check-docs:
     mise exec -- python3 scripts/docs.py check
 
