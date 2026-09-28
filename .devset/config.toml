@@ -13,7 +13,7 @@
 #   features = ["docs"]
 
 [sources]
-atxp = { git = "https://github.com/atomix-labs/atxp", tag = "v0.14.0" }
+atxp = { git = "https://github.com/atomix-labs/atxp", tag = "v0.15.0" }
 
 [[layers]]
 profile = "atxp/rust"
@@ -38,3 +38,7 @@ features = ["merge"]
 [[layers]]
 profile = "atxp/mdbook"
 features = ["mermaid"]
+
+[[layers]]
+profile = "atxp/cargo-binaries"
+features = ["completions"]
