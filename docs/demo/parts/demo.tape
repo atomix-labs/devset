@@ -6,7 +6,7 @@ Require cargo
 Require git
 
 Hide
-Type "cargo build --quiet --locked --release --bin devset && export PATH=$PWD/target/release:$PATH"
+Type "cargo build --quiet --locked --bin devset && export PATH=$PWD/target/debug:$PATH"
 Enter
 Wait@900s
 Type "cd $(mktemp -d) && mkdir hello && cd hello && git init -q && clear"
