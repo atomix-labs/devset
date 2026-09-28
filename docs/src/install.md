@@ -31,16 +31,28 @@ curl --proto '=https' --tlsv1.2 -fsSL https://atomix-labs.github.io/devset/insta
 
 ## Other Ways
 
-| With           | Install                                 | Update           |
-| -------------- | --------------------------------------- | ---------------- |
-| mise           | `mise use -g github:atomix-labs/devset` | `mise upgrade`   |
-| cargo-binstall | `cargo binstall devset-cli`             | the same command |
-| cargo          | `cargo install --locked devset-cli`     | the same command |
+| You use        | Install                                 | Upgrade                                  | Remove                                    |
+| -------------- | --------------------------------------- | ---------------------------------------- | ----------------------------------------- |
+| mise           | `mise use -g github:atomix-labs/devset` | `mise upgrade github:atomix-labs/devset` | `mise unuse -g github:atomix-labs/devset` |
+| cargo-binstall | `cargo binstall devset-cli`             | the same command                         | `cargo uninstall devset-cli`              |
+| cargo          | `cargo install --locked devset-cli`     | the same command                         | `cargo uninstall devset-cli`              |
 
 The package is `devset-cli`, and the binary `devset`; `cargo install` builds it
 with Rust 1.98 or later. In a repository, pin devset as its other tools are: a
 `mise.toml` naming `"github:atomix-labs/devset" = "0.5.2"` gives every machine
-and CI job the same one.
+and CI job the same one, and moving the pin upgrades them all.
+
+## Upgrade and Remove
+
+The installer upgrades as it installs: run the line again for the latest
+release, or with `-v <version>` for another. `--uninstall` removes the binary it
+would install, from the same `-b` directory if you gave one. The table above has
+the other ways'.
+
+Removing the binary leaves devset's cache of fetched sources, under
+`$XDG_CACHE_HOME/devset/` or `~/.cache/devset/`, which is safe to delete, and
+any completion script you wrote. A repository devset manages keeps working
+without it: [Stop Using devset](stop-using.md) says what to delete there.
 
 ## Checking a Download
 
@@ -66,6 +78,9 @@ devset completions fish > ~/.config/fish/completions/devset.fish
 ```
 
 ## What It Needs
+
+[Platforms and Rust Versions](platforms.md) lists where the releases run and
+what builds devset from source.
 
 A source in a git repository needs `git` on your `PATH`; a local one needs
 nothing else. devset installs no other tool, and runs none a profile names.
