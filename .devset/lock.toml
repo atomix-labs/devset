@@ -2,138 +2,138 @@ version = 2
 
 [[profiles]]
 name = "just"
-rev = "fd7867591b6771312a305acdc5c3fd3b68cc35bb"
+rev = "f407f3a94e501f5d36df7a15115b13e54674e1df"
 digest = "c75b7711995a72e31d7cfefed0dce939cad9513e41ae5bba5862efb04ae1189f"
 
 [profiles.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.13.2"
+tag = "v0.14.0"
 
 [[profiles]]
 name = "agents"
-rev = "fd7867591b6771312a305acdc5c3fd3b68cc35bb"
+rev = "f407f3a94e501f5d36df7a15115b13e54674e1df"
 digest = "efa8b6900bd4bce66cb470ae7cae9ddf7ba4fb8c6921ece25ee035483a6c35d2"
 
 [profiles.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.13.2"
+tag = "v0.14.0"
 
 [profiles.features]
 hook = ["default"]
 
 [[profiles]]
 name = "mise"
-rev = "fd7867591b6771312a305acdc5c3fd3b68cc35bb"
+rev = "f407f3a94e501f5d36df7a15115b13e54674e1df"
 digest = "f5bdba05cb79541e2366e704841238453f1e41cd2881038da9212e7a76349882"
 
 [profiles.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.13.2"
+tag = "v0.14.0"
 
 [[profiles]]
 name = "rust-toolchain"
-rev = "fd7867591b6771312a305acdc5c3fd3b68cc35bb"
-digest = "e3389fd811b534f9fc5d00aac4c6054f4459b4c2df78889eb5879d07e544dc1a"
+rev = "f407f3a94e501f5d36df7a15115b13e54674e1df"
+digest = "bb37b6064da539febc0d6834b7ff455330236491ceb7430409b1bf2fa76773d2"
 
 [profiles.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.13.2"
+tag = "v0.14.0"
 
 [[profiles]]
 name = "cargo-binaries"
-rev = "fd7867591b6771312a305acdc5c3fd3b68cc35bb"
+rev = "f407f3a94e501f5d36df7a15115b13e54674e1df"
 digest = "1ec99ed4e15d3585c79dbaadec541427aeb8ee292008f4fc55f76e9419282a4b"
 
 [profiles.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.13.2"
+tag = "v0.14.0"
 
 [[profiles]]
 name = "cargo-workspace"
-rev = "fd7867591b6771312a305acdc5c3fd3b68cc35bb"
+rev = "f407f3a94e501f5d36df7a15115b13e54674e1df"
 digest = "df894a4d74b223275746f9e85d4782766a6a0af2e6f111114650cb1c2eda97d4"
 
 [profiles.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.13.2"
+tag = "v0.14.0"
 
 [[profiles]]
 name = "cargo-bump"
-rev = "fd7867591b6771312a305acdc5c3fd3b68cc35bb"
+rev = "f407f3a94e501f5d36df7a15115b13e54674e1df"
 digest = "e7cdc8fb76975788609583b1786fd438a2249b39440539d6f6e0da3e3cc7dad2"
 
 [profiles.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.13.2"
+tag = "v0.14.0"
 
 [[profiles]]
 name = "cargo-deny"
-rev = "fd7867591b6771312a305acdc5c3fd3b68cc35bb"
+rev = "f407f3a94e501f5d36df7a15115b13e54674e1df"
 digest = "72487458a0e5e2fc9d29d27d1ea7c0319ac95e0ddaae8145593217136df50ee1"
 
 [profiles.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.13.2"
+tag = "v0.14.0"
 
 [profiles.features]
 agents = ["rust/agents"]
 
 [[profiles]]
 name = "cargo-hack"
-rev = "fd7867591b6771312a305acdc5c3fd3b68cc35bb"
+rev = "f407f3a94e501f5d36df7a15115b13e54674e1df"
 digest = "89b9f55f062f149f4318b00214098feb6d8c5d06ec7329ea0d5a8cc0a7461514"
 
 [profiles.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.13.2"
+tag = "v0.14.0"
 
 [[profiles]]
 name = "cargo-manifest"
-rev = "fd7867591b6771312a305acdc5c3fd3b68cc35bb"
+rev = "f407f3a94e501f5d36df7a15115b13e54674e1df"
 digest = "b8b1b06a6ddf640d07ba9cf75f0fb5a356a401564d85ea7e708c9f49dde7966f"
 
 [profiles.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.13.2"
+tag = "v0.14.0"
 
 [profiles.features]
 agents = ["rust/agents"]
 
 [[profiles]]
 name = "cargo-nextest"
-rev = "fd7867591b6771312a305acdc5c3fd3b68cc35bb"
+rev = "f407f3a94e501f5d36df7a15115b13e54674e1df"
 digest = "ce1c3857b5a9489615070ff9cd7cba6441bccd6de3ffe2e9303c5c075c211dcb"
 
 [profiles.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.13.2"
+tag = "v0.14.0"
 
 [[profiles]]
 name = "cargo-profiles"
-rev = "fd7867591b6771312a305acdc5c3fd3b68cc35bb"
+rev = "f407f3a94e501f5d36df7a15115b13e54674e1df"
 digest = "35a4beac6e192367edbebe9ee6058942917f7170756d0d3fdf7a77d01fafc287"
 
 [profiles.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.13.2"
+tag = "v0.14.0"
 
 [[profiles]]
 name = "cargo-publish"
-rev = "fd7867591b6771312a305acdc5c3fd3b68cc35bb"
+rev = "f407f3a94e501f5d36df7a15115b13e54674e1df"
 digest = "327387fdba41bfc9d474ac804ec7255830ceff4be6f3fb77215f579b14f10c47"
 
 [profiles.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.13.2"
+tag = "v0.14.0"
 
 [[profiles]]
 name = "cargo-unused"
-rev = "fd7867591b6771312a305acdc5c3fd3b68cc35bb"
+rev = "f407f3a94e501f5d36df7a15115b13e54674e1df"
 digest = "6c5a9e293325654850025ae631654105f1c603d7e72beccbda20fdafc73e5d96"
 
 [profiles.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.13.2"
+tag = "v0.14.0"
 
 [profiles.features]
 machete = ["default"]
@@ -141,102 +141,102 @@ shear = ["default"]
 
 [[profiles]]
 name = "devset"
-rev = "fd7867591b6771312a305acdc5c3fd3b68cc35bb"
+rev = "f407f3a94e501f5d36df7a15115b13e54674e1df"
 digest = "01d4b9bdccb863fd538fae178522ff1dd81f2f572a859803dac644bb320a119c"
 
 [profiles.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.13.2"
+tag = "v0.14.0"
 
 [profiles.features]
 agents = ["rust/agents"]
 
 [[profiles]]
 name = "editorconfig"
-rev = "fd7867591b6771312a305acdc5c3fd3b68cc35bb"
+rev = "f407f3a94e501f5d36df7a15115b13e54674e1df"
 digest = "e1b9c57689290be868ff3a1d81e40985cbdaff418a0ac7f638d3d9b63132298a"
 
 [profiles.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.13.2"
+tag = "v0.14.0"
 
 [[profiles]]
 name = "git-attributes"
-rev = "fd7867591b6771312a305acdc5c3fd3b68cc35bb"
+rev = "f407f3a94e501f5d36df7a15115b13e54674e1df"
 digest = "1f0e46fc40b06a0acb7518bf5cbbaa084b035cf1cbc5fd969dc29897806087ab"
 
 [profiles.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.13.2"
+tag = "v0.14.0"
 
 [[profiles]]
 name = "git-changelog"
-rev = "fd7867591b6771312a305acdc5c3fd3b68cc35bb"
+rev = "f407f3a94e501f5d36df7a15115b13e54674e1df"
 digest = "6dfe895eb944827b9e56b8dc6baaf965baa982f0953fcae8e321c6e07c992158"
 
 [profiles.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.13.2"
+tag = "v0.14.0"
 
 [profiles.features]
 breaking-changes = ["project/breaking-changes"]
 
 [[profiles]]
 name = "git-commits"
-rev = "fd7867591b6771312a305acdc5c3fd3b68cc35bb"
+rev = "f407f3a94e501f5d36df7a15115b13e54674e1df"
 digest = "4cabd48a667bad13af3c0ba31af83435a4045b215418ca2d36852e86d09b0f6f"
 
 [profiles.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.13.2"
+tag = "v0.14.0"
 
 [profiles.features]
 agents = ["rust/agents"]
 
 [[profiles]]
 name = "git-ignore"
-rev = "fd7867591b6771312a305acdc5c3fd3b68cc35bb"
+rev = "f407f3a94e501f5d36df7a15115b13e54674e1df"
 digest = "1fd8a8c36ef5530a189d137ec7487162280e10cc8b3aa667624a519750788425"
 
 [profiles.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.13.2"
+tag = "v0.14.0"
 
 [[profiles]]
 name = "github-automation"
-rev = "fd7867591b6771312a305acdc5c3fd3b68cc35bb"
+rev = "f407f3a94e501f5d36df7a15115b13e54674e1df"
 digest = "98efd9e0603a7db8b7ae83db0aaaba8ba9034388d123996a36dfa62de5f2fb88"
 
 [profiles.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.13.2"
+tag = "v0.14.0"
 
 [[profiles]]
 name = "github-watch"
-rev = "fd7867591b6771312a305acdc5c3fd3b68cc35bb"
+rev = "f407f3a94e501f5d36df7a15115b13e54674e1df"
 digest = "f7c05ce0f6d9508886d34ec8bc91e3b7f31e76f1781d2f97c9727af7fbb2aa90"
 
 [profiles.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.13.2"
+tag = "v0.14.0"
 
 [[profiles]]
 name = "github-bump"
-rev = "fd7867591b6771312a305acdc5c3fd3b68cc35bb"
+rev = "f407f3a94e501f5d36df7a15115b13e54674e1df"
 digest = "471df14cfa7afcd2c9a2844d8cef0d473d99c6b730b15022e90e512af85ae184"
 
 [profiles.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.13.2"
+tag = "v0.14.0"
 
 [[profiles]]
 name = "github-ci"
-rev = "fd7867591b6771312a305acdc5c3fd3b68cc35bb"
+rev = "f407f3a94e501f5d36df7a15115b13e54674e1df"
 digest = "e25c4b4e365de63980a68493d7f0f99f9cdb24109fcc1b908870d5aa136f99a6"
 
 [profiles.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.13.2"
+tag = "v0.14.0"
 
 [profiles.features]
 agents = ["rust/agents"]
@@ -244,51 +244,51 @@ pages = ["mdbook/pages"]
 
 [[profiles]]
 name = "github-dependabot"
-rev = "fd7867591b6771312a305acdc5c3fd3b68cc35bb"
+rev = "f407f3a94e501f5d36df7a15115b13e54674e1df"
 digest = "eeb8a388383dcd88a0b29b8516a07bbed4ee955476f69b4bf19c5b5340556722"
 
 [profiles.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.13.2"
+tag = "v0.14.0"
 
 [[profiles]]
 name = "github-nightly"
-rev = "fd7867591b6771312a305acdc5c3fd3b68cc35bb"
+rev = "f407f3a94e501f5d36df7a15115b13e54674e1df"
 digest = "4f3e71830db9a06974b19bdcf22fa21ba7954278c5adb976d7355c41aeb4899e"
 
 [profiles.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.13.2"
+tag = "v0.14.0"
 
 [[profiles]]
 name = "github-release"
-rev = "fd7867591b6771312a305acdc5c3fd3b68cc35bb"
+rev = "f407f3a94e501f5d36df7a15115b13e54674e1df"
 digest = "d6342f19824e928e4b950bab3b4ac666d93cb02dfd706d28486b388f8a009244"
 
 [profiles.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.13.2"
+tag = "v0.14.0"
 
 [profiles.features]
 agents = ["rust/agents"]
 
 [[profiles]]
 name = "github-templates"
-rev = "fd7867591b6771312a305acdc5c3fd3b68cc35bb"
+rev = "f407f3a94e501f5d36df7a15115b13e54674e1df"
 digest = "9f4db606cece5145d1e67c858d430c8716fc95c48714eaa1dd36ac0bc8aee1bc"
 
 [profiles.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.13.2"
+tag = "v0.14.0"
 
 [[profiles]]
 name = "github-workflow-lint"
-rev = "fd7867591b6771312a305acdc5c3fd3b68cc35bb"
+rev = "f407f3a94e501f5d36df7a15115b13e54674e1df"
 digest = "87401a21b27ccd7a988d0dccdc2c18e8947161b89104fb6ec32b869d36bf7466"
 
 [profiles.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.13.2"
+tag = "v0.14.0"
 
 [profiles.features]
 actionlint = ["default"]
@@ -297,21 +297,21 @@ zizmor = ["default"]
 
 [[profiles]]
 name = "dprint"
-rev = "fd7867591b6771312a305acdc5c3fd3b68cc35bb"
+rev = "f407f3a94e501f5d36df7a15115b13e54674e1df"
 digest = "2d2d2fc7ffe0be6d69f28cefb846ba5762c114ef61994ed1bc329037ffcec8f0"
 
 [profiles.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.13.2"
+tag = "v0.14.0"
 
 [[profiles]]
 name = "markdown"
-rev = "fd7867591b6771312a305acdc5c3fd3b68cc35bb"
+rev = "f407f3a94e501f5d36df7a15115b13e54674e1df"
 digest = "367a6c702eab6ead9b10e544e5a79acf3b471c4a6b2fccaa37de2eae3aaf6a7f"
 
 [profiles.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.13.2"
+tag = "v0.14.0"
 
 [profiles.features]
 format = ["default"]
@@ -319,30 +319,30 @@ lint = ["default"]
 
 [[profiles]]
 name = "lychee"
-rev = "fd7867591b6771312a305acdc5c3fd3b68cc35bb"
+rev = "f407f3a94e501f5d36df7a15115b13e54674e1df"
 digest = "1d2c03ac88735d7cce4a53416f3871c1ddaacd887a6c6c85614cfc6fcf1c7c1c"
 
 [profiles.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.13.2"
+tag = "v0.14.0"
 
 [[profiles]]
 name = "mdbook-tool"
-rev = "fd7867591b6771312a305acdc5c3fd3b68cc35bb"
+rev = "f407f3a94e501f5d36df7a15115b13e54674e1df"
 digest = "cb1f9e1264ba2549d29990d93cab21c61c0bfe371ceb3b963a0416760ecbdc62"
 
 [profiles.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.13.2"
+tag = "v0.14.0"
 
 [[profiles]]
 name = "mdbook"
-rev = "fd7867591b6771312a305acdc5c3fd3b68cc35bb"
+rev = "f407f3a94e501f5d36df7a15115b13e54674e1df"
 digest = "8c2b7536b80dde0ab025ab505bb614d51ae047fe054e0ddf00d280d362bd1cd8"
 
 [profiles.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.13.2"
+tag = "v0.14.0"
 
 [profiles.features]
 agents = ["rust/agents"]
@@ -354,12 +354,12 @@ pages = ["default"]
 
 [[profiles]]
 name = "project"
-rev = "fd7867591b6771312a305acdc5c3fd3b68cc35bb"
+rev = "f407f3a94e501f5d36df7a15115b13e54674e1df"
 digest = "d2bb1144221bc816bffc4d153f04edefb29f481fa9e8b8009854b8f1fbf91912"
 
 [profiles.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.13.2"
+tag = "v0.14.0"
 
 [profiles.features]
 breaking-changes = ["default"]
@@ -371,84 +371,84 @@ security = ["default"]
 
 [[profiles]]
 name = "rust-clippy"
-rev = "fd7867591b6771312a305acdc5c3fd3b68cc35bb"
+rev = "f407f3a94e501f5d36df7a15115b13e54674e1df"
 digest = "d34de84c14fafa5154e89132e1eaeff94e4f30a25277b244106bd48ad9ec0afc"
 
 [profiles.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.13.2"
+tag = "v0.14.0"
 
 [[profiles]]
 name = "rust-doc"
-rev = "fd7867591b6771312a305acdc5c3fd3b68cc35bb"
+rev = "f407f3a94e501f5d36df7a15115b13e54674e1df"
 digest = "8663092c8e013aaa47c6d0e47cbc749edf4c6d0f7aededb177f9749062528f35"
 
 [profiles.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.13.2"
+tag = "v0.14.0"
 
 [profiles.features]
 agents = ["rust/agents"]
 
 [[profiles]]
 name = "rust-fmt"
-rev = "fd7867591b6771312a305acdc5c3fd3b68cc35bb"
+rev = "f407f3a94e501f5d36df7a15115b13e54674e1df"
 digest = "95cc546d1d0b3910bfc6b87db3effeba8cdcb5e7fb436601d248c868f5708b07"
 
 [profiles.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.13.2"
+tag = "v0.14.0"
 
 [[profiles]]
 name = "rust-lints"
-rev = "fd7867591b6771312a305acdc5c3fd3b68cc35bb"
+rev = "f407f3a94e501f5d36df7a15115b13e54674e1df"
 digest = "5dfa22f54042644766eec0f3fff361646f03411616196c3a6b230d20c111ebfc"
 
 [profiles.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.13.2"
+tag = "v0.14.0"
 
 [profiles.features]
 nightly = ["rust/nightly"]
 
 [[profiles]]
 name = "setup"
-rev = "fd7867591b6771312a305acdc5c3fd3b68cc35bb"
+rev = "f407f3a94e501f5d36df7a15115b13e54674e1df"
 digest = "7d65a33100aafd11c459907f9ca005da94f28b9a4ed7247b36b77fff4ecaafae"
 
 [profiles.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.13.2"
+tag = "v0.14.0"
 
 [[profiles]]
 name = "shell"
-rev = "fd7867591b6771312a305acdc5c3fd3b68cc35bb"
+rev = "f407f3a94e501f5d36df7a15115b13e54674e1df"
 digest = "1c5096572121f2c6f701d2447286eed65623592fd977d8670b4f7e684e72c72c"
 
 [profiles.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.13.2"
+tag = "v0.14.0"
 
 [profiles.features]
 lint = ["default"]
 
 [[profiles]]
 name = "spelling"
-rev = "fd7867591b6771312a305acdc5c3fd3b68cc35bb"
+rev = "f407f3a94e501f5d36df7a15115b13e54674e1df"
 digest = "172e999cb3e525669e536963dde38ed2632c29e3b4813d064967595f0e670e22"
 
 [profiles.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.13.2"
+tag = "v0.14.0"
 
 [[profiles]]
 name = "toml"
-rev = "fd7867591b6771312a305acdc5c3fd3b68cc35bb"
+rev = "f407f3a94e501f5d36df7a15115b13e54674e1df"
 digest = "e0932ead42c8f206dbe4e3b14d9cb88ce0630787f9ecc7379ddc68ab4e5e114d"
 
 [profiles.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.13.2"
+tag = "v0.14.0"
 
 [profiles.features]
 format = ["default"]
@@ -456,12 +456,12 @@ lint = ["default"]
 
 [[profiles]]
 name = "yaml"
-rev = "fd7867591b6771312a305acdc5c3fd3b68cc35bb"
+rev = "f407f3a94e501f5d36df7a15115b13e54674e1df"
 digest = "00f89f851f790fbb9ed82d614f4a02a629a3c2a01dc9941676e3454b51091353"
 
 [profiles.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.13.2"
+tag = "v0.14.0"
 
 [profiles.features]
 format = ["default"]
@@ -469,12 +469,12 @@ lint = ["default"]
 
 [[profiles]]
 name = "rust"
-rev = "fd7867591b6771312a305acdc5c3fd3b68cc35bb"
+rev = "f407f3a94e501f5d36df7a15115b13e54674e1df"
 digest = "790b7e98c65fb6bf0052e5113e65ad2fdacd43336e05802b3f830390448196b0"
 
 [profiles.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.13.2"
+tag = "v0.14.0"
 
 [profiles.features]
 agents = ["target"]
@@ -486,21 +486,21 @@ publish = ["target"]
 
 [[profiles]]
 name = "rust-msrv"
-rev = "fd7867591b6771312a305acdc5c3fd3b68cc35bb"
+rev = "f407f3a94e501f5d36df7a15115b13e54674e1df"
 digest = "44e5631c6d7f05f1e43c7ecd9d2508d2ac27c6edaab73718192d67f3fb2c7b0b"
 
 [profiles.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.13.2"
+tag = "v0.14.0"
 
 [[profiles]]
 name = "python"
-rev = "fd7867591b6771312a305acdc5c3fd3b68cc35bb"
+rev = "f407f3a94e501f5d36df7a15115b13e54674e1df"
 digest = "5032c4a3a9e6f595bd261c3d5bf3f5777e060f72dd0a79a5d6c25a040aa52b87"
 
 [profiles.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.13.2"
+tag = "v0.14.0"
 
 [profiles.features]
 format = ["default"]
@@ -508,30 +508,30 @@ lint = ["default"]
 
 [[profiles]]
 name = "vscode"
-rev = "fd7867591b6771312a305acdc5c3fd3b68cc35bb"
+rev = "f407f3a94e501f5d36df7a15115b13e54674e1df"
 digest = "10ad728c83c7f016eba11b446d94e8978e365a5c6ef24429ac7d6b2589fb38e4"
 
 [profiles.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.13.2"
+tag = "v0.14.0"
 
 [[profiles]]
 name = "suppressions"
-rev = "fd7867591b6771312a305acdc5c3fd3b68cc35bb"
+rev = "f407f3a94e501f5d36df7a15115b13e54674e1df"
 digest = "a71c4ff39523cea93a925f230779f6c4b8181472dfff166e5ff46a0b705ddd76"
 
 [profiles.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.13.2"
+tag = "v0.14.0"
 
 [[profiles]]
 name = "vhs"
-rev = "fd7867591b6771312a305acdc5c3fd3b68cc35bb"
+rev = "f407f3a94e501f5d36df7a15115b13e54674e1df"
 digest = "6c20aee4a82e00745b60e9db37598d5ddcc5f24d8bbe5434b6b635f729e61003"
 
 [profiles.source]
 git = "https://github.com/atomix-labs/atxp"
-tag = "v0.13.2"
+tag = "v0.14.0"
 
 [profiles.features]
 merge = ["target"]

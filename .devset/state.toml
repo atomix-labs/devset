@@ -904,8 +904,8 @@ policy = "merge"
 
 [parts."rust-toolchain.toml".rust-toolchain]
 scope = "keys"
-exact = "e9bf641e9ce4646211b41c6f990ddfdcee583f4e3bf3af0862d9175d6738bd18"
-canonical = "e9bf641e9ce4646211b41c6f990ddfdcee583f4e3bf3af0862d9175d6738bd18"
+exact = "68429565e2679cf9c31da998c9701639a0a8fdd55e649bbcb34f67cd29d79439"
+canonical = "68429565e2679cf9c31da998c9701639a0a8fdd55e649bbcb34f67cd29d79439"
 
 [parts."rustfmt.toml".rust-fmt]
 scope = "keys"
