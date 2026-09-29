@@ -1,0 +1,11 @@
+["assignees"]	["RishiDarkDevil"]
+["broken","labels"]	["automation"]
+["broken","type"]	"Bug"
+["bump","merge"]	true
+["bump","mode"]	"pr"
+["chore","labels"]	["dependencies","automation"]
+["chore","type"]	"Task"
+["demo","merge"]	true
+["docs","labels"]	["automation"]
+["docs","type"]	"Task"
+["nightly","skip_unchanged"]	true

@@ -1,6 +1,6 @@
 name: Feature request
 description: Something you want to do that devset does not let you
-labels: [enhancement]
+labels: [triage]
 type: Feature
 body:
   - type: textarea
