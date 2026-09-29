@@ -1,6 +1,6 @@
 name: Bug report
 description: devset does something it should not, or fails to do what the manual says
-labels: [bug]
+labels: [triage]
 type: Bug
 body:
   - type: input
