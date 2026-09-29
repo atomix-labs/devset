@@ -31,8 +31,8 @@ decision = "found"
 decision = "found"
 
 [files.".claude/hooks/check.sh"]
-exact = "0ba38df078e228a747756fedf082e3d06aea9555e08a1b47f73a34095212ee07"
-canonical = "0ba38df078e228a747756fedf082e3d06aea9555e08a1b47f73a34095212ee07"
+exact = "9ccdf435877abe0b89c73c81ff6f3b32ec371f502eaef1e62dd71bd1e1286e2b"
+canonical = "9ccdf435877abe0b89c73c81ff6f3b32ec371f502eaef1e62dd71bd1e1286e2b"
 
 [files.".claude/skills/cutting-releases/SKILL.md"]
 exact = "66c0a0b7ee8d8d33aff6e2b7685c7ce024d99abeb117ca5883316c0858d86178"
@@ -230,20 +230,20 @@ canonical = "716b087c1a962703c8246b2275af8c2b02e88ea4d4c7b501845416073a6c69c0"
 policy = "once"
 
 [files.".github/scripts/automation.js"]
-exact = "ae1e80b3f95958e0fa343bc1e8cf3cbe929a376b24474009da550b5bddbf36c0"
-canonical = "ae1e80b3f95958e0fa343bc1e8cf3cbe929a376b24474009da550b5bddbf36c0"
+exact = "7350adf2485726a4425def98ea49ad525c4ee1d9f304defcf346d84f21416c30"
+canonical = "7350adf2485726a4425def98ea49ad525c4ee1d9f304defcf346d84f21416c30"
 
 [files.".github/scripts/bump.js"]
-exact = "22548ff099dc8ea7a4cf08f5654f2127c7ed75cdf2964d121c61f6a3150e292c"
-canonical = "22548ff099dc8ea7a4cf08f5654f2127c7ed75cdf2964d121c61f6a3150e292c"
+exact = "18cbf82f94e1feb6f81afd1b10a16712449cb4ffaa830ce0a8cc9477023f33be"
+canonical = "18cbf82f94e1feb6f81afd1b10a16712449cb4ffaa830ce0a8cc9477023f33be"
 
 [files.".github/scripts/demo.js"]
 exact = "5e79a2f2922857ced4a9801e1207f525b8bad53c2e5cee68930cd24dc7c7703b"
 canonical = "5e79a2f2922857ced4a9801e1207f525b8bad53c2e5cee68930cd24dc7c7703b"
 
 [files.".github/scripts/watch.js"]
-exact = "9dc6ad6420557683d275dba0188a69321c41e49349ac3e336e917358310f984c"
-canonical = "9dc6ad6420557683d275dba0188a69321c41e49349ac3e336e917358310f984c"
+exact = "59b882fbad94e0849b341b823a212d4f11b1877eb919150310479114d4359829"
+canonical = "59b882fbad94e0849b341b823a212d4f11b1877eb919150310479114d4359829"
 
 [files.".github/workflows/bump.yml"]
 exact = "2e6a5ad7a240c5860e3feef7028a9bfe2e3e035df8c599192945077d24efacf2"
@@ -621,8 +621,8 @@ canonical = "c1b77d647da73c905c644a3a19b8a36ef0578ac036852adbd559ebe858d32b43"
 
 [parts.".claude/settings.json".agents]
 scope = "keys"
-exact = "fe2202380ee5d3692453d48649bffb97b3e7e8073d9c4426841d9c37dd9eec6f"
-canonical = "fe2202380ee5d3692453d48649bffb97b3e7e8073d9c4426841d9c37dd9eec6f"
+exact = "1a7a14e629fff766c9cf9e7f20e98374f899d7b957cdefc3170d31e036db943d"
+canonical = "1a7a14e629fff766c9cf9e7f20e98374f899d7b957cdefc3170d31e036db943d"
 policy = "merge"
 
 [parts.".config/mise/mise.lock".cargo-bump]

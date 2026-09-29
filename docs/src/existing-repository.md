@@ -7,7 +7,7 @@ from its profile. This page is what adopting real repositories taught.
 ## Look First
 
 ```sh
-devset add atxp/rust --git https://github.com/atomix-labs/atxp --tag v0.15.3 --dry-run
+devset add atxp/rust --git https://github.com/atomix-labs/atxp --tag v0.15.4 --dry-run
 ```
 
 `--dry-run` lists what the run would create, change or keep, and writes nothing.

@@ -40,5 +40,8 @@
     ],
     "deny": ["Bash(just publish*)", "Bash(just bump*)"]
   },
-  "hooks": { "Stop": [{ "hooks": [{ "type": "command", "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/check.sh", "timeout": 600 }] }] }
+  "hooks": {
+    "Stop": [{ "hooks": [{ "type": "command", "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/check.sh", "timeout": 600 }] }],
+    "UserPromptSubmit": [{ "hooks": [{ "type": "command", "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/check.sh start" }] }]
+  }
 }
