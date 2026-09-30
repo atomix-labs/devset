@@ -36,9 +36,12 @@
       "Bash(git status:*)",
       "Bash(git diff:*)",
       "Bash(git log:*)",
-      "Bash(git ls-files:*)"
+      "Bash(git ls-files:*)",
+      "Bash(git show:*)",
+      "Skill(humanize *)"
     ],
-    "deny": ["Bash(just publish*)", "Bash(just bump*)"]
+    "deny": ["Bash(just publish*)", "Bash(just * publish*)", "Bash(just bump*)", "Bash(just * bump*)"],
+    "ask": ["Bash(just * release*)"]
   },
   "hooks": {
     "Stop": [{ "hooks": [{ "type": "command", "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/check.sh", "timeout": 600 }] }],
