@@ -6,7 +6,7 @@
 //! error.
 //!
 //! ```text
-//! devset add atxp/rust --git https://github.com/atomix-labs/atxp --tag v0.18.0
+//! devset add atxp/rust --git https://github.com/atomix-labs/atxp --tag v0.20.0
 //! devset add atxp/mdbook --features katex
 //! devset status --exit-code
 //! devset update

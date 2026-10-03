@@ -5,6 +5,8 @@ exclude = [
     "**/target/**",
     ".devset/**",
     ".config/mise/conf.d/**",
+    ".notes/**",
+    ".secrets/**",
     "examples/**/files/**",
 ]
 

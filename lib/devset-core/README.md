@@ -2,8 +2,8 @@
 
 The library behind [devset]: versioned file bundles, applied to a directory and
 updated without losing local edits. The `devset` command line, in
-[`bin/devset-cli`](../../bin/devset-cli), reads arguments and prints reports;
-everything else is here.
+[`bin/devset-cli`](https://github.com/atomix-labs/devset/blob/main/bin/devset-cli),
+reads arguments and prints reports; everything else is here.
 
 ## The Chain
 
@@ -49,6 +49,7 @@ change to devset.
 
 ## License
 
-MIT, as the rest of devset: see [LICENSE](../../LICENSE).
+MIT, as the rest of devset: see
+[LICENSE](https://github.com/atomix-labs/devset/blob/main/LICENSE).
 
 [devset]: https://github.com/atomix-labs/devset
